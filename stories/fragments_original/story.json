@@ -1,0 +1,789 @@
+{
+  "events": [
+    {
+      "id": "tutorial_start",
+      "day": 1,
+      "time": "morning",
+      "earliest_hour": 5,
+      "latest_hour": 6,
+      "type": "mandatory",
+      "can_repeat": false,
+      "probability": 1.0,
+      
+      "text": "Bienvenido a Fragments. Este es un juego narrativo donde tus decisiones construyen tu realidad. Cada elección afecta tus estadísticas y desbloquea diferentes caminos. ¿Listo para comenzar tu día?",
+      
+      "conditions": {
+        "flags": {
+          "tutorial_completed": false
+        }
+      },
+      
+      "choices": [
+        {
+          "text": "Sí, estoy listo",
+          "effects": {
+            "flags": {
+              "tutorial_completed": true
+            }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "alarma_day1",
+      "day": 1,
+      "time": "morning",
+      "earliest_hour": 6,
+      "latest_hour": 7,
+      "type": "mandatory",
+      "can_repeat": false,
+      
+      "text": "Tu alarma suena insistente. 6:00 AM. Anoche te quedaste viendo 'solo un episodio más' hasta las 2:00. Tu cuerpo ruega por cinco minutos extra.",
+      
+      "conditions": {
+        "flags": {
+          "tutorial_completed": true
+        }
+      },
+      
+      "choices": [
+        {
+          "text": "Apagarla y seguir durmiendo (solo 5 minutos más...)",
+          "effects": {
+            "stats": { "energia": 2, "animo": -1, "caos": 1 },
+            "flags": { "woke_up_early_count": 0 }
+          }
+        },
+        {
+          "text": "Levantarte de un salto como soldado disciplinado",
+          "effects": {
+            "stats": { "energia": -1, "animo": 1, "caos": -1 },
+            "flags": { "woke_up_early_count": 1 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "ducha_day1",
+      "day": 1,
+      "time": "morning",
+      "earliest_hour": 7,
+      "latest_hour": 8,
+      "type": "optional",
+      
+      "text": "Entras al baño. El espejo te devuelve la mirada de alguien que necesita café, terapia, o ambos. El agua corre y tienes que decidir: ¿energía o confort?",
+      
+      "conditions": {
+        "completed_events": ["alarma_day1"]
+      },
+      
+      "choices": [
+        {
+          "text": "Ducha fría de 30 segundos (modo espartano)",
+          "effects": {
+            "stats": { "energia": 2, "animo": 0, "caos": 0 }
+          }
+        },
+        {
+          "text": "Ducha caliente de 20 minutos y concierto incluido",
+          "effects": {
+            "stats": { "energia": 0, "animo": 2, "caos": 1 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "cafe_dilema",
+      "day": 1,
+      "time": "morning",
+      "earliest_hour": 7,
+      "latest_hour": 9,
+      "type": "optional",
+      
+      "text": "En la cafetería, el barista se equivoca y te da el pedido de otra persona: un café gourmet de $8. Tu pedido normal cuesta $3. Él no se dio cuenta.",
+      
+      "conditions": {
+        "completed_events": ["ducha_day1"]
+      },
+      
+      "choices": [
+        {
+          "text": "Quedártelo (es karma positivo del universo)",
+          "effects": {
+            "stats": { "energia": 1, "animo": 1, "caos": 2 },
+            "flags": { "coffee_addiction": 1 },
+            "inventory": { "money": -3 }
+          }
+        },
+        {
+          "text": "Avisar del error (ser buena persona es agotador)",
+          "effects": {
+            "stats": { "energia": 0, "animo": 2, "caos": -1 },
+            "inventory": { "money": -3 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "trabajo_llegada_day1",
+      "day": 1,
+      "time": "morning",
+      "earliest_hour": 9,
+      "latest_hour": 10,
+      "type": "mandatory",
+      
+      "text": "Llegas 5 minutos antes al trabajo. Tu jefe aún no está. Tus compañeros están en la cocina chismeando. Tienes una montaña de emails sin leer.",
+      
+      "conditions": {
+        "completed_events": ["cafe_dilema"]
+      },
+      
+      "choices": [
+        {
+          "text": "Empezar a trabajar de inmediato (modo adulto responsable)",
+          "effects": {
+            "stats": { "energia": -1, "animo": 1, "caos": -1 },
+            "flags": { "work_performance": "excellent" },
+            "characters": { "jefe": { "relationship": 5 } }
+          }
+        },
+        {
+          "text": "Sumarte al chisme matutino (es culturalmente necesario)",
+          "effects": {
+            "stats": { "energia": 0, "animo": 1, "caos": 1 },
+            "flags": { "work_performance": "good" },
+            "characters": { "pablo": { "relationship": 5, "met": true } }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "pablo_ayuda",
+      "day": 1,
+      "time": "afternoon",
+      "earliest_hour": 11,
+      "latest_hour": 13,
+      "type": "optional",
+      "can_repeat": false,
+      
+      "text": "Tu compañero Pablo se acerca con cara de cachorro abandonado. 'Oye, ¿me ayudas con este reporte? Es que mi hija está enferma y...' Es la tercera vez este mes.",
+      
+      "conditions": {
+        "completed_events": ["trabajo_llegada_day1"],
+        "characters": {
+          "pablo": { "met": true }
+        }
+      },
+      
+      "choices": [
+        {
+          "text": "Ayudarlo (aunque sospechas que te está usando)",
+          "effects": {
+            "stats": { "energia": -2, "animo": 1, "caos": 0 },
+            "flags": { "helped_colleague_count": 1 },
+            "characters": { "pablo": { "relationship": 10 } }
+          }
+        },
+        {
+          "text": "Negarte con firmeza (ya no eres el salvador de nadie)",
+          "effects": {
+            "stats": { "energia": 0, "animo": -1, "caos": -1 },
+            "characters": { "pablo": { "relationship": -5 } }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "perro_callejero_day1",
+      "day": 1,
+      "time": "night",
+      "earliest_hour": 21,
+      "latest_hour": 23,
+      "type": "random",
+      "probability": 0.7,
+      "can_repeat": false,
+      
+      "text": "Un perro callejero te sigue de vuelta a casa. Está flaco, mojado, y te mira con ojos de 'adopta me'. Tu casero prohibe mascotas. Tu corazón dice otra cosa.",
+      
+      "conditions": {
+        "flags": {
+          "has_dog": false,
+          "adopted_street_dog": false
+        }
+      },
+      
+      "choices": [
+        {
+          "text": "Llevarlo a casa a escondidas (adopción ilegal pero amorosa)",
+          "effects": {
+            "stats": { "energia": -1, "animo": 3, "caos": 2 },
+            "flags": { "has_dog": true, "adopted_street_dog": true },
+            "inventory": { "money": -20, "items": ["collar_perro"] },
+            "unlock_events": ["veterinario_urgencia", "paseo_perro"]
+          }
+        },
+        {
+          "text": "Dejarlo ir con lágrimas en los ojos",
+          "effects": {
+            "stats": { "energia": 0, "animo": -3, "caos": 0 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "veterinario_urgencia",
+      "day": 2,
+      "time": "morning",
+      "earliest_hour": 7,
+      "latest_hour": 9,
+      "type": "forced",
+      
+      "text": "Tu nuevo perro (que aún no tiene nombre) empezó a vomitar a las 3 AM. Ahora estás en el veterinario de urgencias. El doctor dice que necesita vacunas y tratamiento. $150.",
+      
+      "conditions": {
+        "flags": {
+          "has_dog": true
+        },
+        "day_min": 2
+      },
+      
+      "choices": [
+        {
+          "text": "Pagar sin pensarlo (tu presupuesto grita)",
+          "effects": {
+            "stats": { "energia": -2, "animo": 1, "caos": 2 },
+            "inventory": { "money": -150 }
+          }
+        },
+        {
+          "text": "Pedir plan de pagos y sentirte mal",
+          "effects": {
+            "stats": { "energia": -1, "animo": -1, "caos": 1 },
+            "inventory": { "money": -50 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "mensaje_ex_day1",
+      "day": 1,
+      "time": "night",
+      "earliest_hour": 22,
+      "latest_hour": 23,
+      "type": "random",
+      "probability": 0.5,
+      "can_repeat": false,
+      
+      "text": "11:47 PM. Tu ex te escribe: '¿Podemos hablar? Te extraño.' Han pasado 8 meses. Estás casi superándolo. CASI. Esta notificación es una granada emocional.",
+      
+      "conditions": {
+        "flags": {
+          "relationship_status": "single",
+          "ignored_ex": false
+        }
+      },
+      
+      "choices": [
+        {
+          "text": "Responder inmediatamente (adiós progreso terapéutico)",
+          "effects": {
+            "stats": { "energia": -1, "animo": -2, "caos": 3 },
+            "characters": { "ex": { "relationship": 10, "met": true } },
+            "unlock_events": ["reunion_ex"]
+          }
+        },
+        {
+          "text": "Bloquear el número y dormir en paz",
+          "effects": {
+            "stats": { "energia": 0, "animo": 2, "caos": -1 },
+            "flags": { "ignored_ex": true }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "reunion_ex",
+      "day": 2,
+      "time": "afternoon",
+      "earliest_hour": 18,
+      "latest_hour": 20,
+      "type": "optional",
+      
+      "text": "Acordaste encontrarte con tu ex en el café donde tuvieron su primera cita. Llega 10 minutos tarde. Se ve igual. Tu corazón late rápido.",
+      
+      "conditions": {
+        "characters": {
+          "ex": { "met": true, "relationship_min": 5 }
+        }
+      },
+      
+      "choices": [
+        {
+          "text": "Darle una segunda oportunidad",
+          "effects": {
+            "stats": { "animo": 3, "caos": 2 },
+            "flags": { "relationship_status": "complicated" },
+            "characters": { "ex": { "relationship": 20 } }
+          }
+        },
+        {
+          "text": "Cerrar el ciclo definitivamente",
+          "effects": {
+            "stats": { "animo": -1, "caos": -2 },
+            "flags": { "broke_up": true, "relationship_status": "single" },
+            "characters": { "ex": { "relationship": -50 } }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "llamada_madre",
+      "day": 1,
+      "time": "afternoon",
+      "earliest_hour": 16,
+      "latest_hour": 18,
+      "type": "optional",
+      "can_repeat": false,
+      
+      "text": "Tu madre llama. 'Solo quería escuchar tu voz.' Hace 10 minutos que habla de la vecina y tú tienes una reunión en 5 minutos. Pero es tu madre.",
+      
+      "conditions": {},
+      
+      "choices": [
+        {
+          "text": "Escucharla pacientemente (amor filial > productividad)",
+          "effects": {
+            "stats": { "energia": -1, "animo": 2, "caos": 1 },
+            "characters": { "madre": { "relationship": 10 } },
+            "flags": { "called_mom_back": true }
+          }
+        },
+        {
+          "text": "Cortarla rápido con excusa (culpa incluida)",
+          "effects": {
+            "stats": { "energia": 0, "animo": -1, "caos": 0 },
+            "characters": { "madre": { "relationship": -5 } }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "hora_extra",
+      "day": 1,
+      "time": "afternoon",
+      "earliest_hour": 18,
+      "latest_hour": 19,
+      "type": "optional",
+      "can_repeat": false,
+      
+      "text": "Tu jefe pasa por tu escritorio: 'Necesito que te quedes una horita más.' Son las 6:00 PM. Una 'horita' en lenguaje jefe = 3 horas mínimo. No te pagarán extra.",
+      
+      "conditions": {
+        "completed_events": ["trabajo_llegada_day1"]
+      },
+      
+      "choices": [
+        {
+          "text": "Quedarte (bye vida personal)",
+          "effects": {
+            "stats": { "energia": -2, "animo": -2, "caos": 1 },
+            "characters": { "jefe": { "relationship": 15 } },
+            "flags": { "work_performance": "excellent" }
+          }
+        },
+        {
+          "text": "Negarte diplomáticamente (riesgo de carrera)",
+          "effects": {
+            "stats": { "energia": 0, "animo": 1, "caos": 0 },
+            "characters": { "jefe": { "relationship": -10 } }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "fin_dia_1",
+      "day": 1,
+      "time": "night",
+      "earliest_hour": 23,
+      "latest_hour": 24,
+      "type": "mandatory",
+      
+      "text": "El día llega a su fin. Te tiras en la cama, exhausto pero pensando en todo lo que pasó. Mañana será otro día, con nuevas decisiones y consecuencias.",
+      
+      "conditions": {
+        "day": 1
+      },
+      
+      "choices": [
+        {
+          "text": "Continuar al Día 2",
+          "effects": {
+            "trigger_next_day": true
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "despertar_dia_2",
+      "day": 2,
+      "time": "morning",
+      "earliest_hour": 6,
+      "latest_hour": 7,
+      "type": "mandatory",
+      
+      "text": "Día 2. Despiertas con las consecuencias del día anterior aún frescas. Tu cuerpo recuerda cada decisión. ¿Qué te deparará hoy?",
+      
+      "conditions": {
+        "day": 2
+      },
+      
+      "choices": [
+        {
+          "text": "Levantarte con energía renovada",
+          "effects": {
+            "stats": { "energia": 2, "animo": 1 }
+          }
+        },
+        {
+          "text": "Levantarte arrastrándote",
+          "effects": {
+            "stats": { "energia": -1, "animo": 0, "caos": 1 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "paseo_perro",
+      "day": 2,
+      "time": "morning",
+      "earliest_hour": 8,
+      "latest_hour": 10,
+      "type": "optional",
+      "can_repeat": true,
+      
+      "text": "Tu perro te mira con ojos suplicantes. Necesita salir. Es temprano, hace frío, pero esos ojos...",
+      
+      "conditions": {
+        "flags": {
+          "has_dog": true
+        }
+      },
+      
+      "choices": [
+        {
+          "text": "Sacarlo a pasear (responsabilidad canina)",
+          "effects": {
+            "stats": { "energia": -1, "animo": 2, "caos": 0 }
+          }
+        },
+        {
+          "text": "Dejarlo en el patio (sentirte culpable todo el día)",
+          "effects": {
+            "stats": { "energia": 0, "animo": -2, "caos": 1 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "promocion_trabajo",
+      "day": 3,
+      "time": "afternoon",
+      "earliest_hour": 14,
+      "latest_hour": 16,
+      "type": "random",
+      "probability": 0.3,
+      "can_repeat": false,
+      
+      "text": "Tu jefe te llama a su oficina. 'Hemos notado tu desempeño.' Tu corazón late rápido. ¿Es despido o promoción?",
+      
+      "conditions": {
+        "characters": {
+          "jefe": { "relationship_min": 60 }
+        },
+        "flags": {
+          "work_performance": "excellent"
+        }
+      },
+      
+      "choices": [
+        {
+          "text": "Escuchar con atención",
+          "effects": {
+            "stats": { "animo": 5, "energia": 1 },
+            "flags": { "got_promotion": true },
+            "inventory": { "money": 200 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "cafe_trabajo_dia_2",
+      "day": 2,
+      "time": "morning",
+      "earliest_hour": 9,
+      "latest_hour": 11,
+      "type": "optional",
+      
+      "text": "Llegas al trabajo. La máquina de café está rota OTRA VEZ. Tus opciones: comprarlo fuera ($5) o sobrevivir sin cafeína como nuestros ancestros.",
+      
+      "conditions": {},
+      
+      "choices": [
+        {
+          "text": "Ir a la cafetería de enfrente (inversión en salud mental)",
+          "effects": {
+            "stats": { "energia": 2, "animo": 1, "caos": 0 },
+            "inventory": { "money": -5 }
+          }
+        },
+        {
+          "text": "Resistir sin café (modo superhéroe)",
+          "effects": {
+            "stats": { "energia": -1, "animo": -1, "caos": 1 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "reunion_aburrida_dia_2",
+      "day": 2,
+      "time": "afternoon",
+      "earliest_hour": 14,
+      "latest_hour": 16,
+      "type": "optional",
+      "can_repeat": false,
+      
+      "text": "Reunión que pudo ser un email, capítulo 2. Llevan 40 minutos hablando de 'sinergia' y 'pensamiento disruptivo'. Tu alma abandona tu cuerpo.",
+      
+      "conditions": {},
+      
+      "choices": [
+        {
+          "text": "Fingir atención mientras piensas en tu lista del súper",
+          "effects": {
+            "stats": { "energia": -1, "animo": -1, "caos": 0 }
+          }
+        },
+        {
+          "text": "Participar activamente (impresionar al jefe)",
+          "effects": {
+            "stats": { "energia": -2, "animo": 1, "caos": 0 },
+            "characters": { "jefe": { "relationship": 5 } }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "almuerzo_dia_2",
+      "day": 2,
+      "time": "afternoon",
+      "earliest_hour": 12,
+      "latest_hour": 13,
+      "type": "optional",
+      
+      "text": "Hora del almuerzo. Tu refrigerador casero tiene sobras sospechosas de hace 3 días. El restaurante de la esquina huele delicioso pero cuesta $12.",
+      
+      "conditions": {},
+      
+      "choices": [
+        {
+          "text": "Comer las sobras (economía > gusto)",
+          "effects": {
+            "stats": { "energia": 0, "animo": -1, "caos": 1 }
+          }
+        },
+        {
+          "text": "Comprar comida fresca (mi estómago lo vale)",
+          "effects": {
+            "stats": { "energia": 1, "animo": 2, "caos": 0 },
+            "inventory": { "money": -12 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "gym_dia_2",
+      "day": 2,
+      "time": "night",
+      "earliest_hour": 19,
+      "latest_hour": 21,
+      "type": "optional",
+      "can_repeat": false,
+      
+      "text": "Tu membresía de gimnasio que no usas te mira con reproche. Han pasado 2 semanas. Tu ropa deportiva llora en el cajón.",
+      
+      "conditions": {},
+      
+      "choices": [
+        {
+          "text": "Ir al gym (redención personal)",
+          "effects": {
+            "stats": { "energia": -2, "animo": 2, "caos": -1 }
+          }
+        },
+        {
+          "text": "Netflix y chill (próximo mes lo juro)",
+          "effects": {
+            "stats": { "energia": 1, "animo": 1, "caos": 1 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "fin_dia_2",
+      "day": 2,
+      "time": "night",
+      "earliest_hour": 23,
+      "latest_hour": 24,
+      "type": "mandatory",
+      
+      "text": "El segundo día termina. Ya estás a mitad del camino. Tus decisiones empiezan a formar un patrón. ¿Te gusta lo que ves?",
+      
+      "conditions": {
+        "day": 2
+      },
+      
+      "choices": [
+        {
+          "text": "Continuar al Día 3",
+          "effects": {
+            "trigger_next_day": true
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "despertar_dia_3",
+      "day": 3,
+      "time": "morning",
+      "earliest_hour": 6,
+      "latest_hour": 7,
+      "type": "mandatory",
+      
+      "text": "Último día. Despiertas sabiendo que hoy terminará tu historia. Cada decisión cuenta más que nunca.",
+      
+      "conditions": {
+        "day": 3
+      },
+      
+      "choices": [
+        {
+          "text": "Levantarte determinado",
+          "effects": {
+            "stats": { "energia": 2, "animo": 2, "caos": 0 }
+          }
+        },
+        {
+          "text": "Levantarte reflexivo",
+          "effects": {
+            "stats": { "energia": 1, "animo": 1, "caos": 1 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "decision_importante_dia_3",
+      "day": 3,
+      "time": "afternoon",
+      "earliest_hour": 15,
+      "latest_hour": 17,
+      "type": "optional",
+      
+      "text": "Recibes una oferta de trabajo en otra ciudad. Mejor sueldo, nuevas oportunidades, pero significa dejar todo atrás. ¿Arriesgarte al cambio?",
+      
+      "conditions": {},
+      
+      "choices": [
+        {
+          "text": "Aceptar la oferta (nueva vida)",
+          "effects": {
+            "stats": { "animo": 3, "caos": 3 },
+            "flags": { "new_job_offer": "accepted" },
+            "inventory": { "money": 500 }
+          }
+        },
+        {
+          "text": "Rechazar (quedarte en tu zona de confort)",
+          "effects": {
+            "stats": { "animo": -1, "caos": -2 },
+            "flags": { "new_job_offer": "rejected" }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "reflexion_dia_3",
+      "day": 3,
+      "time": "afternoon",
+      "earliest_hour": 18,
+      "latest_hour": 20,
+      "type": "optional",
+      
+      "text": "Te sientas en el parque a ver el atardecer. Estos tres días han sido intensos. Piensas en todas las decisiones que tomaste, en quién eres ahora.",
+      
+      "conditions": {},
+      
+      "choices": [
+        {
+          "text": "Sentirte orgulloso de tus elecciones",
+          "effects": {
+            "stats": { "animo": 2, "energia": 1 }
+          }
+        },
+        {
+          "text": "Pensar en lo que pudiste hacer diferente",
+          "effects": {
+            "stats": { "animo": -1, "energia": 0, "caos": 1 }
+          }
+        }
+      ]
+    },
+    
+    {
+      "id": "fin_dia_3",
+      "day": 3,
+      "time": "night",
+      "earliest_hour": 23,
+      "latest_hour": 24,
+      "type": "mandatory",
+      
+      "text": "Tres días han pasado. Tu vida ha cambiado de formas que no imaginabas. Cada decisión te trajo aquí. Es momento de ver qué construiste con tus fragmentos.",
+      
+      "conditions": {
+        "day": 3
+      },
+      
+      "choices": [
+        {
+          "text": "Ver mi final",
+          "effects": {
+            "trigger_ending": true
+          }
+        }
+      ]
+    }
+  ]
+}

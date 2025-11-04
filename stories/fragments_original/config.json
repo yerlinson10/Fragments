@@ -1,0 +1,133 @@
+{
+  "story": {
+    "id": "fragments_v2",
+    "title": "Fragments",
+    "subtitle": "Tu día, tus decisiones",
+    "description": "Una experiencia narrativa que simula un día completo en tu vida. Cada decisión afecta tu energía, ánimo y nivel de caos.",
+    "version": "2.0.0",
+    "author": "Yerlinson",
+    "max_days": 3,
+    "starting_time": "morning",
+    "starting_day": 1
+  },
+  
+  "stats": {
+    "energia": {
+      "name": "Energía",
+      "icon": "⚡",
+      "min": -15,
+      "max": 15,
+      "start": 0,
+      "color": "#10b981",
+      "description": "Tu vitalidad física y mental"
+    },
+    "animo": {
+      "name": "Ánimo",
+      "icon": "💙",
+      "min": -15,
+      "max": 15,
+      "start": 0,
+      "color": "#3b82f6",
+      "description": "Tu estado emocional y bienestar"
+    },
+    "caos": {
+      "name": "Caos",
+      "icon": "🌀",
+      "min": -15,
+      "max": 15,
+      "start": 0,
+      "color": "#ef4444",
+      "description": "El nivel de desorden en tu vida"
+    }
+  },
+  
+  "flags": {
+    "tutorial_completed": false,
+    "has_dog": false,
+    "woke_up_early_count": 0,
+    "coffee_addiction": 0,
+    "helped_colleague_count": 0,
+    "ignored_ex": false,
+    "adopted_street_dog": false,
+    "broke_up": false,
+    "got_promotion": false,
+    "called_mom_back": false,
+    "work_performance": "good",
+    "relationship_status": "single",
+    "new_job_offer": "none"
+  },
+  
+  "characters": {
+    "madre": {
+      "name": "Tu Madre",
+      "relationship": 50,
+      "met": true,
+      "description": "Tu madre, siempre preocupada por ti"
+    },
+    "pablo": {
+      "name": "Pablo (Compañero)",
+      "relationship": 30,
+      "met": false,
+      "description": "Tu compañero de trabajo que siempre pide ayuda"
+    },
+    "ex": {
+      "name": "Tu Ex",
+      "relationship": 0,
+      "met": false,
+      "description": "Tu ex pareja. La historia aún no está cerrada."
+    },
+    "jefe": {
+      "name": "Tu Jefe",
+      "relationship": 50,
+      "met": true,
+      "description": "Tu superior en el trabajo"
+    }
+  },
+  
+  "inventory": {
+    "enabled": true,
+    "items": [],
+    "money": 100,
+    "max_items": 10
+  },
+  
+  "settings": {
+    "allow_save": true,
+    "allow_restart": true,
+    "show_stats": true,
+    "show_flags": false,
+    "show_characters": true,
+    "show_inventory": true,
+    "enable_sound": true,
+    "auto_save": true,
+    "save_slots": 3,
+    "enable_achievements": true
+  },
+  
+  "achievements": {
+    "first_day_complete": {
+      "name": "Primer Día Completado",
+      "description": "Completa tu primer día",
+      "icon": "🏆",
+      "unlocked": false
+    },
+    "dog_lover": {
+      "name": "Amante de los Perros",
+      "description": "Adopta al perro callejero",
+      "icon": "🐕",
+      "unlocked": false
+    },
+    "workaholic": {
+      "name": "Adicto al Trabajo",
+      "description": "Haz horas extra 3 veces",
+      "icon": "💼",
+      "unlocked": false
+    },
+    "social_butterfly": {
+      "name": "Mariposa Social",
+      "description": "Mejora tus relaciones con 3 personajes",
+      "icon": "🦋",
+      "unlocked": false
+    }
+  }
+}

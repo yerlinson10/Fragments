@@ -1,0 +1,280 @@
+{
+  "endings": [
+    {
+      "id": "dog_owner_happy",
+      "priority": 1,
+      "title": "El Compañero Perfecto",
+      
+      "conditions": {
+        "stats": {
+          "animo_min": 5
+        },
+        "flags": {
+          "has_dog": true,
+          "adopted_street_dog": true
+        }
+      },
+      
+      "content": {
+        "message": "Tres días después de adoptar al perro callejero, tu vida cambió completamente. Cada mañana te despierta con lamidas, cada noche duermes acompañado. Sí, es caótico. Sí, gastaste dinero que no tenías. Pero por primera vez en meses, vuelves a casa sonriendo. A veces la mejor decisión es la que dicta el corazón, no la lógica.",
+        "epilogue": [
+          "Seis meses después...",
+          "Tu perro (finalmente le pusiste nombre: Max) es famoso en el barrio.",
+          "El casero descubrió tu secreto... pero también se enamoró de Max.",
+          "Ahora tienes permiso oficial para tener mascotas.",
+          "FIN - El Amor Canino"
+        ],
+        "unlocks": {
+          "achievement": "dog_lover"
+        }
+      }
+    },
+    
+    {
+      "id": "promotion_success",
+      "priority": 2,
+      "title": "El Ascenso",
+      
+      "conditions": {
+        "flags": {
+          "got_promotion": true
+        },
+        "characters": {
+          "jefe": { "relationship_min": 60 }
+        }
+      },
+      
+      "content": {
+        "message": "Tu dedicación valió la pena. La promoción llegó, junto con un aumento de sueldo del 30%. Sacrificaste noches, fines de semana, tiempo personal. ¿Valió la pena? Según tu cuenta bancaria, sí. Según tu cuerpo exhausto, tal vez no. Pero lograste lo que querías: éxito profesional.",
+        "epilogue": [
+          "Un año después...",
+          "Eres el gerente más joven de la empresa.",
+          "Tu calendario está lleno hasta dentro de 3 meses.",
+          "A veces te preguntas qué habrías hecho con más tiempo libre.",
+          "FIN - El Precio del Éxito"
+        ],
+        "unlocks": {
+          "achievement": "workaholic"
+        }
+      }
+    },
+    
+    {
+      "id": "rekindled_love",
+      "priority": 3,
+      "title": "Segunda Oportunidad",
+      
+      "conditions": {
+        "flags": {
+          "relationship_status": "complicated"
+        },
+        "characters": {
+          "ex": { "relationship_min": 20 }
+        }
+      },
+      
+      "content": {
+        "message": "Le diste otra oportunidad a tu ex. Fue aterrador, vulnerable, arriesgado. Pero algo en tu interior sabía que esta historia aún no terminaba. Los primeros días fueron incómodos, llenos de silencios y preguntas sin responder. Pero lentamente, volvieron a encontrarse. El amor nunca se fue, solo estaba dormido.",
+        "epilogue": [
+          "Tres meses después...",
+          "Están juntos de nuevo, pero diferente esta vez.",
+          "Aprendieron de sus errores.",
+          "La comunicación ya no es opcional, es necesaria.",
+          "FIN - El Amor Reencontrado"
+        ]
+      }
+    },
+    
+    {
+      "id": "fresh_start",
+      "priority": 4,
+      "title": "Página en Blanco",
+      
+      "conditions": {
+        "flags": {
+          "broke_up": true,
+          "ignored_ex": true
+        },
+        "stats": {
+          "animo_min": 0
+        }
+      },
+      
+      "content": {
+        "message": "Cerraste ese capítulo para siempre. Dolió, sí. Pero era necesario. Algunas historias no merecen segundas oportunidades. Algunas personas no cambian. Y tú finalmente lo entendiste. Bloqueaste el número, borraste las fotos, y seguiste adelante. Tu corazón está cicatrizando. Duele menos cada día.",
+        "epilogue": [
+          "Seis meses después...",
+          "Conociste a alguien nuevo.",
+          "Esta vez todo se siente diferente.",
+          "Más sano, más honesto, más real.",
+          "FIN - El Nuevo Comienzo"
+        ]
+      }
+    },
+    
+    {
+      "id": "family_bonds",
+      "priority": 5,
+      "title": "Lazos Familiares",
+      
+      "conditions": {
+        "characters": {
+          "madre": { "relationship_min": 70 }
+        },
+        "flags": {
+          "called_mom_back": true
+        }
+      },
+      
+      "content": {
+        "message": "Fortaleciste tu relación con tu madre. Esas llamadas largas, esas conversaciones sobre 'la vecina', esos consejos no solicitados... todo era amor disfrazado de preocupación. Lo entendiste demasiado tarde en la vida, pero lo entendiste. Ahora llamas tú primero. Ahora escuchas con paciencia. Porque familia es familia.",
+        "epilogue": [
+          "Un año después...",
+          "Tu madre ya no se queja de que nunca llamas.",
+          "Almuerzan juntos todos los domingos.",
+          "Te enseñó a cocinar su receta secreta.",
+          "FIN - El Amor Materno"
+        ]
+      }
+    },
+    
+    {
+      "id": "balanced_life",
+      "priority": 6,
+      "title": "Equilibrio Encontrado",
+      
+      "conditions": {
+        "stats": {
+          "energia_min": 3,
+          "energia_max": 8,
+          "animo_min": 3,
+          "animo_max": 8,
+          "caos_min": -2,
+          "caos_max": 2
+        }
+      },
+      
+      "content": {
+        "message": "Lograste algo raro en esta época: equilibrio. No sacrificaste todo por el trabajo. No te perdiste en el caos. No ignoraste tus emociones. Tomaste decisiones balanceadas, consideradas, maduras. Puede sonar aburrido, pero es lo más difícil de lograr. El equilibrio no es ausencia de problemas, es saber navegar entre ellos.",
+        "epilogue": [
+          "Seis meses después...",
+          "Tu vida no es perfecta, pero es tuya.",
+          "Trabajas para vivir, no vives para trabajar.",
+          "Tu salud mental mejoró notablemente.",
+          "FIN - La Armonía Cotidiana"
+        ]
+      }
+    },
+    
+    {
+      "id": "chaotic_freedom",
+      "priority": 7,
+      "title": "Libertad Caótica",
+      
+      "conditions": {
+        "stats": {
+          "caos_min": 8
+        }
+      },
+      
+      "content": {
+        "message": "Dijiste 'que se joda' a las reglas y seguiste tus impulsos. Fue caótico, impredecible, tal vez hasta irresponsable. Pero fue auténticamente tuyo. Rompiste rutinas que te asfixiaban, relaciones que te drenaban, trabajos que te explotaban. Sí, tu vida es un desastre. Pero es TU desastre. Y hay libertad en eso.",
+        "epilogue": [
+          "Tres meses después...",
+          "Tu vida cambió completamente.",
+          "Nuevo trabajo, nueva ciudad, nueva versión de ti.",
+          "¿Fue la decisión correcta? Quién sabe.",
+          "Pero fue TU decisión.",
+          "FIN - El Caos Liberador"
+        ]
+      }
+    },
+    
+    {
+      "id": "burned_out",
+      "priority": 8,
+      "title": "Agotamiento Total",
+      
+      "conditions": {
+        "stats": {
+          "energia_max": -8
+        }
+      },
+      
+      "content": {
+        "message": "Tu cuerpo literalmente no da más. Cada músculo pide tregua, cada pensamiento cuesta el doble. Te exigiste hasta romperte. Dijiste sí a todo, ayudaste a todos, trabajaste sin parar. Y ahora estás vacío. El agotamiento no es badge de honor, es síntoma de que algo está mal. Necesitas parar antes de que sea tarde.",
+        "epilogue": [
+          "Dos semanas después...",
+          "Pediste licencia médica.",
+          "Tu cuerpo te obligó a parar.",
+          "Estás aprendiendo a decir 'no'.",
+          "FIN - El Descanso Forzado"
+        ]
+      }
+    },
+    
+    {
+      "id": "depression_spiral",
+      "priority": 9,
+      "title": "El Espiral Descendente",
+      
+      "conditions": {
+        "stats": {
+          "animo_max": -8
+        }
+      },
+      
+      "content": {
+        "message": "Todo se siente gris. Las decisiones que tomaste te llevaron a un lugar oscuro. No es tu culpa, pero tampoco puedes ignorarlo. La depresión es real, es válida, y necesita atención. Este final no es el fin, es un llamado de ayuda. Habla con alguien. Busca apoyo. Mereces sentirte mejor.",
+        "epilogue": [
+          "Si te identificas con este final:",
+          "Por favor, busca ayuda profesional.",
+          "La salud mental importa.",
+          "No estás solo.",
+          "FIN - El Pedido de Ayuda"
+        ]
+      }
+    },
+    
+    {
+      "id": "survivor",
+      "priority": 10,
+      "title": "Superviviente",
+      
+      "conditions": {
+        "stats": {
+          "energia_max": -5,
+          "animo_max": -5,
+          "caos_min": 5
+        }
+      },
+      
+      "content": {
+        "message": "No fue un buen período, fue un período que sobreviviste. Tropezaste, te caíste, te levantaste a medias. Pero aquí estás. Las decisiones fueron difíciles, las consecuencias duras. Pero respiraste, seguiste, persististe. A veces sobrevivir es suficiente victoria. Dale tiempo al tiempo.",
+        "epilogue": [
+          "Un mes después...",
+          "Las cosas mejoran lentamente.",
+          "No dramáticamente, pero consistentemente.",
+          "Aprendiste que la vida tiene ciclos.",
+          "Este era el valle. Pronto vendrá la montaña.",
+          "FIN - La Resiliencia"
+        ]
+      }
+    }
+  ],
+  
+  "default_ending": {
+    "id": "average_day",
+    "title": "Un Día Más",
+    "content": {
+      "message": "Tres días pasaron. Nada extraordinario sucedió. Tomaste decisiones, algunas buenas, algunas malas. Tu vida continuó su curso normal. No es el final épico que esperabas, pero tampoco el desastre que temías. Es simplemente... tu vida. Y eso también está bien. No todos los días tienen que ser extraordinarios.",
+      "epilogue": [
+        "La vida continúa...",
+        "Con sus altos y bajos.",
+        "Con sus momentos mundanos y sus destellos de magia.",
+        "Eres humano. Eso es suficiente.",
+        "FIN - La Cotidianidad"
+      ]
+    }
+  }
+}
