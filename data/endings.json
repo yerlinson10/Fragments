@@ -1,0 +1,288 @@
+[
+  {
+    "id": "armonioso",
+    "conditions": {
+      "energia_min": 5,
+      "animo_min": 5,
+      "caos_max": 1
+    },
+    "message": "Un día en perfecta sintonía. Tu energía, tus emociones y tus acciones fluyeron sin fricción. Fue como danzar en lugar de marchar. La armonía no se fuerza, se cultiva día a día."
+  },
+  {
+    "id": "euforico",
+    "conditions": {
+      "animo_min": 7,
+      "energia_min": 3
+    },
+    "message": "Fue uno de esos días mágicos donde todo encaja. Te sentiste imparable, radiante, vivo. La energía fluía sin esfuerzo. Guarda este sentimiento como recordatorio: la vida puede sentirse así de bien."
+  },
+  {
+    "id": "autodestructivo",
+    "conditions": {
+      "caos_min": 8,
+      "animo_max": 1
+    },
+    "message": "Hoy te saboteaste a ti mismo. Decisiones que sabías que te harían daño, pero las tomaste igual. Tal vez buscabas sentir algo, cualquier cosa. Pero el dolor autoinfligido no cura nada."
+  },
+  {
+    "id": "impulsivo",
+    "conditions": {
+      "caos_min": 7,
+      "energia_min": 2
+    },
+    "message": "Hoy dijiste 'fuck it' y te lanzaste sin red de seguridad. Decisiones sin filtro, impulsos sin freno. Fue emocionante y aterrador a la vez. Mañana evaluarás las consecuencias."
+  },
+  {
+    "id": "sobrecargado",
+    "conditions": {
+      "energia_max": -6,
+      "caos_min": 4
+    },
+    "message": "Te exigieron más de lo humanamente posible. Múltiples frentes, múltiples urgencias, múltiples personas demandando tu tiempo. Te rompiste tratando de ser todo para todos."
+  },
+  {
+    "id": "agotado",
+    "conditions": {
+      "energia_max": -7
+    },
+    "message": "Tu cuerpo literalmente no da más. Cada músculo pide tregua, cada pensamiento cuesta el doble. No es debilidad, es consecuencia. Mañana necesitas priorizar el descanso, no negociarlo."
+  },
+  {
+    "id": "martir",
+    "conditions": {
+      "energia_max": -5,
+      "animo_min": 4
+    },
+    "message": "Te sacrificaste por otros hasta quedar vacío. Diste todo lo que tenías y más. Es noble, sí, pero también insostenible. No puedes servir desde una copa vacía."
+  },
+  {
+    "id": "agotado_pero_feliz",
+    "conditions": {
+      "energia_max": -4,
+      "animo_min": 5
+    },
+    "message": "Terminaste el día destruido físicamente, pero con el corazón lleno. Valió cada gota de energía. A veces el cansancio es la huella de algo significativo."
+  },
+  {
+    "id": "rebelde_consciente",
+    "conditions": {
+      "caos_min": 6,
+      "animo_min": 3
+    },
+    "message": "Elegiste el caos sabiendo lo que hacías. No fue autodestrucción, fue liberación. Rompiste reglas que ya no te servían. A veces el desorden es necesario para crear algo nuevo."
+  },
+  {
+    "id": "rebelde",
+    "conditions": {
+      "caos_min": 6,
+      "energia_min": 2
+    },
+    "message": "Dijiste 'que se joda' a las reglas y seguiste tu instinto salvaje. Fue caótico, poco ortodoxo, tal vez hasta irresponsable. Pero fue auténticamente tuyo. El caos también es libertad."
+  },
+  {
+    "id": "caotico",
+    "conditions": {
+      "caos_min": 5
+    },
+    "message": "Hoy el caos ganó. Decisiones impulsivas, situaciones fuera de control, planes que se desmoronaron. No todo está perdido, pero sí muy disperso. Mañana toca recoger los pedazos y empezar de nuevo."
+  },
+  {
+    "id": "hedonista",
+    "conditions": {
+      "animo_min": 4,
+      "caos_min": 3,
+      "energia_max": 0
+    },
+    "message": "Hoy te entregaste al placer inmediato. Comida rica, pereza absoluta, series hasta el amanecer. Fue glorioso y un poco culpable. Pero oye, también necesitas días así."
+  },
+  {
+    "id": "inspirado",
+    "conditions": {
+      "animo_min": 6,
+      "energia_min": -2
+    },
+    "message": "Hoy algo despertó en ti. Una idea, una visión, un impulso de crear. No sabes bien de dónde vino, pero sientes que tienes que hacer algo con esto. No lo dejes morir."
+  },
+  {
+    "id": "rompimiento",
+    "conditions": {
+      "caos_min": 4,
+      "animo_max": -3
+    },
+    "message": "Algo se rompió hoy. Una relación, una rutina, una versión de ti mismo. Fue doloroso pero quizás necesario. Los finales también son comienzos, aunque no lo parezca ahora."
+  },
+  {
+    "id": "cansado_mental",
+    "conditions": {
+      "energia_min": 2,
+      "animo_max": -4,
+      "caos_min": 2
+    },
+    "message": "Tu cuerpo aguantó, pero tu mente está exhausta. Demasiadas decisiones, demasiada presión social, demasiado fingir que todo está bien. El cansancio mental es invisible pero real."
+  },
+  {
+    "id": "comediante_triste",
+    "conditions": {
+      "animo_min": 2,
+      "energia_max": -3,
+      "caos_min": 2
+    },
+    "message": "Hoy fuiste el alma de la fiesta, el que anima a otros, el que siempre tiene una sonrisa. Pero en casa, a solas, te quitaste la máscara y descubriste lo cansado que estabas de actuar."
+  },
+  {
+    "id": "superviviente",
+    "conditions": {
+      "energia_max": -4,
+      "animo_max": -4,
+      "caos_min": 3
+    },
+    "message": "No fue un buen día, fue un día que sobreviviste. Tropezaste, te caíste, te levantaste a medias. Pero aquí estás. Eso cuenta. A veces sobrevivir es suficiente victoria."
+  },
+  {
+    "id": "invisible",
+    "conditions": {
+      "animo_max": -4,
+      "caos_max": 1,
+      "energia_max": 1
+    },
+    "message": "Pasaste el día sintiendo que nadie te veía realmente. Estuviste ahí, pero no presente. Hablaste, pero no te escucharon. A veces la soledad más profunda ocurre rodeado de gente."
+  },
+  {
+    "id": "aislado",
+    "conditions": {
+      "caos_max": 1,
+      "animo_max": -3
+    },
+    "message": "Evitaste conflictos, pero también evitaste conexiones. Estuviste tan protegido en tu burbuja que olvidaste que la vida sucede afuera. La soledad elegida duele diferente."
+  },
+  {
+    "id": "melancolico",
+    "conditions": {
+      "energia_max": -2,
+      "animo_max": -2,
+      "caos_max": 2
+    },
+    "message": "Un día gris en todos los sentidos. Nada salió particularmente mal, pero tampoco bien. Solo... pasó. Como si estuvieras viendo tu vida desde afuera, sin estar realmente en ella."
+  },
+  {
+    "id": "desconectado",
+    "conditions": {
+      "energia_max": 0,
+      "animo_max": 0,
+      "caos_max": 1
+    },
+    "message": "El día pasó como una película borrosa. Cumpliste rutinas sin estar ahí. Comiste sin saborear, hablaste sin conectar, viviste sin sentir. Mañana intenta encenderte de nuevo."
+  },
+  {
+    "id": "estresado",
+    "conditions": {
+      "energia_min": 0,
+      "animo_max": 1,
+      "caos_min": 4
+    },
+    "message": "Sobreviviste, pero a qué costo. El estrés te comió por dentro mientras mantenías la fachada de estar bien. Si sigues así, algo va a romperse. Y probablemente seas tú."
+  },
+  {
+    "id": "culpable",
+    "conditions": {
+      "caos_min": 4,
+      "animo_max": 1
+    },
+    "message": "Tomaste decisiones que te dieron alivio inmediato pero dejaron un sabor amargo. La culpa es el precio de actuar contra tus valores. No puedes deshacer lo hecho, pero puedes aprender para mañana."
+  },
+  {
+    "id": "alienado",
+    "conditions": {
+      "energia_min": 3,
+      "caos_min": 2,
+      "animo_max": 0
+    },
+    "message": "Funcionaste en piloto automático. Cumpliste con todo, pero sentiste que no eras tú quien lo hacía. La desconexión emocional es una defensa, pero no una solución."
+  },
+  {
+    "id": "nostalgico",
+    "conditions": {
+      "animo_max": 1,
+      "energia_min": 1,
+      "caos_max": 2
+    },
+    "message": "Hoy tu mente se fue al pasado. Recuerdos de cuando las cosas eran más simples, o al menos lo parecían. La nostalgia es dulce y amarga, te abriga y te duele al mismo tiempo."
+  },
+  {
+    "id": "cinico",
+    "conditions": {
+      "animo_max": -2,
+      "caos_min": 2
+    },
+    "message": "Hoy confirmaste que el mundo es un lugar absurdo. La gente es egoísta, las promesas son vacías, todo es teatro. El cinismo te protege, pero también te aísla. ¿Es el precio que quieres pagar?"
+  },
+  {
+    "id": "valiente",
+    "conditions": {
+      "caos_min": 2,
+      "animo_min": 3,
+      "energia_min": 2
+    },
+    "message": "Hiciste algo que te daba miedo. No fue fácil, te temblaban las manos, pero lo hiciste igual. El coraje no es ausencia de miedo, es actuar a pesar de él."
+  },
+  {
+    "id": "conexion_genuina",
+    "conditions": {
+      "animo_min": 5,
+      "energia_min": 1,
+      "caos_max": 2
+    },
+    "message": "Hoy tuviste un momento de conexión real con alguien. Esa conversación profunda, esa mirada que dice más que mil palabras. Te recordó que no estás tan solo como a veces crees."
+  },
+  {
+    "id": "productivo",
+    "conditions": {
+      "energia_min": 3,
+      "animo_min": 2,
+      "caos_max": 2
+    },
+    "message": "Tachaste todo de tu lista. Resolviste, ejecutaste, cumpliste. La presión estuvo ahí, pero la manejaste como un profesional. Hoy fue un día de resultados tangibles y eso se siente bien."
+  },
+  {
+    "id": "culminacion",
+    "conditions": {
+      "energia_min": 4,
+      "animo_min": 4,
+      "caos_max": 2
+    },
+    "message": "Cerraste un ciclo. Ese proyecto, esa meta, ese objetivo que venías persiguiendo. No fue fácil, pero lo lograste. Tómate un momento para reconocer tu propio esfuerzo."
+  },
+  {
+    "id": "sereno",
+    "conditions": {
+      "energia_min": 3,
+      "animo_min": 3,
+      "caos_max": 1
+    },
+    "message": "Te diste espacio para existir sin presión. Respiraste profundo, escuchaste tu cuerpo, honraste tu ritmo. Fue un día sin grandes eventos, pero lleno de presencia consciente."
+  },
+  {
+    "id": "equilibrado",
+    "conditions": {
+      "energia_min": 0,
+      "energia_max": 3,
+      "animo_min": 0,
+      "animo_max": 3,
+      "caos_max": 3
+    },
+    "message": "Cerraste el día con sensación de control. No fue perfecto, hubo momentos difíciles, pero sentiste que tus decisiones fueron tuyas. El equilibrio no es ausencia de problemas, es saber navegar entre ellos."
+  },
+  {
+    "id": "esperanzado",
+    "conditions": {
+      "animo_min": 2,
+      "caos_max": 3
+    },
+    "message": "A pesar de todo, terminaste el día con esperanza. Algo cambió, algo se movió en la dirección correcta. No fue un milagro, pero fue un paso. Y eso es suficiente por ahora."
+  },
+  {
+    "id": "promedio",
+    "conditions": {},
+    "message": "Un día más en el registro de tu vida. Ni memorable ni terrible, solo... otro día. Y está bien. No todos los días tienen que ser extraordinarios. A veces lo ordinario también es válido."
+  }
+]

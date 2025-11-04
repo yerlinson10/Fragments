@@ -1,0 +1,13 @@
+{
+  "name": "fragments",
+  "version": "1.0.0",
+  "description": "Fragments is an interactive narrative experience where every everyday decision changes the course of your day. The player doesn't win or lose, but simply experiences the consequences of their choices: whether you drink coffee, answer a message, work harder, or rest. Throughout the morning, afternoon, and evening, each action affects three invisible axes—energy, mood, and chaos—that shape the outcome of your day. The game combines trivial moments with moral, emotional, and professional decisions, creating a narrative that feels personal and coherent. In the end, a reflection shows you what your actions reveal about you, without judgment, only interpretation. Each game lasts only a few minutes, but no two days are ever the same: each choice leads you through a new fragment of yourself.",
+  "main": "index.html",
+  "scripts": {},
+  "keywords": [
+    "html",
+    "css"
+  ],
+  "author": "Yerlinson Lora",
+  "license": "MIT"
+}
