@@ -439,7 +439,6 @@ button:active {
   background: var(--bg-primary);
   border-radius: 1rem;
   animation: fadeIn 0.5s ease-in;
-  border-left: 4px solid var(--accent);
 }
 
 .result strong {
@@ -770,7 +769,6 @@ button:active {
   background: var(--bg-primary);
   border-radius: 0.8rem;
   font-style: italic;
-  border-left: 3px solid var(--accent);
 }
 
 .epilogue p {
