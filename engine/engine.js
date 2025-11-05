@@ -433,6 +433,13 @@ class FragmentsEngine {
     // Actualizar timestamp
     this.gameState.last_played = new Date().toISOString();
 
+    // Verificar si hay un ending inmediato (game over)
+    const immediateEnding = this.checkImmediateEnding();
+    if (immediateEnding) {
+      effects.trigger_ending = true;
+      effects.immediate_ending = immediateEnding;
+    }
+
     console.log('🎯 Elección realizada:', {
       event: event.id,
       choice: choiceIndex,
@@ -440,6 +447,25 @@ class FragmentsEngine {
     });
 
     return effects;
+  }
+
+  /**
+   * Verificar si hay un ending que debe activarse inmediatamente
+   * (por ejemplo, muerte, game over, etc)
+   */
+  checkImmediateEnding() {
+    // Buscar endings con prioridad alta (1-10) que se cumplan
+    const immediateEndings = this.endings.endings
+      .filter(ending => ending.priority <= 10)
+      .sort((a, b) => (a.priority || 999) - (b.priority || 999));
+
+    for (const ending of immediateEndings) {
+      if (this.meetsConditions(ending.conditions)) {
+        return ending;
+      }
+    }
+
+    return null;
   }
 
   /**
