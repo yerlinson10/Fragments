@@ -1,305 +1,440 @@
-# 🧩 Fragments
+# 🧩 Fragments - Motor de Historias Interactivas
 
-> Un juego narrativo interactivo donde tus decisiones diarias construyen tu realidad.
+> Un sistema completo para crear y jugar historias narrativas donde cada decisión importa.
 
-## 📖 Descripción
+---
 
-**Fragments** es una experiencia narrativa que simula un día completo en tu vida, desde las 5 AM hasta la 1 AM. Cada decisión que tomas afecta tres aspectos fundamentales de tu existencia:
+## 🎮 Dos Versiones Disponibles
 
-- ⚡ **Energía**: Tu vitalidad física y mental
-- 💙 **Ánimo**: Tu estado emocional y bienestar
-- 🌀 **Caos**: El nivel de desorden e imprevisibilidad en tu vida
+### **Versión 1.0 (Original)** - `index.html`
+- ✅ Historia fija "Fragments" pre-programada
+- ✅ 33 situaciones, 33 finales
+- ✅ Sistema simple de stats (energía, ánimo, caos)
+- ✅ 3 stats fijas
+- ✅ Un solo día de juego
+- 🎯 **Para jugar**: Abre `index.html`
 
-Al final del día, la combinación única de tus decisiones determina uno de **33 finales posibles**, cada uno con su propia reflexión sobre cómo viviste ese día.
+### **Versión 2.0 (Engine)** - `index-v2.html` ⭐
+- ✅ **Sistema modular** para crear historias custom
+- ✅ **Stats dinámicas**: Define las que quieras
+- ✅ **Flags y variables** personalizadas
+- ✅ **Sistema de personajes** con relaciones
+- ✅ **Inventario** (items + dinero)
+- ✅ **Multi-día** con persistencia
+- ✅ **Guardado completo**: LocalStorage + Export/Import
+- ✅ **Eventos especiales**: Random, forced, one-time
+- ✅ **Achievements** desbloqueables
+- ✅ **Validador automático** de historias
+- 🎯 **Para jugar**: Abre `index-v2.html`
+- 📚 **Para crear historias**: Lee `STORY_CREATION_GUIDE.md`
 
-## ✨ Características
+---
 
-### 🎮 Jugabilidad
-- **33 situaciones únicas** que pueden ocurrir durante el día
-- **Sistema de dependencias inteligente** que hace cada partida diferente
-- **10-15 situaciones por partida** generadas dinámicamente
-- **33 finales distintos** basados en tus estadísticas acumuladas
-- **Decisiones binarias** con consecuencias reales
+## 🚀 Inicio Rápido
 
-### 🎨 Interfaz
-- **Diseño minimalista y elegante** con animaciones suaves
-- **Tema claro/oscuro** con persistencia entre sesiones
-- **Barras de estadísticas animadas** que muestran tu progreso
-- **Indicadores flotantes** que revelan el impacto de cada decisión
-- **Barra de progreso** que muestra tu avance en el día
-- **Responsive design** optimizado para móvil y escritorio
+### Opción 1: Jugar Fragments Original (v1.0)
 
-### 🔊 Experiencia
-- **Efectos de sonido procedurales** (Web Audio API)
-- **Animaciones fluidas** con transiciones fade
-- **Iconos contextuales** (🌅 mañana, 🌇 tarde, 🌙 noche)
-- **Feedback visual inmediato** en cada interacción
+1. Abre `index.html` en tu navegador
+2. ¡Juega!
 
-## 🚀 Instalación
+### Opción 2: Jugar con el Nuevo Engine (v2.0)
 
-### Opción 1: Clonar el repositorio
-```bash
-git clone https://github.com/yerlinson10/Fragments.git
-cd Fragments
-```
+1. Abre `index-v2.html` en tu navegador
+2. Disfruta la historia "Fragments" mejorada con:
+   - 3 días de juego
+   - Sistema de personajes (Madre, Pablo, Ex, Jefe)
+   - Relaciones que evolucionan
+   - Posibilidad de adoptar un perro
+   - Múltiples caminos y consecuencias
+   - 10+ finales diferentes
 
-### Opción 2: Descarga directa
-1. Descarga el código como ZIP
-2. Extrae los archivos en tu directorio local
-3. Abre `index.html` en tu navegador
+### Opción 3: Crear Tu Propia Historia
 
-### Requisitos
-- Navegador web moderno (Chrome, Firefox, Safari, Edge)
-- JavaScript habilitado
-- No requiere instalación de dependencias
-- No requiere servidor (funciona con `file://`)
+1. Lee `STORY_CREATION_GUIDE.md`
+2. Crea una carpeta en `stories/mi_historia/`
+3. Define 3 archivos JSON:
+   - `config.json` - Configuración
+   - `story.json` - Eventos
+   - `endings.json` - Finales
+4. Edita `main.js` línea ~103:
+   ```javascript
+   await engine.loadStory('stories/mi_historia');
+   ```
+5. Abre `index-v2.html` y juega tu historia
+
+---
 
 ## 📁 Estructura del Proyecto
 
 ```
 Fragments/
 │
-├── index.html          # Estructura principal del juego
-├── styles.css          # Estilos y sistema de temas
-├── app.js              # Lógica del juego y estado
+├── index.html              # V1.0 - Juego original
+├── index-v2.html           # V2.0 - Nuevo engine
+├── app.js                  # Lógica V1.0
+├── main.js                 # Controlador V2.0
+├── style.css               # Estilos (ambas versiones)
 │
-├── data/
-│   ├── situations.json # 33 situaciones del día
-│   └── endings.json    # 33 finales posibles
+├── engine/
+│   └── engine.js           # 🧠 Motor de historias V2.0
 │
-└── README.md          # Este archivo
+├── data/                   # Datos V1.0
+│   ├── situations.json
+│   └── endings.json
+│
+├── stories/                # 📚 Historias V2.0
+│   └── fragments_original/
+│       ├── config.json     # Configuración
+│       ├── story.json      # Eventos narrativos
+│       └── endings.json    # Finales posibles
+│
+├── README.md               # Este archivo
+└── STORY_CREATION_GUIDE.md # 📖 Guía completa de creación
 ```
 
-## 🎯 Cómo Jugar
+---
 
-1. **Inicia el juego**: Abre `index.html` en tu navegador
-2. **Lee la situación**: Cada escenario presenta un dilema cotidiano
-3. **Elige tu acción**: Selecciona entre dos opciones (A o B)
-4. **Observa las consecuencias**: Tus estadísticas cambian según tu elección
-5. **Completa el día**: Atraviesa 10-15 situaciones hasta el final
-6. **Descubre tu final**: Obtén uno de 33 finales basados en tus stats
+## ✨ Características de Fragments Engine v2.0
 
-### Consejos
-- 🎲 **No hay respuestas correctas o incorrectas**: Cada decisión es válida
-- 📊 **Balancea tus estadísticas**: Los extremos pueden llevar a finales intensos
-- 🔄 **Rejogar es parte de la experiencia**: Cada partida es única
-- 🎭 **Explora diferentes caminos**: 33 finales esperan ser descubiertos
+### 🎯 Sistema de Historias Dinámico
+
+- **Stats Personalizables**: Define las estadísticas que necesites (energía, carisma, karma, salud, etc.)
+- **Flags Custom**: Variables boolean, string o number para trackear cualquier cosa
+- **Sin Hardcode**: El engine se adapta automáticamente a tu config.json
+
+### 👥 Sistema de Personajes
+
+- Relaciones con NPCs (-100 a +100)
+- Trackeo de encuentros
+- Diálogos y eventos contextuales basados en la relación
+
+### 🎒 Sistema de Inventario
+
+- Items coleccionables
+- Sistema de dinero
+- Efectos de compra/venta en eventos
+
+### 📅 Modo Campaña Multi-Día
+
+- Historias de 1 a N días
+- Consecuencias persistentes entre días
+- Transiciones narrativas
+
+### 🎲 Eventos Especiales
+
+| Tipo | Descripción |
+|------|-------------|
+| **mandatory** | Debe aparecer sí o sí |
+| **optional** | Aparece si cumple condiciones |
+| **random** | Aparece con X% probabilidad |
+| **forced** | Se fuerza después de cierto trigger |
+
+### 💾 Sistema de Guardado Completo
+
+- **Auto-save**: Guarda automáticamente el progreso
+- **Múltiples slots**: 3 espacios de guardado manual
+- **Export/Import**: Descarga y comparte tus partidas
+- **Persistencia**: LocalStorage + archivos JSON
+
+### 🏆 Sistema de Achievements
+
+- Logros desbloqueables
+- Notificaciones en tiempo real
+- Tracking automático
+
+### 🔍 Validador de Historias
+
+Detecta automáticamente:
+- ✅ IDs duplicados
+- ✅ Referencias a eventos inexistentes
+- ✅ Finales imposibles de alcanzar
+- ✅ Errores de sintaxis en condiciones
+
+---
+
+## 🎨 Sistema de Condiciones Avanzado
+
+El engine soporta condiciones complejas para eventos y finales:
+
+```json
+{
+  "conditions": {
+    "stats": { "energia_min": 5, "animo_max": 3 },
+    "flags": { "has_dog": true, "job": "employed" },
+    "characters": { "ana": { "relationship_min": 50 } },
+    "day_min": 2,
+    "completed_events": ["evento_1"],
+    "previous_choices": { "evento_10": 0 },
+    "inventory": { "money_min": 100, "has_items": ["llave"] }
+  }
+}
+```
+
+---
+
+## ⚡ Sistema de Efectos
+
+Cada decisión puede afectar múltiples aspectos:
+
+```json
+{
+  "effects": {
+    "stats": { "energia": -2, "animo": 3 },
+    "flags": { "helped_friend": true, "karma": 10 },
+    "characters": { "ana": { "relationship": 15 } },
+    "inventory": { "money": -50, "items": ["regalo"] },
+    "unlock_events": ["evento_secreto"],
+    "lock_events": ["camino_bloqueado"],
+    "trigger_next_day": true,
+    "unlocks": { "achievement": "helper" }
+  }
+}
+```
+
+---
+
+## 🎓 Ejemplos de Uso
+
+### Historia Romántica
+```json
+{
+  "stats": {
+    "carisma": { ... },
+    "confianza": { ... }
+  },
+  "characters": {
+    "amor_interes": { ... }
+  }
+}
+```
+
+### Historia de Supervivencia
+```json
+{
+  "stats": {
+    "salud": { ... },
+    "hambre": { ... },
+    "sed": { ... }
+  },
+  "inventory": {
+    "enabled": true,
+    "items": ["agua", "comida_enlatada"]
+  }
+}
+```
+
+### Historia de Misterio
+```json
+{
+  "flags": {
+    "pista_1_encontrada": false,
+    "sospechoso_principal": null,
+    "caso_resuelto": false
+  }
+}
+```
+
+---
 
 ## 🛠️ Tecnologías
 
 - **HTML5**: Estructura semántica
-- **CSS3**: Variables CSS, animaciones, flexbox/grid
-- **JavaScript (ES6+)**: Lógica del juego, fetch API, localStorage
-- **JSON**: Almacenamiento de datos de situaciones y finales
-- **Web Audio API**: Generación procedural de sonidos
-- **LocalStorage**: Persistencia del tema seleccionado
+- **CSS3**: Variables CSS, animaciones, responsive
+- **JavaScript (ES6+)**: Clases, async/await, módulos
+- **JSON**: Almacenamiento de datos
+- **Web Audio API**: Efectos de sonido
+- **LocalStorage**: Persistencia de guardados
+- **FileReader API**: Import/Export de archivos
 
 ### Sin dependencias externas
 - ✅ Vanilla JavaScript puro
 - ✅ Sin frameworks ni librerías
 - ✅ Sin build tools necesarios
-- ✅ Sin servidor backend requerido
+- ✅ Funciona offline con file://
 
-## 🎨 Sistema de Temas
+---
 
-El juego incluye dos temas visuales:
+## 📊 Comparación de Versiones
 
-### 🌙 Tema Oscuro
-- Fondo negro suave (#0a0a0a)
-- Ideal para jugar de noche
-- Reduce fatiga visual
+| Característica | V1.0 Original | V2.0 Engine |
+|----------------|---------------|-------------|
+| **Historia fija** | ✅ Fragments | ✅ Fragments mejorado |
+| **Crear historias custom** | ❌ | ✅ |
+| **Stats dinámicas** | ❌ 3 fijas | ✅ Ilimitadas |
+| **Flags/Variables** | ❌ | ✅ |
+| **Personajes** | ❌ | ✅ |
+| **Inventario** | ❌ | ✅ |
+| **Multi-día** | ❌ 1 día | ✅ N días |
+| **Guardado** | ❌ Solo tema | ✅ Completo |
+| **Achievements** | ❌ | ✅ |
+| **Eventos random** | ❌ | ✅ |
+| **Validador** | ❌ | ✅ |
+| **Dificultad** | Plug & Play | Requiere JSON |
 
-### ☀️ Tema Claro
-- Fondo blanco luminoso (#ffffff)
-- Perfecto para el día
-- Mayor contraste
+---
 
-**Cambio de tema**: Click en el botón 🌙/☀️ en la esquina superior derecha
+## 📚 Documentación
 
-## 📊 Sistema de Estadísticas
+- **[STORY_CREATION_GUIDE.md](STORY_CREATION_GUIDE.md)** - Guía completa para crear historias
+  - Estructura de archivos
+  - Sintaxis de JSON
+  - Sistema de condiciones
+  - Sistema de efectos
+  - Ejemplos paso a paso
+  - Mejores prácticas
+  - Troubleshooting
 
-### Rango de valores
-- Cada stat puede variar entre **-15 y +15** (teórico)
-- Rango típico en partida: **-7 a +7**
-- Efectos por decisión: **-2 a +2** (común)
+---
 
-### Interpretación
-```
-⚡ Energía
-  > +5: Lleno de energía
-  > 0 a +4: Energía moderada
-  > -4 a 0: Cansancio ligero
-  > < -5: Agotamiento
+## 🎯 Casos de Uso
 
-💙 Ánimo
-  > +5: Muy feliz
-  > 0 a +4: Contento
-  > -4 a 0: Melancólico
-  > < -5: Deprimido
+### Para Jugadores
+- Disfruta "Fragments" original o mejorado
+- Importa historias creadas por la comunidad
+- Comparte tus partidas
 
-🌀 Caos
-  > +5: Vida descontrolada
-  > 0 a +4: Desorden moderado
-  > -4 a 0: Algo de control
-  > < -5: Vida estructurada
-```
+### Para Creadores
+- Escribe tu propia historia narrativa
+- Crea juegos de decisiones sin programar
+- Experimenta con diferentes mecánicas
 
-## 🎭 Finales
+### Para Educadores
+- Enseña programación mediante JSON
+- Crea historias educativas interactivas
+- Storytelling dinámico
 
-El juego incluye 33 finales únicos ordenados de específico a genérico:
+### Para Desarrolladores
+- Estudia el código fuente
+- Extiende el engine
+- Crea herramientas visuales
 
-### Finales Positivos
-- **Armonioso**: Balance perfecto en todo
-- **Eufórico**: Pura felicidad y energía
-- **Inspirado**: Creatividad desbordante
-- **Valiente**: Enfrentaste tus miedos
-- **Conexión Genuina**: Encontraste significado
-
-### Finales Negativos
-- **Autodestructivo**: Te saboteaste conscientemente
-- **Agotado**: Sin energía para continuar
-- **Sobrecargado**: Demasiada presión
-- **Invisible**: Nadie te vio realmente
-- **Rompimiento**: Algo se quebró hoy
-
-### Finales Complejos
-- **Rebelde**: Caos intencional y liberador
-- **Hedonista**: Placer sin límites
-- **Superviviente**: Apenas lo lograste
-- **Nostálgico**: Viviendo en el pasado
-- **Promedio**: Un día más, nada especial
-
-*[Ver lista completa en `data/endings.json`]*
-
-## 🔧 Personalización
-
-### Añadir nuevas situaciones
-Edita `data/situations.json`:
-```json
-{
-  "id": "tu_evento",
-  "text": "Descripción de la situación...",
-  "time": "morning|afternoon|night",
-  "earliest_hour": 8,
-  "latest_hour": 10,
-  "requires_one_of": ["evento_previo"],
-  "choices": [
-    {
-      "text": "Opción A",
-      "effects": { "energia": 1, "animo": -1, "caos": 2 }
-    },
-    {
-      "text": "Opción B",
-      "effects": { "energia": -2, "animo": 2, "caos": 0 }
-    }
-  ]
-}
-```
-
-### Añadir nuevos finales
-Edita `data/endings.json`:
-```json
-{
-  "id": "tu_final",
-  "conditions": {
-    "energia_min": 5,
-    "animo_max": -3,
-    "caos_min": 4
-  },
-  "message": "Reflexión sobre este tipo de día..."
-}
-```
-
-### Modificar estilos
-Edita las variables CSS en `styles.css`:
-```css
-:root {
-  --bg-primary: #ffffff;
-  --accent: #6366f1;
-  --energia: #10b981;
-  --animo: #3b82f6;
-  --caos: #ef4444;
-}
-```
-
-## 🐛 Solución de Problemas
-
-### El juego solo muestra 2 situaciones
-- ✅ **Solucionado**: Sistema de dependencias corregido en v1.1
-- Asegúrate de tener la última versión del código
-
-### Los finales no son alcanzables
-- ✅ **Solucionado**: Umbrales rebalanceados en v1.2
-- Ahora todos los 33 finales son matemáticamente posibles
-
-### El tema no se guarda
-- Verifica que tu navegador permita localStorage
-- Comprueba que JavaScript esté habilitado
-
-### Los sonidos no funcionan
-- Algunos navegadores bloquean audio hasta interacción del usuario
-- Click en cualquier botón para activar el audio
-
-## 📈 Roadmap
-
-### Versión Actual: 1.2
-- ✅ Sistema de generación de día funcional
-- ✅ 33 situaciones únicas
-- ✅ 33 finales balanceados
-- ✅ Sistema de temas (claro/oscuro)
-- ✅ Feedback visual completo
-- ✅ Efectos de sonido
-
-### Futuras Mejoras
-- 🔄 Sistema de achievements/logros
-- 📊 Historial de partidas jugadas
-- 💾 Sistema de guardado de progreso
-- 🎨 Ilustraciones minimalistas
-- 🌍 Modo campaña (múltiples días)
-- 🤝 Sistema de relaciones con personajes
-- 📱 PWA (Progressive Web App)
-- 🌐 Traducción a otros idiomas
+---
 
 ## 🤝 Contribuir
 
-Las contribuciones son bienvenidas. Para cambios importantes:
+### Áreas de Contribución
+
+1. **Nuevas historias** para `stories/`
+2. **Mejoras al engine** (nuevas features)
+3. **Editor visual** de historias (proyecto futuro)
+4. **Traducciones** de la documentación
+5. **Themes CSS** adicionales
+6. **Optimizaciones** de rendimiento
+
+### Proceso
 
 1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add: Amazing Feature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
+2. Crea una rama (`git checkout -b feature/amazing-feature`)
+3. Commit cambios (`git commit -m 'Add: amazing feature'`)
+4. Push (`git push origin feature/amazing-feature`)
 5. Abre un Pull Request
 
-### Áreas de contribución
-- 📝 Nuevas situaciones y finales
-- 🎨 Mejoras visuales y animaciones
-- 🐛 Reportes de bugs
-- 📖 Documentación y traducciones
-- ♿ Mejoras de accesibilidad
+---
+
+## 🗺️ Roadmap
+
+### ✅ Versión 2.0 (Actual)
+- [x] Engine completo funcional
+- [x] Sistema de guardado
+- [x] Validador de historias
+- [x] Documentación completa
+- [x] Historia de ejemplo (Fragments v2)
+
+### 🔄 Versión 2.1 (Próxima)
+- [ ] Editor visual de historias (drag & drop)
+- [ ] Marketplace de historias comunitarias
+- [ ] Modo "New Game+" con bonus
+- [ ] Sistema de logros global (cross-story)
+- [ ] Soporte para multimedia (imágenes, audio)
+
+### 🔮 Versión 3.0 (Futuro)
+- [ ] Multijugador asíncrono (decisiones compartidas)
+- [ ] Backend opcional para leaderboards
+- [ ] PWA completa (installable)
+- [ ] Generación de historias con IA
+- [ ] Sistema de mods y plugins
+
+---
 
 ## 📜 Licencia
 
-Este proyecto es de código abierto y está disponible bajo la licencia MIT.
+Este proyecto es de código abierto bajo la licencia **MIT**.
+
+Puedes:
+- ✅ Usar el engine para proyectos personales o comerciales
+- ✅ Modificar el código fuente
+- ✅ Distribuir tus historias
+- ✅ Crear herramientas derivadas
+
+Condiciones:
+- 📝 Mantener el aviso de copyright
+- 📝 Incluir copia de la licencia MIT
+
+---
 
 ## 👤 Autor
 
-**Yerlinson** - [GitHub](https://github.com/yerlinson10)
+**Yerlinson Lora**
+- GitHub: [@yerlinson10](https://github.com/yerlinson10)
+
+---
 
 ## 🙏 Agradecimientos
 
-- Inspirado en juegos narrativos como *Reigns* y *Choice of Games*
-- Diseño minimalista influenciado por *Nier: Automata* y *Papers, Please*
-- Gracias a la comunidad de desarrollo indie por la inspiración
+- Inspirado en **Twine**, **ChoiceScript** e **Ink**
+- Diseño influenciado por juegos narrativos indie
+- Gracias a la comunidad de desarrollo de historias interactivas
 
 ---
 
-## 📞 Contacto
+## 📞 Soporte
 
-¿Preguntas, sugerencias o bugs? 
-- 📧 Abre un issue en GitHub
+### Tengo un problema con V1.0
+- Verifica `index.html` y `app.js`
+- Consulta el README original
+
+### Tengo un problema con V2.0
+1. Verifica la **consola del navegador** (F12)
+2. Lee `STORY_CREATION_GUIDE.md`
+3. Revisa `stories/fragments_original/` como ejemplo
+4. Abre un issue en GitHub
+
+### Quiero crear una historia
+1. Lee `STORY_CREATION_GUIDE.md` de inicio a fin
+2. Estudia `stories/fragments_original/`
+3. Crea tus 3 archivos JSON
+4. Testea y usa el validador
 
 ---
 
-**¿Te gustó el juego? ⭐ Dale una estrella al repositorio!**
+## 🌟 Showcase
+
+¿Creaste una historia con Fragments Engine? ¡Compártela!
+
+Próximamente: galería de historias comunitarias.
+
+---
+
+**¿Te gustó el proyecto? ⭐ Dale una estrella al repositorio!**
 
 *Cada día es una colección de fragmentos. ¿Cómo ensamblarás el tuyo?*
+
+---
+
+## 📈 Estadísticas
+
+- **Versión Engine**: 2.0.0
+- **Líneas de código**: ~3000+
+- **Archivos JSON de ejemplo**: 3
+- **Eventos de ejemplo**: 20+
+- **Finales de ejemplo**: 10+
+- **Sistemas implementados**: 12
+- **Sin dependencias externas**: 100%
+
+---
+
+<div align="center">
+
+**[🎮 Jugar V1.0](index.html)** | **[🚀 Jugar V2.0](index-v2.html)** | **[📖 Guía de Creación](STORY_CREATION_GUIDE.md)**
+
+</div>

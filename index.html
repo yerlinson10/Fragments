@@ -1,92 +1,117 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fragments - Tu día, tus decisiones</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <!-- Botón de tema -->
-    <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
-      🌙
-    </button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fragments Engine v2.0</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Botón de tema -->
+  <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
+    🌙
+  </button>
 
-    <div class="game-container">
-      <!-- HEADER: Título y Progreso -->
-      <header class="game-header">
-        <h1>Fragments</h1>
-        
-        <div class="day-progress">
-          <div class="progress-bar">
-            <div id="progressFill" class="progress-fill"></div>
-          </div>
-          <small id="progressText" class="progress-text">Situación 0/0</small>
+  <div class="game-container">
+    <!-- HEADER: Título y Progreso -->
+    <header class="game-header">
+      <h1 id="gameTitle">Fragments Engine</h1>
+      <p id="gameSubtitle" class="subtitle"></p>
+      
+      <div class="day-info">
+        <div class="day-header">
+          <span id="dayCounter">Día 1</span>
+          <button id="menuBtn" class="menu-btn" title="Menú de guardado">⚙️</button>
         </div>
-      </header>
-
-      <!-- ESTADO DEL JUGADOR: Stats -->
-      <section class="player-state">
-        <div id="statsContainer" class="stats-container hidden">
-          <div class="stat-item">
-            <div class="stat-header">
-              <span class="stat-icon">⚡</span>
-              <span class="stat-name">Energía</span>
-              <span id="energiaValue" class="stat-value">0</span>
-            </div>
-            <div class="stat-bar">
-              <div id="energiaBar" class="stat-fill stat-energia"></div>
-            </div>
-          </div>
-
-          <div class="stat-item">
-            <div class="stat-header">
-              <span class="stat-icon">💙</span>
-              <span class="stat-name">Ánimo</span>
-              <span id="animoValue" class="stat-value">0</span>
-            </div>
-            <div class="stat-bar">
-              <div id="animoBar" class="stat-fill stat-animo"></div>
-            </div>
-          </div>
-
-          <div class="stat-item">
-            <div class="stat-header">
-              <span class="stat-icon">🌀</span>
-              <span class="stat-name">Caos</span>
-              <span id="caosValue" class="stat-value">0</span>
-            </div>
-            <div class="stat-bar">
-              <div id="caosBar" class="stat-fill stat-caos"></div>
-            </div>
-          </div>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
         </div>
-      </section>
+        <small id="progressText" class="progress-text">Evento 0/0</small>
+      </div>
+    </header>
 
-      <!-- NARRATIVA: Situación actual -->
-      <section class="narrative-section">
-        <div id="situation" class="situation fade-in">Cargando...</div>
-      </section>
+    <!-- ESTADO DEL JUGADOR: Stats, Personajes, Inventario -->
+    <section class="player-state">
+      <!-- Stats dinámicas -->
+      <div id="statsContainer" class="stats-container"></div>
 
-      <!-- ACCIONES: Botones de elección -->
-      <section class="actions-section">
-        <div class="buttons">
-          <button id="choiceA" class="choice-btn"></button>
-          <button id="choiceB" class="choice-btn"></button>
+      <!-- Grid para Personajes e Inventario (lado a lado en desktop) -->
+      <div class="state-grid">
+        <!-- Personajes (opcional) -->
+        <div id="charactersContainer" class="characters-container hidden"></div>
+
+        <!-- Inventario (opcional) -->
+        <div id="inventoryContainer" class="inventory-container hidden">
+          <div class="inventory-header">
+            <span>🎒 Inventario</span>
+            <span id="moneyDisplay">💰 $0</span>
+          </div>
+          <div id="inventoryItems" class="inventory-items"></div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- RESULTADO: Final -->
-      <section class="result-section hidden" id="resultSection">
-        <div id="result" class="result hidden"></div>
-        <button id="restart" class="hidden">🔄 Jugar de nuevo</button>
-      </section>
+    <!-- NARRATIVA: Situación actual -->
+    <section class="narrative-section">
+      <div id="situation" class="situation fade-in">
+        Cargando historia...
+      </div>
+    </section>
 
-      <!-- OVERLAYS -->
-      <!-- Indicador de cambio de stat (flotante) -->
-      <div id="statChange" class="stat-change-indicator"></div>
+    <!-- ACCIONES: Botones de elección -->
+    <section class="actions-section">
+      <div id="choicesContainer" class="buttons"></div>
+    </section>
+
+    <!-- RESULTADO: Final de historia -->
+    <section class="result-section hidden" id="resultSection">
+      <div id="result" class="result hidden"></div>
+      
+      <div id="actionButtons" class="action-buttons hidden">
+        <button id="restart" class="btn-primary">🔄 Jugar de nuevo</button>
+        <button id="continueBtn" class="btn-primary hidden">➡️ Continuar</button>
+      </div>
+    </section>
+
+    <!-- OVERLAYS Y MODALES -->
+    <!-- Menú de guardado -->
+    <div id="saveMenu" class="save-menu hidden">
+      <h3>Gestión de Guardado</h3>
+      <div class="save-actions">
+        <button id="saveBtn" class="btn-secondary">💾 Guardar</button>
+        <button id="loadBtn" class="btn-secondary">📂 Cargar</button>
+        <button id="exportBtn" class="btn-secondary">📤 Exportar</button>
+        <button id="importBtn" class="btn-secondary">📥 Importar</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" />
+      </div>
+      <div id="saveSlotsList" class="save-slots"></div>
+      <button id="closeSaveMenu" class="btn-close">✕</button>
     </div>
 
-    <script src="app.js"></script>
-  </body>
+    <!-- Selector de slot al guardar -->
+    <div id="slotSelector" class="modal hidden">
+      <div class="modal-content">
+        <h3>Seleccionar Slot</h3>
+        <div id="slotButtons"></div>
+        <button id="cancelSlot" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Indicador flotante de cambios -->
+    <div id="statChange" class="stat-change-indicator"></div>
+
+    <!-- Achievements notification -->
+    <div id="achievementNotif" class="achievement-notif hidden">
+      <span class="achievement-icon">🏆</span>
+      <div class="achievement-text">
+        <strong id="achievementTitle"></strong>
+        <small id="achievementDesc"></small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="engine/engine.js"></script>
+  <script src="main.js"></script>
+</body>
 </html>
