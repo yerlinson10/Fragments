@@ -1102,6 +1102,12 @@ window.editEvent = function(index) {
         </select>
       </div>
       
+      <div class="form-group" id="probabilityGroup" style="${event.type === 'random' ? '' : 'display:none'}">
+        <label>Probabilidad (0-1)</label>
+        <input type="number" id="eventProbability" min="0" max="1" step="0.1" value="${event.probability || 0.5}" placeholder="0.5 = 50%" />
+        <small>0 = 0%, 1 = 100%</small>
+      </div>
+      
       <div class="form-group">
         <label>Día (0 = cualquiera)</label>
         <input type="number" id="eventDay" min="0" value="${event.day || 0}" />
@@ -1159,6 +1165,45 @@ window.editEvent = function(index) {
             <div id="eventCharactersConditions"></div>
             <button type="button" class="btn-secondary btn-small" onclick="addEventCharacterCondition()">+ Agregar condición</button>
           </div>
+          
+          <div class="condition-section">
+            <h4>📅 Rango de Días</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div>
+                <label>Día mínimo</label>
+                <input type="number" id="eventDayMin" min="0" value="${event.conditions?.day_min || ''}" placeholder="Desde día..." />
+              </div>
+              <div>
+                <label>Día máximo</label>
+                <input type="number" id="eventDayMax" min="0" value="${event.conditions?.day_max || ''}" placeholder="Hasta día..." />
+              </div>
+            </div>
+          </div>
+          
+          <div class="condition-section">
+            <h4>✅ Eventos Completados Requeridos</h4>
+            <div id="eventCompletedEventsConditions"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addCompletedEventCondition()">+ Agregar evento</button>
+          </div>
+          
+          <div class="condition-section">
+            <h4>🎯 Decisiones Previas</h4>
+            <div id="eventPreviousChoicesConditions"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addPreviousChoiceCondition()">+ Agregar decisión</button>
+          </div>
+          
+          <div class="condition-section">
+            <h4>💰 Inventario</h4>
+            <div>
+              <label>Dinero mínimo requerido</label>
+              <input type="number" id="eventMoneyMin" value="${event.conditions?.inventory?.money_min || ''}" placeholder="Ej: 100" />
+            </div>
+            <div style="margin-top: 0.5rem;">
+              <label>Items requeridos</label>
+              <div id="eventRequiredItems"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addRequiredItem()">+ Agregar item</button>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -1183,6 +1228,13 @@ window.editEvent = function(index) {
   renderEventChoices(event.choices);
   
   modal.classList.remove('hidden');
+  
+  // Toggle probability field visibility
+  const typeSelect = document.getElementById('eventType');
+  const probabilityGroup = document.getElementById('probabilityGroup');
+  typeSelect.addEventListener('change', () => {
+    probabilityGroup.style.display = typeSelect.value === 'random' ? '' : 'none';
+  });
 };
 
 // Event conditions and choices helpers
@@ -1190,10 +1242,13 @@ let eventConditionsData = { stats: {}, flags: {}, characters: {} };
 let eventChoicesData = [];
 
 function clearEventConditions() {
-  eventConditionsData = { stats: {}, flags: {}, characters: {} };
+  eventConditionsData = { stats: {}, flags: {}, characters: {}, completed_events: [], previous_choices: {}, inventory: {} };
   document.getElementById('eventStatsConditions').innerHTML = '';
   document.getElementById('eventFlagsConditions').innerHTML = '';
   document.getElementById('eventCharactersConditions').innerHTML = '';
+  document.getElementById('eventCompletedEventsConditions').innerHTML = '';
+  document.getElementById('eventPreviousChoicesConditions').innerHTML = '';
+  document.getElementById('eventRequiredItems').innerHTML = '';
 }
 
 function loadEventConditions(conditions) {
@@ -1231,6 +1286,29 @@ function loadEventConditions(conditions) {
       if (values.met !== undefined) addEventCharacterCondition(char, 'met', values.met);
     });
   }
+  
+  // Load completed_events
+  if (conditions.completed_events) {
+    conditions.completed_events.forEach(eventId => {
+      addCompletedEventCondition(eventId);
+    });
+  }
+  
+  // Load previous_choices
+  if (conditions.previous_choices) {
+    Object.entries(conditions.previous_choices).forEach(([eventId, choiceIndex]) => {
+      addPreviousChoiceCondition(eventId, choiceIndex);
+    });
+  }
+  
+  // Load inventory conditions
+  if (conditions.inventory) {
+    if (conditions.inventory.has_items) {
+      conditions.inventory.has_items.forEach(item => {
+        addRequiredItem(item);
+      });
+    }
+  }
 }
 
 function getEventConditions() {
@@ -1259,6 +1337,32 @@ function getEventConditions() {
     Object.entries(eventConditionsData.characters).forEach(([char, values]) => {
       conditions.characters[char] = values;
     });
+  }
+  
+  // day_min y day_max
+  const dayMin = parseInt(document.getElementById('eventDayMin')?.value);
+  const dayMax = parseInt(document.getElementById('eventDayMax')?.value);
+  if (dayMin) conditions.day_min = dayMin;
+  if (dayMax) conditions.day_max = dayMax;
+  
+  // completed_events
+  if (eventConditionsData.completed_events && eventConditionsData.completed_events.length > 0) {
+    conditions.completed_events = eventConditionsData.completed_events;
+  }
+  
+  // previous_choices
+  if (eventConditionsData.previous_choices && Object.keys(eventConditionsData.previous_choices).length > 0) {
+    conditions.previous_choices = eventConditionsData.previous_choices;
+  }
+  
+  // inventory
+  const moneyMin = parseInt(document.getElementById('eventMoneyMin')?.value);
+  if (moneyMin || (eventConditionsData.inventory?.has_items && eventConditionsData.inventory.has_items.length > 0)) {
+    conditions.inventory = {};
+    if (moneyMin) conditions.inventory.money_min = moneyMin;
+    if (eventConditionsData.inventory?.has_items && eventConditionsData.inventory.has_items.length > 0) {
+      conditions.inventory.has_items = eventConditionsData.inventory.has_items;
+    }
   }
   
   return conditions;
@@ -1398,6 +1502,140 @@ window.removeEventCharacterCondition = function(id) {
   div.remove();
 };
 
+// Completed Events Condition
+window.addCompletedEventCondition = function(eventId = '') {
+  const container = document.getElementById('eventCompletedEventsConditions');
+  const id = `completed-event-${Date.now()}`;
+  const availableEvents = currentStory.story.events.map(e => e.id);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="event-select">
+      <option value="">Selecciona evento...</option>
+      ${availableEvents.map(e => `<option value="${e}" ${e === eventId ? 'selected' : ''}>${e}</option>`).join('')}
+    </select>
+    <button class="btn-danger" onclick="removeCompletedEventCondition('${id}')" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const event = div.querySelector('.event-select').value;
+    if (event) {
+      if (!eventConditionsData.completed_events) eventConditionsData.completed_events = [];
+      if (!eventConditionsData.completed_events.includes(event)) {
+        eventConditionsData.completed_events.push(event);
+      }
+    }
+  };
+  div.querySelector('select').addEventListener('change', update);
+  update();
+};
+
+window.removeCompletedEventCondition = function(id) {
+  const div = document.getElementById(id);
+  const event = div.querySelector('.event-select').value;
+  if (eventConditionsData.completed_events && event) {
+    const index = eventConditionsData.completed_events.indexOf(event);
+    if (index > -1) eventConditionsData.completed_events.splice(index, 1);
+  }
+  div.remove();
+};
+
+// Previous Choices Condition
+window.addPreviousChoiceCondition = function(eventId = '', choiceIndex = 0) {
+  const container = document.getElementById('eventPreviousChoicesConditions');
+  const id = `previous-choice-${Date.now()}`;
+  const availableEvents = currentStory.story.events.filter(e => e.choices && e.choices.length > 0);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="event-select">
+      <option value="">Selecciona evento...</option>
+      ${availableEvents.map(e => `<option value="${e.id}" ${e.id === eventId ? 'selected' : ''}>${e.id}</option>`).join('')}
+    </select>
+    <input type="number" class="choice-index" value="${choiceIndex}" min="0" placeholder="Índice opción (0, 1, 2...)" />
+    <button class="btn-danger" onclick="removePreviousChoiceCondition('${id}')" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const event = div.querySelector('.event-select').value;
+    const index = parseInt(div.querySelector('.choice-index').value) || 0;
+    if (event) {
+      if (!eventConditionsData.previous_choices) eventConditionsData.previous_choices = {};
+      eventConditionsData.previous_choices[event] = index;
+    }
+  };
+  div.querySelectorAll('select, input').forEach(el => el.addEventListener('change', update));
+  update();
+};
+
+window.removePreviousChoiceCondition = function(id) {
+  const div = document.getElementById(id);
+  const event = div.querySelector('.event-select').value;
+  if (eventConditionsData.previous_choices && event) {
+    delete eventConditionsData.previous_choices[event];
+  }
+  div.remove();
+};
+
+// Required Items Condition
+window.addRequiredItem = function(itemName = '') {
+  const container = document.getElementById('eventRequiredItems');
+  const id = `required-item-${Date.now()}`;
+  const availableItems = Object.keys(currentStory.config.inventory?.items || {});
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  
+  if (availableItems.length > 0) {
+    div.innerHTML = `
+      <select class="item-select">
+        <option value="">Selecciona item...</option>
+        ${availableItems.map(i => `<option value="${i}" ${i === itemName ? 'selected' : ''}>${i}</option>`).join('')}
+      </select>
+      <button class="btn-danger" onclick="removeRequiredItem('${id}')" type="button">🗑️</button>
+    `;
+  } else {
+    div.innerHTML = `
+      <input type="text" class="item-input" value="${itemName}" placeholder="Nombre del item" />
+      <button class="btn-danger" onclick="removeRequiredItem('${id}')" type="button">🗑️</button>
+    `;
+  }
+  
+  container.appendChild(div);
+  
+  const update = () => {
+    const item = div.querySelector('.item-select')?.value || div.querySelector('.item-input')?.value;
+    if (item) {
+      if (!eventConditionsData.inventory) eventConditionsData.inventory = {};
+      if (!eventConditionsData.inventory.has_items) eventConditionsData.inventory.has_items = [];
+      if (!eventConditionsData.inventory.has_items.includes(item)) {
+        eventConditionsData.inventory.has_items.push(item);
+      }
+    }
+  };
+  
+  const input = div.querySelector('.item-select') || div.querySelector('.item-input');
+  input.addEventListener('change', update);
+  update();
+};
+
+window.removeRequiredItem = function(id) {
+  const div = document.getElementById(id);
+  const item = div.querySelector('.item-select')?.value || div.querySelector('.item-input')?.value;
+  if (eventConditionsData.inventory?.has_items && item) {
+    const index = eventConditionsData.inventory.has_items.indexOf(item);
+    if (index > -1) eventConditionsData.inventory.has_items.splice(index, 1);
+  }
+  div.remove();
+};
+
 // Render choices with visual effects builder
 function renderEventChoices(choices) {
   const container = document.getElementById('eventChoicesList');
@@ -1439,6 +1677,32 @@ function renderEventChoices(choices) {
             <div id="choice-${i}-characters"></div>
             <button type="button" class="btn-secondary btn-small" onclick="addChoiceCharacterEffect(${i})">+ Agregar efecto</button>
           </div>
+          
+          <div class="condition-section">
+            <h4>🎬 Triggers Especiales</h4>
+            <label class="checkbox-label">
+              <input type="checkbox" class="trigger-ending" data-index="${i}" ${choice.effects?.trigger_ending ? 'checked' : ''} />
+              Terminar juego (trigger_ending)
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="trigger-next-day" data-index="${i}" ${choice.effects?.trigger_next_day ? 'checked' : ''} />
+              Avanzar al siguiente día (trigger_next_day)
+            </label>
+          </div>
+          
+          <div class="condition-section">
+            <h4>🔓 Control de Eventos</h4>
+            <div id="choice-${i}-unlock-events"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addUnlockEvent(${i})">+ Desbloquear evento</button>
+            <div id="choice-${i}-lock-events" style="margin-top: 0.5rem;"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addLockEvent(${i})">+ Bloquear evento</button>
+          </div>
+          
+          <div class="condition-section">
+            <h4>🏆 Logros</h4>
+            <div id="choice-${i}-achievement"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addAchievementUnlock(${i})">+ Desbloquear logro</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1469,6 +1733,15 @@ function renderEventChoices(choices) {
         addChoiceCharacterEffect(i, char, value);
       });
     }
+    if (choice.effects.unlock_events) {
+      choice.effects.unlock_events.forEach(eventId => addUnlockEvent(i, eventId));
+    }
+    if (choice.effects.lock_events) {
+      choice.effects.lock_events.forEach(eventId => addLockEvent(i, eventId));
+    }
+    if (choice.effects.unlocks?.achievement) {
+      addAchievementUnlock(i, choice.effects.unlocks.achievement);
+    }
   });
   
   // Update text on input
@@ -1476,6 +1749,23 @@ function renderEventChoices(choices) {
     input.addEventListener('input', () => {
       const idx = parseInt(input.dataset.index);
       eventChoicesData[idx].text = input.value;
+    });
+  });
+  
+  // Update triggers
+  container.querySelectorAll('.trigger-ending').forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      const idx = parseInt(checkbox.dataset.index);
+      eventChoicesData[idx].effects.trigger_ending = checkbox.checked;
+      if (!checkbox.checked) delete eventChoicesData[idx].effects.trigger_ending;
+    });
+  });
+  
+  container.querySelectorAll('.trigger-next-day').forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      const idx = parseInt(checkbox.dataset.index);
+      eventChoicesData[idx].effects.trigger_next_day = checkbox.checked;
+      if (!checkbox.checked) delete eventChoicesData[idx].effects.trigger_next_day;
     });
   });
 }
@@ -1647,6 +1937,145 @@ window.removeChoiceCharacterEffect = function(id, choiceIndex) {
   div.remove();
 };
 
+// Unlock Events
+window.addUnlockEvent = function(choiceIndex, eventId = '') {
+  const container = document.getElementById(`choice-${choiceIndex}-unlock-events`);
+  const id = `choice-${choiceIndex}-unlock-${Date.now()}`;
+  const availableEvents = currentStory.story.events.map(e => e.id);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="event-select">
+      <option value="">Selecciona evento...</option>
+      ${availableEvents.map(e => `<option value="${e}" ${e === eventId ? 'selected' : ''}>${e}</option>`).join('')}
+    </select>
+    <button class="btn-danger" onclick="removeUnlockEvent('${id}', ${choiceIndex})" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const event = div.querySelector('.event-select').value;
+    if (event) {
+      if (!eventChoicesData[choiceIndex].effects.unlock_events) {
+        eventChoicesData[choiceIndex].effects.unlock_events = [];
+      }
+      const index = eventChoicesData[choiceIndex].effects.unlock_events.indexOf(event);
+      if (index === -1) {
+        eventChoicesData[choiceIndex].effects.unlock_events.push(event);
+      }
+    }
+  };
+  div.querySelector('select').addEventListener('change', update);
+  update();
+};
+
+window.removeUnlockEvent = function(id, choiceIndex) {
+  const div = document.getElementById(id);
+  const event = div.querySelector('.event-select').value;
+  if (eventChoicesData[choiceIndex].effects.unlock_events && event) {
+    const index = eventChoicesData[choiceIndex].effects.unlock_events.indexOf(event);
+    if (index > -1) {
+      eventChoicesData[choiceIndex].effects.unlock_events.splice(index, 1);
+    }
+  }
+  div.remove();
+};
+
+// Lock Events
+window.addLockEvent = function(choiceIndex, eventId = '') {
+  const container = document.getElementById(`choice-${choiceIndex}-lock-events`);
+  const id = `choice-${choiceIndex}-lock-${Date.now()}`;
+  const availableEvents = currentStory.story.events.map(e => e.id);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="event-select">
+      <option value="">Selecciona evento...</option>
+      ${availableEvents.map(e => `<option value="${e}" ${e === eventId ? 'selected' : ''}>${e}</option>`).join('')}
+    </select>
+    <button class="btn-danger" onclick="removeLockEvent('${id}', ${choiceIndex})" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const event = div.querySelector('.event-select').value;
+    if (event) {
+      if (!eventChoicesData[choiceIndex].effects.lock_events) {
+        eventChoicesData[choiceIndex].effects.lock_events = [];
+      }
+      const index = eventChoicesData[choiceIndex].effects.lock_events.indexOf(event);
+      if (index === -1) {
+        eventChoicesData[choiceIndex].effects.lock_events.push(event);
+      }
+    }
+  };
+  div.querySelector('select').addEventListener('change', update);
+  update();
+};
+
+window.removeLockEvent = function(id, choiceIndex) {
+  const div = document.getElementById(id);
+  const event = div.querySelector('.event-select').value;
+  if (eventChoicesData[choiceIndex].effects.lock_events && event) {
+    const index = eventChoicesData[choiceIndex].effects.lock_events.indexOf(event);
+    if (index > -1) {
+      eventChoicesData[choiceIndex].effects.lock_events.splice(index, 1);
+    }
+  }
+  div.remove();
+};
+
+// Achievement Unlock
+window.addAchievementUnlock = function(choiceIndex, achievementKey = '') {
+  const container = document.getElementById(`choice-${choiceIndex}-achievement`);
+  const id = `choice-${choiceIndex}-ach-${Date.now()}`;
+  const availableAchievements = Object.keys(currentStory.config.achievements || {});
+  
+  if (availableAchievements.length === 0) {
+    showToast('No hay logros configurados', 'warning');
+    return;
+  }
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="achievement-select">
+      <option value="">Selecciona logro...</option>
+      ${availableAchievements.map(a => `<option value="${a}" ${a === achievementKey ? 'selected' : ''}>${currentStory.config.achievements[a].name}</option>`).join('')}
+    </select>
+    <button class="btn-danger" onclick="removeAchievementUnlock('${id}', ${choiceIndex})" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const achievement = div.querySelector('.achievement-select').value;
+    if (achievement) {
+      if (!eventChoicesData[choiceIndex].effects.unlocks) {
+        eventChoicesData[choiceIndex].effects.unlocks = {};
+      }
+      eventChoicesData[choiceIndex].effects.unlocks.achievement = achievement;
+    }
+  };
+  div.querySelector('select').addEventListener('change', update);
+  update();
+};
+
+window.removeAchievementUnlock = function(id, choiceIndex) {
+  const div = document.getElementById(id);
+  if (eventChoicesData[choiceIndex].effects.unlocks) {
+    delete eventChoicesData[choiceIndex].effects.unlocks.achievement;
+    if (Object.keys(eventChoicesData[choiceIndex].effects.unlocks).length === 0) {
+      delete eventChoicesData[choiceIndex].effects.unlocks;
+    }
+  }
+  div.remove();
+};
+
 window.removeChoice = async function(index) {
   if (currentEventEdit === null) return;
   
@@ -1692,6 +2121,16 @@ window.saveEvent = function() {
   event.day = parseInt(document.getElementById('eventDay').value) || 0;
   event.can_repeat = document.getElementById('eventCanRepeat').checked;
   event.situation = document.getElementById('eventSituation').value;
+  
+  // Probability for random events
+  if (event.type === 'random') {
+    const probability = parseFloat(document.getElementById('eventProbability').value);
+    if (probability) {
+      event.probability = probability;
+    }
+  } else {
+    delete event.probability;
+  }
   
   // Update time fields
   const time = document.getElementById('eventTime').value;
@@ -1806,13 +2245,16 @@ function renderEndings() {
 }
 
 // Helper functions para condiciones de endings
-let endingConditionsData = { stats: {}, flags: {}, characters: {} };
+let endingConditionsData = { stats: {}, flags: {}, characters: {}, completed_events: [], previous_choices: {}, inventory: {} };
 
 function clearEndingConditions() {
-  endingConditionsData = { stats: {}, flags: {}, characters: {} };
+  endingConditionsData = { stats: {}, flags: {}, characters: {}, completed_events: [], previous_choices: {}, inventory: {} };
   document.getElementById('endingStatsConditions').innerHTML = '';
   document.getElementById('endingFlagsConditions').innerHTML = '';
   document.getElementById('endingCharactersConditions').innerHTML = '';
+  document.getElementById('endingCompletedEventsConditions').innerHTML = '';
+  document.getElementById('endingPreviousChoicesConditions').innerHTML = '';
+  document.getElementById('endingRequiredItems').innerHTML = '';
 }
 
 function loadEndingConditions(conditions) {
@@ -1862,6 +2304,40 @@ function loadEndingConditions(conditions) {
       }
     });
   }
+  
+  // Load day range
+  if (conditions.day_min) {
+    document.getElementById('endingDayMin').value = conditions.day_min;
+  }
+  if (conditions.day_max) {
+    document.getElementById('endingDayMax').value = conditions.day_max;
+  }
+  
+  // Load completed_events
+  if (conditions.completed_events) {
+    conditions.completed_events.forEach(eventId => {
+      addEndingCompletedEvent(eventId);
+    });
+  }
+  
+  // Load previous_choices
+  if (conditions.previous_choices) {
+    Object.entries(conditions.previous_choices).forEach(([eventId, choiceIndex]) => {
+      addEndingPreviousChoice(eventId, choiceIndex);
+    });
+  }
+  
+  // Load inventory
+  if (conditions.inventory) {
+    if (conditions.inventory.money_min) {
+      document.getElementById('endingMoneyMin').value = conditions.inventory.money_min;
+    }
+    if (conditions.inventory.has_items) {
+      conditions.inventory.has_items.forEach(item => {
+        addEndingRequiredItem(item);
+      });
+    }
+  }
 }
 
 function getEndingConditions() {
@@ -1892,6 +2368,32 @@ function getEndingConditions() {
     Object.entries(endingConditionsData.characters).forEach(([char, values]) => {
       conditions.characters[char] = values;
     });
+  }
+  
+  // day_min y day_max
+  const dayMin = parseInt(document.getElementById('endingDayMin')?.value);
+  const dayMax = parseInt(document.getElementById('endingDayMax')?.value);
+  if (dayMin) conditions.day_min = dayMin;
+  if (dayMax) conditions.day_max = dayMax;
+  
+  // completed_events
+  if (endingConditionsData.completed_events && endingConditionsData.completed_events.length > 0) {
+    conditions.completed_events = endingConditionsData.completed_events;
+  }
+  
+  // previous_choices
+  if (endingConditionsData.previous_choices && Object.keys(endingConditionsData.previous_choices).length > 0) {
+    conditions.previous_choices = endingConditionsData.previous_choices;
+  }
+  
+  // inventory
+  const moneyMin = parseInt(document.getElementById('endingMoneyMin')?.value);
+  if (moneyMin || (endingConditionsData.inventory?.has_items && endingConditionsData.inventory.has_items.length > 0)) {
+    conditions.inventory = {};
+    if (moneyMin) conditions.inventory.money_min = moneyMin;
+    if (endingConditionsData.inventory?.has_items && endingConditionsData.inventory.has_items.length > 0) {
+      conditions.inventory.has_items = endingConditionsData.inventory.has_items;
+    }
   }
   
   return conditions;
@@ -2083,6 +2585,140 @@ window.removeEndingCharacterCondition = function(id) {
     }
   }
   
+  div.remove();
+};
+
+// Completed Events for Endings
+window.addEndingCompletedEvent = function(eventId = '') {
+  const container = document.getElementById('endingCompletedEventsConditions');
+  const id = `ending-completed-${Date.now()}`;
+  const availableEvents = currentStory.story.events.map(e => e.id);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="event-select">
+      <option value="">Selecciona evento...</option>
+      ${availableEvents.map(e => `<option value="${e}" ${e === eventId ? 'selected' : ''}>${e}</option>`).join('')}
+    </select>
+    <button class="btn-danger" onclick="removeEndingCompletedEvent('${id}')" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const event = div.querySelector('.event-select').value;
+    if (event) {
+      if (!endingConditionsData.completed_events) endingConditionsData.completed_events = [];
+      if (!endingConditionsData.completed_events.includes(event)) {
+        endingConditionsData.completed_events.push(event);
+      }
+    }
+  };
+  div.querySelector('select').addEventListener('change', update);
+  update();
+};
+
+window.removeEndingCompletedEvent = function(id) {
+  const div = document.getElementById(id);
+  const event = div.querySelector('.event-select').value;
+  if (endingConditionsData.completed_events && event) {
+    const index = endingConditionsData.completed_events.indexOf(event);
+    if (index > -1) endingConditionsData.completed_events.splice(index, 1);
+  }
+  div.remove();
+};
+
+// Previous Choices for Endings
+window.addEndingPreviousChoice = function(eventId = '', choiceIndex = 0) {
+  const container = document.getElementById('endingPreviousChoicesConditions');
+  const id = `ending-prev-choice-${Date.now()}`;
+  const availableEvents = currentStory.story.events.filter(e => e.choices && e.choices.length > 0);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="event-select">
+      <option value="">Selecciona evento...</option>
+      ${availableEvents.map(e => `<option value="${e.id}" ${e.id === eventId ? 'selected' : ''}>${e.id}</option>`).join('')}
+    </select>
+    <input type="number" class="choice-index" value="${choiceIndex}" min="0" placeholder="Índice (0, 1, 2...)" />
+    <button class="btn-danger" onclick="removeEndingPreviousChoice('${id}')" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const event = div.querySelector('.event-select').value;
+    const index = parseInt(div.querySelector('.choice-index').value) || 0;
+    if (event) {
+      if (!endingConditionsData.previous_choices) endingConditionsData.previous_choices = {};
+      endingConditionsData.previous_choices[event] = index;
+    }
+  };
+  div.querySelectorAll('select, input').forEach(el => el.addEventListener('change', update));
+  update();
+};
+
+window.removeEndingPreviousChoice = function(id) {
+  const div = document.getElementById(id);
+  const event = div.querySelector('.event-select').value;
+  if (endingConditionsData.previous_choices && event) {
+    delete endingConditionsData.previous_choices[event];
+  }
+  div.remove();
+};
+
+// Required Items for Endings
+window.addEndingRequiredItem = function(itemName = '') {
+  const container = document.getElementById('endingRequiredItems');
+  const id = `ending-item-${Date.now()}`;
+  const availableItems = Object.keys(currentStory.config.inventory?.items || {});
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  
+  if (availableItems.length > 0) {
+    div.innerHTML = `
+      <select class="item-select">
+        <option value="">Selecciona item...</option>
+        ${availableItems.map(i => `<option value="${i}" ${i === itemName ? 'selected' : ''}>${i}</option>`).join('')}
+      </select>
+      <button class="btn-danger" onclick="removeEndingRequiredItem('${id}')" type="button">🗑️</button>
+    `;
+  } else {
+    div.innerHTML = `
+      <input type="text" class="item-input" value="${itemName}" placeholder="Nombre del item" />
+      <button class="btn-danger" onclick="removeEndingRequiredItem('${id}')" type="button">🗑️</button>
+    `;
+  }
+  
+  container.appendChild(div);
+  
+  const update = () => {
+    const item = div.querySelector('.item-select')?.value || div.querySelector('.item-input')?.value;
+    if (item) {
+      if (!endingConditionsData.inventory) endingConditionsData.inventory = {};
+      if (!endingConditionsData.inventory.has_items) endingConditionsData.inventory.has_items = [];
+      if (!endingConditionsData.inventory.has_items.includes(item)) {
+        endingConditionsData.inventory.has_items.push(item);
+      }
+    }
+  };
+  
+  const input = div.querySelector('.item-select') || div.querySelector('.item-input');
+  input.addEventListener('change', update);
+  update();
+};
+
+window.removeEndingRequiredItem = function(id) {
+  const div = document.getElementById(id);
+  const item = div.querySelector('.item-select')?.value || div.querySelector('.item-input')?.value;
+  if (endingConditionsData.inventory?.has_items && item) {
+    const index = endingConditionsData.inventory.has_items.indexOf(item);
+    if (index > -1) endingConditionsData.inventory.has_items.splice(index, 1);
+  }
   div.remove();
 };
 

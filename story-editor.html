@@ -594,6 +594,49 @@
               <div id="endingCharactersConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addEndingCharacterCondition()">+ Agregar condición de personaje</button>
             </div>
+            
+            <!-- Day Range -->
+            <div class="condition-section">
+              <h4>📅 Rango de Días</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <div>
+                  <label>Día mínimo</label>
+                  <input type="number" id="endingDayMin" min="0" placeholder="Desde día..." />
+                </div>
+                <div>
+                  <label>Día máximo</label>
+                  <input type="number" id="endingDayMax" min="0" placeholder="Hasta día..." />
+                </div>
+              </div>
+            </div>
+            
+            <!-- Completed Events -->
+            <div class="condition-section">
+              <h4>✅ Eventos Completados</h4>
+              <div id="endingCompletedEventsConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addEndingCompletedEvent()">+ Agregar evento</button>
+            </div>
+            
+            <!-- Previous Choices -->
+            <div class="condition-section">
+              <h4>🎯 Decisiones Previas</h4>
+              <div id="endingPreviousChoicesConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addEndingPreviousChoice()">+ Agregar decisión</button>
+            </div>
+            
+            <!-- Inventory -->
+            <div class="condition-section">
+              <h4>💰 Inventario</h4>
+              <div>
+                <label>Dinero mínimo</label>
+                <input type="number" id="endingMoneyMin" placeholder="Ej: 100" />
+              </div>
+              <div style="margin-top: 0.5rem;">
+                <label>Items requeridos</label>
+                <div id="endingRequiredItems"></div>
+                <button type="button" class="btn-secondary btn-small" onclick="addEndingRequiredItem()">+ Agregar item</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
