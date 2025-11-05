@@ -2943,6 +2943,642 @@ window.deleteAchievement = async function(key) {
   showToast('Logro eliminado', 'success');
 };
 
+// ============================================
+// FLOWCHART - VISUALIZACIÓN DE FLUJO
+// ============================================
+
+// Variables globales del flowchart
+let flowchartData = {
+  nodes: [],
+  edges: [],
+  unreachableNodes: new Set(),
+  analysis: {}
+};
+
+let flowchartState = {
+  zoom: 1,
+  dayFilter: 'all',
+  typeFilter: 'all',
+  showUnreachable: true,
+  selectedNode: null
+};
+
+/**
+ * Actualizar el flowchart completo
+ */
+window.refreshFlowchart = function() {
+  console.log('🔄 Actualizando flowchart...');
+  
+  // Verificar si hay eventos
+  if (!currentStory.story.events || currentStory.story.events.length === 0) {
+    document.getElementById('flowchartSvg').style.display = 'none';
+    document.getElementById('flowchartEmpty').style.display = 'block';
+    document.getElementById('flowchartStats').innerHTML = '<p>No hay eventos para analizar.</p>';
+    return;
+  }
+  
+  document.getElementById('flowchartSvg').style.display = 'block';
+  document.getElementById('flowchartEmpty').style.display = 'none';
+  
+  // Construir grafo
+  buildFlowchartGraph();
+  
+  // Analizar alcanzabilidad
+  analyzeReachability();
+  
+  // Renderizar
+  renderFlowchart();
+  
+  // Actualizar estadísticas
+  updateFlowchartStats();
+  
+  // Actualizar filtro de días
+  updateFlowchartDayFilter();
+  
+  showToast('Flowchart actualizado', 'success');
+};
+
+/**
+ * Construir el grafo de eventos
+ */
+function buildFlowchartGraph() {
+  flowchartData.nodes = [];
+  flowchartData.edges = [];
+  
+  const events = currentStory.story.events;
+  
+  // Crear nodos para cada evento
+  events.forEach((event, index) => {
+    flowchartData.nodes.push({
+      id: event.id,
+      type: event.type || 'optional',
+      day: event.day || 1,
+      text: event.text ? event.text.substring(0, 50) + '...' : 'Sin texto',
+      conditions: event.conditions || {},
+      choices: event.choices || [],
+      index: index
+    });
+  });
+  
+  // Crear aristas basadas en conexiones
+  events.forEach((event, index) => {
+    const eventId = event.id;
+    
+    // 1. Conexiones por unlock_events en choices
+    if (event.choices) {
+      event.choices.forEach((choice, choiceIndex) => {
+        if (choice.effects?.unlock_events) {
+          choice.effects.unlock_events.forEach(targetId => {
+            flowchartData.edges.push({
+              from: eventId,
+              to: targetId,
+              type: 'unlock',
+              label: `Choice ${choiceIndex + 1}`,
+              color: '#10b981'
+            });
+          });
+        }
+        
+        // 2. Conexiones por lock_events
+        if (choice.effects?.lock_events) {
+          choice.effects.lock_events.forEach(targetId => {
+            flowchartData.edges.push({
+              from: eventId,
+              to: targetId,
+              type: 'lock',
+              label: `Blocks`,
+              color: '#ef4444',
+              dashed: true
+            });
+          });
+        }
+      });
+    }
+    
+    // 3. Conexiones por completed_events (eventos que requieren este)
+    events.forEach(targetEvent => {
+      if (targetEvent.conditions?.completed_events) {
+        if (targetEvent.conditions.completed_events.includes(eventId)) {
+          flowchartData.edges.push({
+            from: eventId,
+            to: targetEvent.id,
+            type: 'sequence',
+            label: 'Required',
+            color: '#8b5cf6'
+          });
+        }
+      }
+    });
+    
+    // 4. Conexiones por previous_choices
+    events.forEach(targetEvent => {
+      if (targetEvent.conditions?.previous_choices) {
+        if (targetEvent.conditions.previous_choices[eventId] !== undefined) {
+          const choiceIndex = targetEvent.conditions.previous_choices[eventId];
+          flowchartData.edges.push({
+            from: eventId,
+            to: targetEvent.id,
+            type: 'choice_dependency',
+            label: `Choice ${choiceIndex + 1}`,
+            color: '#f59e0b'
+          });
+        }
+      }
+    });
+  });
+  
+  console.log(`📊 Grafo construido: ${flowchartData.nodes.length} nodos, ${flowchartData.edges.length} aristas`);
+}
+
+/**
+ * Analizar alcanzabilidad de eventos
+ */
+function analyzeReachability() {
+  flowchartData.unreachableNodes = new Set();
+  
+  const events = currentStory.story.events;
+  const reachable = new Set();
+  
+  // Marcar eventos mandatory como alcanzables
+  events.forEach(event => {
+    if (event.type === 'mandatory') {
+      reachable.add(event.id);
+    }
+  });
+  
+  // Marcar eventos sin condiciones como potencialmente alcanzables
+  events.forEach(event => {
+    const hasConditions = event.conditions && Object.keys(event.conditions).length > 0;
+    if (!hasConditions && event.type !== 'mandatory') {
+      reachable.add(event.id);
+    }
+  });
+  
+  // Propagar alcanzabilidad a través de unlock_events
+  let changed = true;
+  let iterations = 0;
+  const maxIterations = 100;
+  
+  while (changed && iterations < maxIterations) {
+    changed = false;
+    iterations++;
+    
+    events.forEach(event => {
+      if (reachable.has(event.id)) {
+        // Este evento es alcanzable, marcar sus unlock_events
+        if (event.choices) {
+          event.choices.forEach(choice => {
+            if (choice.effects?.unlock_events) {
+              choice.effects.unlock_events.forEach(targetId => {
+                if (!reachable.has(targetId)) {
+                  reachable.add(targetId);
+                  changed = true;
+                }
+              });
+            }
+          });
+        }
+      }
+    });
+    
+    // Marcar eventos cuyas condiciones sean satisfacibles
+    events.forEach(event => {
+      if (!reachable.has(event.id)) {
+        // Verificar si completed_events son todos alcanzables
+        if (event.conditions?.completed_events) {
+          const allReachable = event.conditions.completed_events.every(reqId => reachable.has(reqId));
+          if (allReachable) {
+            reachable.add(event.id);
+            changed = true;
+          }
+        }
+      }
+    });
+  }
+  
+  // Identificar inalcanzables
+  events.forEach(event => {
+    if (!reachable.has(event.id)) {
+      flowchartData.unreachableNodes.add(event.id);
+    }
+  });
+  
+  console.log(`🎯 Análisis: ${reachable.size} alcanzables, ${flowchartData.unreachableNodes.size} inalcanzables`);
+}
+
+/**
+ * Renderizar el flowchart en SVG
+ */
+function renderFlowchart() {
+  const svg = document.getElementById('flowchartGraph');
+  svg.innerHTML = '';
+  
+  // Aplicar filtros
+  const filteredNodes = flowchartData.nodes.filter(node => {
+    if (flowchartState.dayFilter !== 'all' && node.day !== parseInt(flowchartState.dayFilter)) {
+      return false;
+    }
+    if (flowchartState.typeFilter !== 'all' && node.type !== flowchartState.typeFilter) {
+      return false;
+    }
+    if (!flowchartState.showUnreachable && flowchartData.unreachableNodes.has(node.id)) {
+      return false;
+    }
+    return true;
+  });
+  
+  if (filteredNodes.length === 0) {
+    svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#666">No hay eventos que mostrar con los filtros actuales</text>';
+    return;
+  }
+  
+  // Calcular posiciones (layout simple por días y tipo)
+  const positions = calculateNodePositions(filteredNodes);
+  
+  // Dibujar aristas primero (para que queden detrás)
+  const filteredNodeIds = new Set(filteredNodes.map(n => n.id));
+  flowchartData.edges.forEach(edge => {
+    if (filteredNodeIds.has(edge.from) && filteredNodeIds.has(edge.to)) {
+      drawEdge(svg, edge, positions);
+    }
+  });
+  
+  // Dibujar nodos
+  filteredNodes.forEach(node => {
+    drawNode(svg, node, positions[node.id]);
+  });
+}
+
+/**
+ * Calcular posiciones de nodos (layout automático simple)
+ */
+function calculateNodePositions(nodes) {
+  const positions = {};
+  const nodeWidth = 180;
+  const nodeHeight = 80;
+  const horizontalSpacing = 240;
+  const verticalSpacing = 120;
+  
+  // Agrupar por día
+  const byDay = {};
+  nodes.forEach(node => {
+    if (!byDay[node.day]) byDay[node.day] = [];
+    byDay[node.day].push(node);
+  });
+  
+  // Ordenar por tipo (mandatory primero)
+  const typeOrder = { 'mandatory': 0, 'forced': 1, 'optional': 2, 'random': 3 };
+  Object.values(byDay).forEach(dayNodes => {
+    dayNodes.sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
+  });
+  
+  // Calcular posiciones
+  let currentX = 50;
+  Object.keys(byDay).sort((a, b) => a - b).forEach(day => {
+    const dayNodes = byDay[day];
+    const totalHeight = dayNodes.length * (nodeHeight + verticalSpacing);
+    let currentY = Math.max(50, (800 - totalHeight) / 2);
+    
+    dayNodes.forEach(node => {
+      positions[node.id] = { x: currentX, y: currentY };
+      currentY += nodeHeight + verticalSpacing;
+    });
+    
+    currentX += nodeWidth + horizontalSpacing;
+  });
+  
+  return positions;
+}
+
+/**
+ * Dibujar un nodo
+ */
+function drawNode(svg, node, position) {
+  const isUnreachable = flowchartData.unreachableNodes.has(node.id);
+  const isSelected = flowchartState.selectedNode === node.id;
+  
+  // Color según tipo
+  const colors = {
+    'mandatory': '#4a90e2',
+    'optional': '#10b981',
+    'random': '#f59e0b',
+    'forced': '#8b5cf6'
+  };
+  const color = isUnreachable ? '#ef4444' : colors[node.type] || '#666';
+  
+  // Grupo del nodo
+  const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  group.setAttribute('class', 'flowchart-node');
+  group.setAttribute('data-node-id', node.id);
+  group.style.cursor = 'pointer';
+  
+  // Rectángulo
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', position.x);
+  rect.setAttribute('y', position.y);
+  rect.setAttribute('width', 180);
+  rect.setAttribute('height', 80);
+  rect.setAttribute('rx', 8);
+  rect.setAttribute('fill', color);
+  rect.setAttribute('stroke', isSelected ? '#fff' : color);
+  rect.setAttribute('stroke-width', isSelected ? 4 : 2);
+  rect.setAttribute('opacity', isUnreachable ? 0.5 : 0.9);
+  group.appendChild(rect);
+  
+  // ID del evento (texto)
+  const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  text.setAttribute('x', position.x + 90);
+  text.setAttribute('y', position.y + 25);
+  text.setAttribute('text-anchor', 'middle');
+  text.setAttribute('fill', '#fff');
+  text.setAttribute('font-size', '12');
+  text.setAttribute('font-weight', 'bold');
+  text.textContent = node.id.length > 20 ? node.id.substring(0, 17) + '...' : node.id;
+  group.appendChild(text);
+  
+  // Tipo
+  const typeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  typeText.setAttribute('x', position.x + 90);
+  typeText.setAttribute('y', position.y + 45);
+  typeText.setAttribute('text-anchor', 'middle');
+  typeText.setAttribute('fill', '#fff');
+  typeText.setAttribute('font-size', '10');
+  typeText.textContent = `Día ${node.day} - ${node.type}`;
+  group.appendChild(typeText);
+  
+  // Indicador de inalcanzable
+  if (isUnreachable) {
+    const warning = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    warning.setAttribute('x', position.x + 90);
+    warning.setAttribute('y', position.y + 65);
+    warning.setAttribute('text-anchor', 'middle');
+    warning.setAttribute('fill', '#fff');
+    warning.setAttribute('font-size', '11');
+    warning.setAttribute('font-weight', 'bold');
+    warning.textContent = '⚠️ Inalcanzable';
+    group.appendChild(warning);
+  }
+  
+  // Event listener para selección
+  group.addEventListener('click', () => {
+    flowchartState.selectedNode = node.id;
+    renderFlowchart();
+    showNodeDetails(node);
+  });
+  
+  svg.appendChild(group);
+}
+
+/**
+ * Dibujar una arista
+ */
+function drawEdge(svg, edge, positions) {
+  const fromPos = positions[edge.from];
+  const toPos = positions[edge.to];
+  
+  if (!fromPos || !toPos) return;
+  
+  // Calcular puntos de inicio y fin (centro derecho -> centro izquierdo)
+  const x1 = fromPos.x + 180;
+  const y1 = fromPos.y + 40;
+  const x2 = toPos.x;
+  const y2 = toPos.y + 40;
+  
+  // Línea
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', x1);
+  line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2);
+  line.setAttribute('y2', y2);
+  line.setAttribute('stroke', edge.color);
+  line.setAttribute('stroke-width', 2);
+  if (edge.dashed) {
+    line.setAttribute('stroke-dasharray', '5,5');
+  }
+  line.setAttribute('marker-end', edge.type === 'lock' ? 'url(#arrowhead-lock)' : 'url(#arrowhead)');
+  line.setAttribute('opacity', 0.7);
+  svg.appendChild(line);
+  
+  // Etiqueta (opcional, en el punto medio)
+  if (edge.label) {
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+    
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', midX);
+    label.setAttribute('y', midY - 5);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('fill', edge.color);
+    label.setAttribute('font-size', '10');
+    label.setAttribute('font-weight', 'bold');
+    label.textContent = edge.label;
+    svg.appendChild(label);
+  }
+}
+
+/**
+ * Mostrar detalles de un nodo seleccionado
+ */
+function showNodeDetails(node) {
+  const event = currentStory.story.events.find(e => e.id === node.id);
+  if (!event) return;
+  
+  const details = `
+    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+      <h4>📌 ${event.id}</h4>
+      <p><strong>Tipo:</strong> ${event.type}</p>
+      <p><strong>Día:</strong> ${event.day}</p>
+      <p><strong>Texto:</strong> ${event.text ? event.text.substring(0, 100) + '...' : 'Sin texto'}</p>
+      <p><strong>Opciones:</strong> ${event.choices?.length || 0}</p>
+      ${flowchartData.unreachableNodes.has(event.id) ? '<p style="color: var(--danger);"><strong>⚠️ Este evento es INALCANZABLE</strong></p>' : ''}
+      <button class="btn-primary btn-small" onclick="editEvent(${node.index})">✏️ Editar Evento</button>
+    </div>
+  `;
+  
+  const statsDiv = document.getElementById('flowchartStats');
+  statsDiv.innerHTML = details;
+}
+
+/**
+ * Actualizar estadísticas del flowchart
+ */
+function updateFlowchartStats() {
+  const total = flowchartData.nodes.length;
+  const unreachable = flowchartData.unreachableNodes.size;
+  const reachable = total - unreachable;
+  
+  const byType = {};
+  flowchartData.nodes.forEach(node => {
+    byType[node.type] = (byType[node.type] || 0) + 1;
+  });
+  
+  const byDay = {};
+  flowchartData.nodes.forEach(node => {
+    byDay[node.day] = (byDay[node.day] || 0) + 1;
+  });
+  
+  // Detectar loops (simplificado)
+  const loops = detectLoops();
+  
+  const statsHTML = `
+    <div class="stat-grid">
+      <div class="stat-item">
+        <div class="stat-value">${total}</div>
+        <div class="stat-label">Total Eventos</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" style="color: var(--success);">${reachable}</div>
+        <div class="stat-label">Alcanzables</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" style="color: var(--danger);">${unreachable}</div>
+        <div class="stat-label">Inalcanzables</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">${flowchartData.edges.length}</div>
+        <div class="stat-label">Conexiones</div>
+      </div>
+    </div>
+    
+    <div style="margin-top: 1rem;">
+      <h4>Por Tipo:</h4>
+      <ul>
+        ${Object.entries(byType).map(([type, count]) => `<li><strong>${type}:</strong> ${count}</li>`).join('')}
+      </ul>
+    </div>
+    
+    <div style="margin-top: 1rem;">
+      <h4>Por Día:</h4>
+      <ul>
+        ${Object.entries(byDay).sort((a, b) => a[0] - b[0]).map(([day, count]) => `<li><strong>Día ${day}:</strong> ${count} eventos</li>`).join('')}
+      </ul>
+    </div>
+    
+    ${loops.length > 0 ? `
+      <div style="margin-top: 1rem;">
+        <h4 style="color: var(--warning);">⚠️ Loops Detectados:</h4>
+        <ul>
+          ${loops.map(loop => `<li>${loop.join(' → ')}</li>`).join('')}
+        </ul>
+      </div>
+    ` : ''}
+    
+    ${unreachable > 0 ? `
+      <div style="margin-top: 1rem;">
+        <h4 style="color: var(--danger);">❌ Eventos Inalcanzables:</h4>
+        <ul>
+          ${Array.from(flowchartData.unreachableNodes).map(id => `<li>${id}</li>`).join('')}
+        </ul>
+      </div>
+    ` : ''}
+  `;
+  
+  document.getElementById('flowchartStats').innerHTML = statsHTML;
+  
+  flowchartData.analysis = {
+    total,
+    reachable,
+    unreachable,
+    byType,
+    byDay,
+    loops
+  };
+}
+
+/**
+ * Detectar loops en el grafo (simplificado)
+ */
+function detectLoops() {
+  const loops = [];
+  const visited = new Set();
+  const path = [];
+  
+  function dfs(nodeId) {
+    if (path.includes(nodeId)) {
+      // Loop detectado
+      const loopStart = path.indexOf(nodeId);
+      loops.push(path.slice(loopStart).concat(nodeId));
+      return;
+    }
+    
+    if (visited.has(nodeId)) return;
+    
+    visited.add(nodeId);
+    path.push(nodeId);
+    
+    // Seguir aristas
+    flowchartData.edges.forEach(edge => {
+      if (edge.from === nodeId && edge.type !== 'lock') {
+        dfs(edge.to);
+      }
+    });
+    
+    path.pop();
+  }
+  
+  flowchartData.nodes.forEach(node => {
+    if (!visited.has(node.id)) {
+      dfs(node.id);
+    }
+  });
+  
+  return loops;
+}
+
+/**
+ * Aplicar filtros del flowchart
+ */
+window.applyFlowchartFilters = function() {
+  flowchartState.dayFilter = document.getElementById('flowchartDayFilter').value;
+  flowchartState.typeFilter = document.getElementById('flowchartTypeFilter').value;
+  flowchartState.showUnreachable = document.getElementById('showUnreachable').checked;
+  
+  renderFlowchart();
+};
+
+/**
+ * Aplicar zoom
+ */
+window.applyFlowchartZoom = function(value) {
+  flowchartState.zoom = parseFloat(value);
+  document.getElementById('flowchartZoomValue').textContent = Math.round(value * 100) + '%';
+  
+  const graph = document.getElementById('flowchartGraph');
+  graph.setAttribute('transform', `scale(${value})`);
+};
+
+/**
+ * Actualizar filtro de días
+ */
+function updateFlowchartDayFilter() {
+  const select = document.getElementById('flowchartDayFilter');
+  const days = currentStory.config.story.days || 1;
+  
+  select.innerHTML = '<option value="all">Todos los días</option>';
+  for (let i = 1; i <= days; i++) {
+    select.innerHTML += `<option value="${i}">Día ${i}</option>`;
+  }
+}
+
+/**
+ * Exportar flowchart como imagen
+ */
+window.exportFlowchartImage = function() {
+  const svg = document.getElementById('flowchartSvg');
+  const serializer = new XMLSerializer();
+  const svgStr = serializer.serializeToString(svg);
+  const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${currentStory.config.story.id}_flowchart.svg`;
+  a.click();
+  
+  URL.revokeObjectURL(url);
+  showToast('Flowchart exportado como SVG', 'success');
+};
+
 // Sync config changes
 document.getElementById('storyTitleInput').addEventListener('input', (e) => {
   currentStory.config.story.title = e.target.value;

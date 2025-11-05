@@ -47,6 +47,9 @@
         <button class="menu-item" data-section="achievements">
           🏆 Logros
         </button>
+        <button class="menu-item" data-section="flowchart">
+          📊 Flujo Visual
+        </button>
       </div>
 
       <div class="sidebar-footer">
@@ -329,6 +332,111 @@
 
           <div class="empty-message" id="achievementsEmpty">
             <p>No hay logros definidos. Los logros son objetivos opcionales que los jugadores pueden desbloquear.</p>
+          </div>
+        </section>
+
+        <!-- FLOWCHART SECTION -->
+        <section id="flowchart-section" class="editor-section">
+          <div class="section-header">
+            <h2>📊 Flujo Visual de Historia</h2>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn-secondary btn-small" onclick="refreshFlowchart()">🔄 Actualizar</button>
+              <button class="btn-secondary btn-small" onclick="exportFlowchartImage()">💾 Exportar PNG</button>
+            </div>
+          </div>
+
+          <!-- Controles y filtros -->
+          <div class="flowchart-controls">
+            <div class="form-group" style="margin: 0;">
+              <label>Filtrar por día:</label>
+              <select id="flowchartDayFilter" onchange="applyFlowchartFilters()">
+                <option value="all">Todos los días</option>
+              </select>
+            </div>
+            
+            <div class="form-group" style="margin: 0;">
+              <label>Tipo de evento:</label>
+              <select id="flowchartTypeFilter" onchange="applyFlowchartFilters()">
+                <option value="all">Todos los tipos</option>
+                <option value="mandatory">Mandatory</option>
+                <option value="optional">Optional</option>
+                <option value="random">Random</option>
+                <option value="forced">Forced</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin: 0;">
+              <label>Zoom:</label>
+              <input type="range" id="flowchartZoom" min="0.5" max="2" step="0.1" value="1" oninput="applyFlowchartZoom(this.value)" />
+              <span id="flowchartZoomValue">100%</span>
+            </div>
+
+            <div class="checkbox-label">
+              <input type="checkbox" id="showUnreachable" onchange="applyFlowchartFilters()" checked />
+              Mostrar eventos inalcanzables
+            </div>
+          </div>
+
+          <!-- Leyenda -->
+          <div class="flowchart-legend">
+            <div class="legend-title">Leyenda:</div>
+            <div class="legend-items">
+              <div class="legend-item">
+                <div class="legend-color" style="background: #4a90e2;"></div>
+                <span>Mandatory</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #10b981;"></div>
+                <span>Optional</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #f59e0b;"></div>
+                <span>Random</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #8b5cf6;"></div>
+                <span>Forced</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #ef4444;"></div>
+                <span>Inalcanzable</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-arrow">→</div>
+                <span>Unlock/Secuencia</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-arrow dashed">⇢</div>
+                <span>Lock/Bloquea</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Canvas para el grafo -->
+          <div class="flowchart-container">
+            <svg id="flowchartSvg" width="100%" height="800">
+              <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+                </marker>
+                <marker id="arrowhead-lock" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444" />
+                </marker>
+              </defs>
+              <g id="flowchartGraph"></g>
+            </svg>
+          </div>
+
+          <!-- Panel de análisis -->
+          <div class="flowchart-analysis">
+            <h3>📈 Análisis del Flujo</h3>
+            <div id="flowchartStats" class="analysis-stats">
+              <!-- Se llenará dinámicamente -->
+            </div>
+          </div>
+
+          <div class="empty-message" id="flowchartEmpty">
+            <p>No hay eventos para visualizar. Crea eventos en la sección 📖 Eventos.</p>
           </div>
         </section>
       </div>
