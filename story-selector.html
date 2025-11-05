@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fragments - Selector de Historias</title>
+  <link rel="stylesheet" href="selector-style.css" />
+</head>
+<body>
+  <!-- Botón de tema -->
+  <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
+    🌙
+  </button>
+
+  <div class="selector-container">
+    <!-- Header -->
+    <header class="selector-header">
+      <h1>📚 Fragments Engine</h1>
+      <p class="subtitle">Elige una historia para comenzar tu aventura</p>
+      
+      <div class="header-actions">
+        <button id="createStoryBtn" class="btn-primary">
+          ✨ Crear Nueva Historia
+        </button>
+        <button id="editorBtn" class="btn-secondary">
+          ✏️ Editor Visual
+        </button>
+      </div>
+    </header>
+
+    <!-- Filtros -->
+    <div class="filters">
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="🔍 Buscar historia..."
+        class="search-input"
+      />
+      
+      <select id="sortSelect" class="sort-select">
+        <option value="name">Ordenar por: Nombre</option>
+        <option value="recent">Ordenar por: Más reciente</option>
+        <option value="days">Ordenar por: Duración</option>
+      </select>
+    </div>
+
+    <!-- Lista de historias -->
+    <div id="storiesGrid" class="stories-grid">
+      <!-- Se llenará dinámicamente -->
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Cargando historias...</p>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="emptyState" class="empty-state hidden">
+      <div class="empty-icon">📖</div>
+      <h3>No hay historias disponibles</h3>
+      <p>Crea tu primera historia usando el editor visual</p>
+      <button class="btn-primary" onclick="openEditor()">
+        ✨ Crear Historia
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación para eliminar -->
+  <div id="deleteModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>⚠️ Confirmar Eliminación</h3>
+      <p>¿Estás seguro de que quieres eliminar esta historia?</p>
+      <p><strong id="deleteStoryName"></strong></p>
+      <div class="modal-actions">
+        <button id="confirmDelete" class="btn-danger">Eliminar</button>
+        <button id="cancelDelete" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="story-selector.js"></script>
+</body>
+</html>
