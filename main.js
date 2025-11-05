@@ -112,11 +112,24 @@ function playSound(type) {
 async function init() {
   initTheme();
   
+  // Obtener historia seleccionada o usar default
+  const selectedStory = localStorage.getItem('selectedStory') || 'fragments_original';
+  
+  // Limpiar selección
+  localStorage.removeItem('selectedStory');
+  
   // Cargar historia
-  const loaded = await engine.loadStory('stories/fragments_original');
+  const loaded = await engine.loadStory(`stories/${selectedStory}`);
   
   if (!loaded) {
-    elements.situation.textContent = 'Error cargando historia. Verifica la consola.';
+    elements.situation.innerHTML = `
+      <strong>❌ Error cargando historia</strong><br><br>
+      No se pudo cargar "${selectedStory}".<br>
+      Verifica que existan los archivos en la carpeta stories/${selectedStory}/<br><br>
+      <button class="btn-primary" onclick="window.location.href='story-selector.html'">
+        ⬅️ Volver al Selector
+      </button>
+    `;
     return;
   }
 
@@ -595,6 +608,14 @@ elements.restart.onclick = () => {
 elements.menuBtn.onclick = () => {
   elements.saveMenu.classList.toggle('hidden');
   updateSaveSlotsList();
+};
+
+// Volver al selector
+document.getElementById('selectorBtn').onclick = () => {
+  if (confirm('¿Volver al selector de historias? Se guardará automáticamente.')) {
+    engine.autoSave();
+    window.location.href = 'story-selector.html';
+  }
 };
 
 document.getElementById('closeSaveMenu').onclick = () => {
