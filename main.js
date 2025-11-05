@@ -553,6 +553,12 @@ function showEnding() {
   elements.result.innerHTML = resultHTML;
   elements.result.classList.remove('hidden');
   elements.actionButtons.classList.remove('hidden');
+  
+  // Mostrar la sección de resultado
+  const resultSection = document.getElementById('resultSection');
+  if (resultSection) {
+    resultSection.classList.remove('hidden');
+  }
 
   // Ocultar stats
   setTimeout(() => {
@@ -574,6 +580,12 @@ elements.restart.onclick = () => {
     elements.result.classList.add('hidden');
     elements.actionButtons.classList.add('hidden');
     elements.statsContainer.classList.remove('hidden');
+    
+    // Ocultar la sección de resultado
+    const resultSection = document.getElementById('resultSection');
+    if (resultSection) {
+      resultSection.classList.add('hidden');
+    }
     
     startNewGame();
   }
