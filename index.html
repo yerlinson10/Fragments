@@ -4,7 +4,109 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fragments Engine v2.0</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="selector-style.css" />
+  <style>
+    .welcome-container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+
+    .welcome-logo {
+      font-size: 5rem;
+      margin-bottom: 2rem;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .welcome-title {
+      font-size: 3rem;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .welcome-subtitle {
+      font-size: 1.3rem;
+      color: var(--text-secondary);
+      margin-bottom: 3rem;
+      line-height: 1.6;
+    }
+
+    .welcome-actions {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+
+    .welcome-card {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-light);
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 350px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .welcome-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px var(--shadow);
+    }
+
+    .welcome-card-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .welcome-card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome-card-desc {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+      text-align: left;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+    }
+
+    .feature-text h4 {
+      color: var(--text-primary);
+      margin-bottom: 0.3rem;
+    }
+
+    .feature-text p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
   <!-- Botón de tema -->
@@ -12,109 +114,107 @@
     🌙
   </button>
 
-  <div class="game-container">
-    <!-- HEADER: Título y Progreso -->
-    <header class="game-header">
-      <h1 id="gameTitle">Fragments Engine</h1>
-      <p id="gameSubtitle" class="subtitle"></p>
-      
-      <div class="day-info">
-        <div class="day-header">
-          <span id="dayCounter">Día 1</span>
-          <div style="display: flex; gap: 0.5rem;">
-            <button id="selectorBtn" class="menu-btn" title="Cambiar historia">📚</button>
-            <button id="menuBtn" class="menu-btn" title="Menú de guardado">⚙️</button>
-          </div>
-        </div>
-        <div class="progress-bar">
-          <div id="progressFill" class="progress-fill"></div>
-        </div>
-        <small id="progressText" class="progress-text">Evento 0/0</small>
-      </div>
-    </header>
+  <div class="welcome-container">
+    <div class="welcome-logo">📚</div>
+    
+    <h1 class="welcome-title">Fragments Engine v2.0</h1>
+    
+    <p class="welcome-subtitle">
+      Motor de historias interactivas donde cada decisión cuenta.<br>
+      Crea, edita y juega narrativas no lineales con múltiples finales.
+    </p>
 
-    <!-- ESTADO DEL JUGADOR: Stats, Personajes, Inventario -->
-    <section class="player-state">
-      <!-- Stats dinámicas -->
-      <div id="statsContainer" class="stats-container"></div>
-
-      <!-- Grid para Personajes e Inventario (lado a lado en desktop) -->
-      <div class="state-grid">
-        <!-- Personajes (opcional) -->
-        <div id="charactersContainer" class="characters-container hidden"></div>
-
-        <!-- Inventario (opcional) -->
-        <div id="inventoryContainer" class="inventory-container hidden">
-          <div class="inventory-header">
-            <span>🎒 Inventario</span>
-            <span id="moneyDisplay">💰 $0</span>
-          </div>
-          <div id="inventoryItems" class="inventory-items"></div>
+    <div class="welcome-actions">
+      <div class="welcome-card" onclick="window.location.href='story-selector.html'">
+        <div class="welcome-card-icon">🎮</div>
+        <div class="welcome-card-title">Jugar</div>
+        <div class="welcome-card-desc">
+          Explora historias interactivas y vive las consecuencias de tus decisiones
         </div>
       </div>
-    </section>
 
-    <!-- NARRATIVA: Situación actual -->
-    <section class="narrative-section">
-      <div id="situation" class="situation fade-in">
-        Cargando historia...
-      </div>
-    </section>
-
-    <!-- ACCIONES: Botones de elección -->
-    <section class="actions-section">
-      <div id="choicesContainer" class="buttons"></div>
-    </section>
-
-    <!-- RESULTADO: Final de historia -->
-    <section class="result-section hidden" id="resultSection">
-      <div id="result" class="result hidden"></div>
-      
-      <div id="actionButtons" class="action-buttons hidden">
-        <button id="restart" class="btn-primary">🔄 Jugar de nuevo</button>
-        <button id="continueBtn" class="btn-primary hidden">➡️ Continuar</button>
-      </div>
-    </section>
-
-    <!-- OVERLAYS Y MODALES -->
-    <!-- Menú de guardado -->
-    <div id="saveMenu" class="save-menu hidden">
-      <h3>Gestión de Guardado</h3>
-      <div class="save-actions">
-        <button id="saveBtn" class="btn-secondary">💾 Guardar</button>
-        <button id="loadBtn" class="btn-secondary">📂 Cargar</button>
-        <button id="exportBtn" class="btn-secondary">📤 Exportar</button>
-        <button id="importBtn" class="btn-secondary">📥 Importar</button>
-        <input type="file" id="importFile" accept=".json" style="display:none" />
-      </div>
-      <div id="saveSlotsList" class="save-slots"></div>
-      <button id="closeSaveMenu" class="btn-close">✕</button>
-    </div>
-
-    <!-- Selector de slot al guardar -->
-    <div id="slotSelector" class="modal hidden">
-      <div class="modal-content">
-        <h3>Seleccionar Slot</h3>
-        <div id="slotButtons"></div>
-        <button id="cancelSlot" class="btn-secondary">Cancelar</button>
+      <div class="welcome-card" onclick="window.location.href='story-editor.html'">
+        <div class="welcome-card-icon">✏️</div>
+        <div class="welcome-card-title">Crear</div>
+        <div class="welcome-card-desc">
+          Usa el editor visual para crear tus propias historias sin programar
+        </div>
       </div>
     </div>
 
-    <!-- Indicador flotante de cambios -->
-    <div id="statChange" class="stat-change-indicator"></div>
-
-    <!-- Achievements notification -->
-    <div id="achievementNotif" class="achievement-notif hidden">
-      <span class="achievement-icon">🏆</span>
-      <div class="achievement-text">
-        <strong id="achievementTitle"></strong>
-        <small id="achievementDesc"></small>
+    <div class="features">
+      <div class="feature-item">
+        <div class="feature-icon">📊</div>
+        <div class="feature-text">
+          <h4>Stats Dinámicas</h4>
+          <p>Crea estadísticas personalizadas que afectan la historia</p>
+        </div>
       </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">👥</div>
+        <div class="feature-text">
+          <h4>Relaciones</h4>
+          <p>Sistema de afinidad con personajes (-100 a +100)</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">🎒</div>
+        <div class="feature-text">
+          <h4>Inventario</h4>
+          <p>Gestión de items y dinero con efectos en la narrativa</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">🏁</div>
+        <div class="feature-text">
+          <h4>Múltiples Finales</h4>
+          <p>Sistema de finales basado en condiciones y prioridades</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">💾</div>
+        <div class="feature-text">
+          <h4>Guardado Completo</h4>
+          <p>Auto-save, múltiples slots, export/import de partidas</p>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">🏆</div>
+        <div class="feature-text">
+          <h4>Achievements</h4>
+          <p>Sistema de logros para incentivar la rejugabilidad</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border-light);">
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">
+        <strong>Versión:</strong> 2.0.0 | 
+        <strong>Autor:</strong> Yerlinson Lora | 
+        <a href="SELECTOR_EDITOR_GUIDE.md" style="color: var(--accent);">📖 Documentación</a>
+      </p>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="engine/engine.js"></script>
-  <script src="main.js"></script>
+  <script>
+    // Tema
+    const savedTheme = localStorage.getItem('fragmentsTheme') || 'light';
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-theme');
+      document.getElementById('themeToggle').textContent = '☀️';
+    }
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.body.classList.toggle('dark-theme');
+      const isDark = document.body.classList.contains('dark-theme');
+      document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('fragmentsTheme', isDark ? 'dark' : 'light');
+    });
+  </script>
 </body>
 </html>

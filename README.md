@@ -32,11 +32,6 @@
 
 ## 🚀 Inicio Rápido
 
-### Opción 1: Jugar Fragments Original (v1.0)
-
-1. Abre `index.html` en tu navegador
-2. ¡Juega!
-
 ### Opción 2: Jugar con el Nuevo Engine (v2.0)
 
 1. Abre `index-v2.html` en tu navegador
@@ -69,8 +64,7 @@
 ```
 Fragments/
 │
-├── index.html              # V1.0 - Juego original
-├── index-v2.html           # V2.0 - Nuevo engine
+├── game.html               # V2.0 - Nuevo engine
 ├── app.js                  # Lógica V1.0
 ├── main.js                 # Controlador V2.0
 ├── style.css               # Estilos (ambas versiones)
@@ -390,7 +384,7 @@ Condiciones:
 ## 📞 Soporte
 
 ### Tengo un problema con V1.0
-- Verifica `index.html` y `app.js`
+- Verifica `game.html` y `app.js`
 - Consulta el README original
 
 ### Tengo un problema con V2.0
@@ -435,6 +429,6 @@ Próximamente: galería de historias comunitarias.
 
 <div align="center">
 
-**[🎮 Jugar V1.0](index.html)** | **[🚀 Jugar V2.0](index-v2.html)** | **[📖 Guía de Creación](STORY_CREATION_GUIDE.md)**
+**[🚀 Jugar V2.0](game.html)** | **[📖 Guía de Creación](STORY_CREATION_GUIDE.md)**
 
 </div>

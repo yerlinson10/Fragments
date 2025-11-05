@@ -150,7 +150,7 @@ Hay 3 formas:
 
 ```
 Fragments/
-├── index.html              # Juego principal
+├── game.html               # Juego principal
 ├── story-selector.html     # Selector de historias
 ├── story-editor.html       # Editor visual
 ├── test-story.html         # Modo test
