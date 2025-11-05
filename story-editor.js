@@ -1,0 +1,2591 @@
+/**
+ * STORY EDITOR - Editor visual de historias
+ */
+
+// ============================================
+// UTILIDADES DE MODAL (reemplazo de alert/prompt/confirm)
+// ============================================
+
+// Mostrar confirmación (reemplazo de confirm)
+function showConfirm(message, title = 'Confirmar') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('confirmModal');
+    document.getElementById('confirmModalTitle').textContent = title;
+    document.getElementById('confirmModalMessage').textContent = message;
+    
+    const yesBtn = document.getElementById('confirmModalYes');
+    const noBtn = document.getElementById('confirmModalNo');
+    
+    const handleYes = () => {
+      cleanup();
+      resolve(true);
+    };
+    
+    const handleNo = () => {
+      cleanup();
+      resolve(false);
+    };
+    
+    const cleanup = () => {
+      modal.classList.add('hidden');
+      yesBtn.removeEventListener('click', handleYes);
+      noBtn.removeEventListener('click', handleNo);
+    };
+    
+    yesBtn.addEventListener('click', handleYes);
+    noBtn.addEventListener('click', handleNo);
+    
+    modal.classList.remove('hidden');
+  });
+}
+
+// Mostrar input (reemplazo de prompt)
+function showInput(label, title = 'Ingresa el valor', defaultValue = '', hint = '') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('inputModal');
+    document.getElementById('inputModalTitle').textContent = title;
+    document.getElementById('inputModalLabel').textContent = label;
+    document.getElementById('inputModalHint').textContent = hint;
+    
+    const input = document.getElementById('inputModalInput');
+    input.value = defaultValue;
+    
+    const submitBtn = document.getElementById('inputModalSubmit');
+    const cancelBtn = document.getElementById('inputModalCancel');
+    
+    const handleSubmit = () => {
+      const value = input.value.trim();
+      cleanup();
+      resolve(value || null);
+    };
+    
+    const handleCancel = () => {
+      cleanup();
+      resolve(null);
+    };
+    
+    const handleEnter = (e) => {
+      if (e.key === 'Enter') {
+        handleSubmit();
+      }
+    };
+    
+    const cleanup = () => {
+      modal.classList.add('hidden');
+      submitBtn.removeEventListener('click', handleSubmit);
+      cancelBtn.removeEventListener('click', handleCancel);
+      input.removeEventListener('keypress', handleEnter);
+    };
+    
+    submitBtn.addEventListener('click', handleSubmit);
+    cancelBtn.addEventListener('click', handleCancel);
+    input.addEventListener('keypress', handleEnter);
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => input.focus(), 100);
+  });
+}
+
+// Mostrar selector (reemplazo de prompt con opciones)
+function showSelect(label, options, title = 'Selecciona una opción', defaultValue = '') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('selectModal');
+    document.getElementById('selectModalTitle').textContent = title;
+    document.getElementById('selectModalLabel').textContent = label;
+    
+    const select = document.getElementById('selectModalSelect');
+    select.innerHTML = options.map(opt => 
+      `<option value="${opt.value}" ${opt.value === defaultValue ? 'selected' : ''}>${opt.label}</option>`
+    ).join('');
+    
+    const submitBtn = document.getElementById('selectModalSubmit');
+    const cancelBtn = document.getElementById('selectModalCancel');
+    
+    const handleSubmit = () => {
+      const value = select.value;
+      cleanup();
+      resolve(value);
+    };
+    
+    const handleCancel = () => {
+      cleanup();
+      resolve(null);
+    };
+    
+    const cleanup = () => {
+      modal.classList.add('hidden');
+      submitBtn.removeEventListener('click', handleSubmit);
+      cancelBtn.removeEventListener('click', handleCancel);
+    };
+    
+    submitBtn.addEventListener('click', handleSubmit);
+    cancelBtn.addEventListener('click', handleCancel);
+    
+    modal.classList.remove('hidden');
+  });
+}
+
+// Mostrar formulario complejo
+function showForm(fields, title = 'Formulario', submitText = 'Guardar') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('formModal');
+    document.getElementById('formModalTitle').textContent = title;
+    
+    const content = document.getElementById('formModalContent');
+    content.innerHTML = fields.map(field => {
+      if (field.type === 'text' || field.type === 'number') {
+        return `
+          <div class="form-group ${field.fullWidth ? 'full-width' : ''}">
+            <label>${field.label}</label>
+            <input 
+              type="${field.type}" 
+              id="formField_${field.id}" 
+              value="${field.value || ''}"
+              placeholder="${field.placeholder || ''}"
+              ${field.min !== undefined ? `min="${field.min}"` : ''}
+              ${field.max !== undefined ? `max="${field.max}"` : ''}
+            />
+            ${field.hint ? `<small>${field.hint}</small>` : ''}
+          </div>
+        `;
+      } else if (field.type === 'textarea') {
+        return `
+          <div class="form-group ${field.fullWidth ? 'full-width' : ''}">
+            <label>${field.label}</label>
+            <textarea 
+              id="formField_${field.id}" 
+              rows="${field.rows || 3}"
+              placeholder="${field.placeholder || ''}"
+            >${field.value || ''}</textarea>
+            ${field.hint ? `<small>${field.hint}</small>` : ''}
+          </div>
+        `;
+      } else if (field.type === 'select') {
+        return `
+          <div class="form-group ${field.fullWidth ? 'full-width' : ''}">
+            <label>${field.label}</label>
+            <select id="formField_${field.id}">
+              ${field.options.map(opt => 
+                `<option value="${opt.value}" ${opt.value === field.value ? 'selected' : ''}>${opt.label}</option>`
+              ).join('')}
+            </select>
+            ${field.hint ? `<small>${field.hint}</small>` : ''}
+          </div>
+        `;
+      } else if (field.type === 'checkbox') {
+        return `
+          <div class="form-group ${field.fullWidth ? 'full-width' : ''}">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                id="formField_${field.id}"
+                ${field.value ? 'checked' : ''}
+              />
+              ${field.label}
+            </label>
+            ${field.hint ? `<small>${field.hint}</small>` : ''}
+          </div>
+        `;
+      }
+    }).join('');
+    
+    const submitBtn = document.getElementById('formModalSubmit');
+    const cancelBtn = document.getElementById('formModalCancel');
+    
+    submitBtn.textContent = submitText;
+    
+    const handleSubmit = () => {
+      const values = {};
+      fields.forEach(field => {
+        const el = document.getElementById(`formField_${field.id}`);
+        if (field.type === 'checkbox') {
+          values[field.id] = el.checked;
+        } else if (field.type === 'number') {
+          values[field.id] = parseFloat(el.value) || 0;
+        } else {
+          values[field.id] = el.value;
+        }
+      });
+      cleanup();
+      resolve(values);
+    };
+    
+    const handleCancel = () => {
+      cleanup();
+      resolve(null);
+    };
+    
+    const cleanup = () => {
+      modal.classList.add('hidden');
+      submitBtn.removeEventListener('click', handleSubmit);
+      cancelBtn.removeEventListener('click', handleCancel);
+    };
+    
+    submitBtn.addEventListener('click', handleSubmit);
+    cancelBtn.addEventListener('click', handleCancel);
+    
+    modal.classList.remove('hidden');
+  });
+}
+
+// ============================================
+// ESTADO DEL EDITOR
+// ============================================
+
+// Estado del editor
+let currentStory = {
+  config: {
+    story: {
+      id: '',
+      version: '1.0.0',
+      title: '',
+      subtitle: '',
+      description: '',
+      author: '',
+      days: 1,
+      starting_day: 1,
+      starting_time: 'morning'
+    },
+    stats: {},
+    flags: {},
+    characters: {},
+    inventory: {
+      enabled: false,
+      money: 0,
+      items: {}
+    },
+    settings: {
+      save_slots: 3,
+      auto_save: true,
+      enable_sound: true,
+      show_characters: false,
+      show_inventory: false
+    },
+    achievements: {}
+  },
+  story: {
+    events: []
+  },
+  endings: {
+    endings: [],
+    default_ending: {
+      title: 'Un nuevo comienzo',
+      content: {
+        message: 'Tu historia termina aquí...'
+      }
+    }
+  }
+};
+
+let isDirty = false;
+let currentEventEdit = null;
+
+// Tema
+function initTheme() {
+  const savedTheme = localStorage.getItem('fragmentsTheme') || 'light';
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-theme');
+    document.getElementById('themeToggle').textContent = '☀️';
+  }
+}
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  document.body.classList.toggle('dark-theme');
+  const isDark = document.body.classList.contains('dark-theme');
+  document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('fragmentsTheme', isDark ? 'dark' : 'light');
+});
+
+// Navegación entre secciones
+document.querySelectorAll('.menu-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const section = item.dataset.section;
+    
+    // Update menu
+    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    
+    // Update sections
+    document.querySelectorAll('.editor-section').forEach(s => s.classList.remove('active'));
+    document.getElementById(`${section}-section`).classList.add('active');
+  });
+});
+
+// Volver al selector
+document.getElementById('backBtn').addEventListener('click', async () => {
+  if (isDirty) {
+    const confirmed = await showConfirm(
+      'Hay cambios sin guardar. ¿Deseas salir?',
+      'Cambios sin guardar'
+    );
+    if (!confirmed) return;
+  }
+  window.location.href = 'story-selector.html';
+});
+
+// Event listeners para botones de cancelar de modales
+document.getElementById('statModalCancel').addEventListener('click', () => closeModal('statModal'));
+document.getElementById('flagModalCancel').addEventListener('click', () => closeModal('flagModal'));
+document.getElementById('characterModalCancel').addEventListener('click', () => closeModal('characterModal'));
+document.getElementById('itemModalCancel').addEventListener('click', () => closeModal('itemModal'));
+document.getElementById('endingModalCancel').addEventListener('click', () => closeModal('endingModal'));
+document.getElementById('achievementModalCancel').addEventListener('click', () => closeModal('achievementModal'));
+
+// Event listener para cambio de tipo de flag
+document.getElementById('flagType').addEventListener('change', (e) => {
+  const type = e.target.value;
+  const valueInput = document.getElementById('flagValue');
+  const valueLabel = document.getElementById('flagValueLabel');
+  
+  switch(type) {
+    case 'boolean':
+      valueLabel.textContent = 'Valor inicial (true/false)';
+      valueInput.type = 'checkbox';
+      valueInput.checked = false;
+      break;
+    case 'number':
+      valueLabel.textContent = 'Valor inicial (número)';
+      valueInput.type = 'number';
+      valueInput.value = '0';
+      break;
+    case 'string':
+      valueLabel.textContent = 'Valor inicial (texto)';
+      valueInput.type = 'text';
+      valueInput.value = '';
+      break;
+  }
+});
+
+// Cargar historia existente
+async function loadExistingStory(storyId) {
+  try {
+    const [configRes, storyRes, endingsRes] = await Promise.all([
+      fetch(`stories/${storyId}/config.json`),
+      fetch(`stories/${storyId}/story.json`),
+      fetch(`stories/${storyId}/endings.json`)
+    ]);
+
+    if (configRes.ok && storyRes.ok && endingsRes.ok) {
+      currentStory.config = await configRes.json();
+      currentStory.story = await storyRes.json();
+      currentStory.endings = await endingsRes.json();
+      
+      updateUI();
+      showToast('Historia cargada correctamente', 'success');
+    }
+  } catch (error) {
+    console.error('Error cargando historia:', error);
+    showToast('Error cargando historia', 'error');
+  }
+}
+
+// Actualizar UI con datos actuales
+function updateUI() {
+  // Config
+  document.getElementById('storyId').value = currentStory.config.story.id || '';
+  document.getElementById('storyVersion').value = currentStory.config.story.version || '1.0.0';
+  document.getElementById('storyTitleInput').value = currentStory.config.story.title || '';
+  document.getElementById('storySubtitle').value = currentStory.config.story.subtitle || '';
+  document.getElementById('storyDescription').value = currentStory.config.story.description || '';
+  document.getElementById('storyAuthor').value = currentStory.config.story.author || '';
+  document.getElementById('storyDays').value = currentStory.config.story.days || 1;
+  document.getElementById('startingDay').value = currentStory.config.story.starting_day || 1;
+  document.getElementById('startingTime').value = currentStory.config.story.starting_time || 'morning';
+  document.getElementById('saveSlots').value = currentStory.config.settings.save_slots || 3;
+  document.getElementById('autoSave').checked = currentStory.config.settings.auto_save !== false;
+  document.getElementById('enableSound').checked = currentStory.config.settings.enable_sound !== false;
+  document.getElementById('showCharacters').checked = currentStory.config.settings.show_characters === true;
+  document.getElementById('showInventory').checked = currentStory.config.settings.show_inventory === true;
+  
+  // Inventory
+  document.getElementById('inventoryEnabled').checked = currentStory.config.inventory.enabled === true;
+  document.getElementById('initialMoney').value = currentStory.config.inventory.money || 0;
+  
+  // Default ending
+  document.getElementById('defaultEndingTitle').value = currentStory.endings.default_ending.title || '';
+  document.getElementById('defaultEndingMessage').value = currentStory.endings.default_ending.content.message || '';
+  
+  // Update title
+  document.getElementById('storyTitle').textContent = currentStory.config.story.title || 'Nueva Historia';
+  
+  // Render lists
+  renderStats();
+  renderFlags();
+  renderCharacters();
+  renderItems();
+  renderEvents();
+  renderEndings();
+  renderAchievements();
+  
+  // Update day filter
+  updateDayFilter();
+}
+
+// Stats
+function renderStats() {
+  const container = document.getElementById('statsList');
+  const stats = currentStory.config.stats;
+  
+  if (Object.keys(stats).length === 0) {
+    container.innerHTML = '';
+    document.getElementById('statsEmpty').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('statsEmpty').style.display = 'none';
+  
+  container.innerHTML = Object.entries(stats).map(([key, stat]) => `
+    <div class="item-card">
+      <div class="item-header">
+        <div class="item-title">${stat.icon || '📊'} ${stat.name || key}</div>
+        <div class="item-actions">
+          <button class="btn-secondary" onclick="editStat('${key}')">✏️ Editar</button>
+          <button class="btn-danger" onclick="deleteStat('${key}')">🗑️</button>
+        </div>
+      </div>
+      <div class="item-content">
+        <div class="form-group">
+          <label>Min: ${stat.min || 0}</label>
+        </div>
+        <div class="form-group">
+          <label>Max: ${stat.max || 100}</label>
+        </div>
+        <div class="form-group">
+          <label>Inicial: ${stat.start || 50}</label>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.addStat = function() {
+  openModal('statModal');
+  document.getElementById('statModalTitle').textContent = 'Agregar Estadística';
+  document.getElementById('statKey').value = '';
+  document.getElementById('statKey').disabled = false;
+  document.getElementById('statName').value = '';
+  document.getElementById('statIcon').value = '📊';
+  document.getElementById('statMin').value = '0';
+  document.getElementById('statMax').value = '100';
+  document.getElementById('statStart').value = '50';
+  
+  const saveBtn = document.getElementById('statModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const key = document.getElementById('statKey').value.trim();
+    const name = document.getElementById('statName').value.trim();
+    const icon = document.getElementById('statIcon').value.trim();
+    const min = parseInt(document.getElementById('statMin').value);
+    const max = parseInt(document.getElementById('statMax').value);
+    const start = parseInt(document.getElementById('statStart').value);
+    
+    if (!key) {
+      showToast('El ID es obligatorio', 'error');
+      return;
+    }
+    
+    if (currentStory.config.stats[key]) {
+      showToast('Ya existe una estadística con ese ID', 'error');
+      return;
+    }
+    
+    currentStory.config.stats[key] = {
+      name: name || key,
+      icon: icon || '📊',
+      min,
+      max,
+      start
+    };
+    
+    markDirty();
+    renderStats();
+    closeModal('statModal');
+    showToast('Estadística agregada', 'success');
+  };
+};
+
+window.editStat = function(key) {
+  const stat = currentStory.config.stats[key];
+  
+  openModal('statModal');
+  document.getElementById('statModalTitle').textContent = `Editar: ${key}`;
+  document.getElementById('statKey').value = key;
+  document.getElementById('statKey').disabled = true;
+  document.getElementById('statName').value = stat.name;
+  document.getElementById('statIcon').value = stat.icon;
+  document.getElementById('statMin').value = stat.min;
+  document.getElementById('statMax').value = stat.max;
+  document.getElementById('statStart').value = stat.start;
+  
+  const saveBtn = document.getElementById('statModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const name = document.getElementById('statName').value.trim();
+    const icon = document.getElementById('statIcon').value.trim();
+    const min = parseInt(document.getElementById('statMin').value);
+    const max = parseInt(document.getElementById('statMax').value);
+    const start = parseInt(document.getElementById('statStart').value);
+    
+    currentStory.config.stats[key] = {
+      name,
+      icon,
+      min,
+      max,
+      start
+    };
+    
+    markDirty();
+    renderStats();
+    closeModal('statModal');
+    showToast('Estadística actualizada', 'success');
+  };
+};
+
+window.deleteStat = async function(key) {
+  const confirmed = await showConfirm(
+    `¿Estás seguro de eliminar la stat "${key}"? Esta acción no se puede deshacer.`,
+    'Eliminar Stat'
+  );
+  
+  if (!confirmed) return;
+  
+  delete currentStory.config.stats[key];
+  markDirty();
+  renderStats();
+  showToast('Stat eliminada', 'success');
+};
+
+// Flags
+function renderFlags() {
+  const container = document.getElementById('flagsList');
+  const flags = currentStory.config.flags;
+  
+  if (Object.keys(flags).length === 0) {
+    container.innerHTML = '';
+    document.getElementById('flagsEmpty').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('flagsEmpty').style.display = 'none';
+  
+  container.innerHTML = Object.entries(flags).map(([key, value]) => `
+    <div class="item-card">
+      <div class="item-header">
+        <div class="item-title">🚩 ${key}</div>
+        <div class="item-actions">
+          <button class="btn-secondary" onclick="editFlag('${key}')">✏️ Editar</button>
+          <button class="btn-danger" onclick="deleteFlag('${key}')">🗑️</button>
+        </div>
+      </div>
+      <div class="item-content">
+        <div class="form-group">
+          <label>Valor inicial: <strong>${JSON.stringify(value)}</strong></label>
+        </div>
+        <div class="form-group">
+          <label>Tipo: ${typeof value}</label>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.addFlag = function() {
+  openModal('flagModal');
+  document.getElementById('flagModalTitle').textContent = 'Agregar Variable';
+  document.getElementById('flagKey').value = '';
+  document.getElementById('flagKey').disabled = false;
+  document.getElementById('flagType').value = 'boolean';
+  document.getElementById('flagValue').type = 'checkbox';
+  document.getElementById('flagValue').checked = false;
+  document.getElementById('flagValueLabel').textContent = 'Valor inicial (true/false)';
+  
+  const saveBtn = document.getElementById('flagModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const key = document.getElementById('flagKey').value.trim();
+    const type = document.getElementById('flagType').value;
+    const valueInput = document.getElementById('flagValue');
+    
+    if (!key) {
+      showToast('El ID es obligatorio', 'error');
+      return;
+    }
+    
+    if (currentStory.config.flags.hasOwnProperty(key)) {
+      showToast('Ya existe una variable con ese ID', 'error');
+      return;
+    }
+    
+    let value;
+    if (type === 'boolean') {
+      value = valueInput.checked;
+    } else if (type === 'number') {
+      value = parseFloat(valueInput.value) || 0;
+    } else {
+      value = valueInput.value;
+    }
+    
+    currentStory.config.flags[key] = value;
+    markDirty();
+    renderFlags();
+    closeModal('flagModal');
+    showToast('Variable agregada', 'success');
+  };
+};
+
+window.editFlag = function(key) {
+  const currentValue = currentStory.config.flags[key];
+  const type = typeof currentValue;
+  
+  openModal('flagModal');
+  document.getElementById('flagModalTitle').textContent = `Editar: ${key}`;
+  document.getElementById('flagKey').value = key;
+  document.getElementById('flagKey').disabled = true;
+  
+  const valueInput = document.getElementById('flagValue');
+  const valueLabel = document.getElementById('flagValueLabel');
+  const typeSelect = document.getElementById('flagType');
+  
+  if (type === 'boolean') {
+    typeSelect.value = 'boolean';
+    valueLabel.textContent = 'Valor (true/false)';
+    valueInput.type = 'checkbox';
+    valueInput.checked = currentValue;
+  } else if (type === 'number') {
+    typeSelect.value = 'number';
+    valueLabel.textContent = 'Valor (número)';
+    valueInput.type = 'number';
+    valueInput.value = currentValue;
+  } else {
+    typeSelect.value = 'string';
+    valueLabel.textContent = 'Valor (texto)';
+    valueInput.type = 'text';
+    valueInput.value = currentValue;
+  }
+  
+  const saveBtn = document.getElementById('flagModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const type = typeSelect.value;
+    
+    let value;
+    if (type === 'boolean') {
+      value = valueInput.checked;
+    } else if (type === 'number') {
+      value = parseFloat(valueInput.value) || 0;
+    } else {
+      value = valueInput.value;
+    }
+    
+    currentStory.config.flags[key] = value;
+    markDirty();
+    renderFlags();
+    closeModal('flagModal');
+    showToast('Variable actualizada', 'success');
+  };
+};
+
+window.deleteFlag = async function(key) {
+  const confirmed = await showConfirm(
+    `¿Estás seguro de eliminar la flag "${key}"?`,
+    'Eliminar Flag'
+  );
+  
+  if (!confirmed) return;
+  
+  delete currentStory.config.flags[key];
+  markDirty();
+  renderFlags();
+  showToast('Flag eliminada', 'success');
+};
+
+// Characters
+function renderCharacters() {
+  const container = document.getElementById('charactersList');
+  const characters = currentStory.config.characters;
+  
+  if (Object.keys(characters).length === 0) {
+    container.innerHTML = '';
+    document.getElementById('charactersEmpty').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('charactersEmpty').style.display = 'none';
+  
+  container.innerHTML = Object.entries(characters).map(([key, char]) => `
+    <div class="item-card">
+      <div class="item-header">
+        <div class="item-title">${char.icon || '👤'} ${char.name || key}</div>
+        <div class="item-actions">
+          <button class="btn-secondary" onclick="editCharacter('${key}')">✏️ Editar</button>
+          <button class="btn-danger" onclick="deleteCharacter('${key}')">🗑️</button>
+        </div>
+      </div>
+      <div class="item-content">
+        <div class="form-group">
+          <label>Relación inicial: ${char.relationship || 0}</label>
+        </div>
+        <div class="form-group">
+          <label>Conocido: ${char.met ? 'Sí' : 'No'}</label>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.addCharacter = function() {
+  openModal('characterModal');
+  document.getElementById('characterModalTitle').textContent = 'Agregar Personaje';
+  document.getElementById('characterKey').value = '';
+  document.getElementById('characterKey').disabled = false;
+  document.getElementById('characterName').value = '';
+  document.getElementById('characterIcon').value = '👤';
+  document.getElementById('characterRelationship').value = '0';
+  document.getElementById('characterMet').checked = false;
+  
+  const saveBtn = document.getElementById('characterModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const key = document.getElementById('characterKey').value.trim();
+    const name = document.getElementById('characterName').value.trim();
+    const icon = document.getElementById('characterIcon').value.trim();
+    const relationship = parseInt(document.getElementById('characterRelationship').value);
+    const met = document.getElementById('characterMet').checked;
+    
+    if (!key) {
+      showToast('El ID es obligatorio', 'error');
+      return;
+    }
+    
+    if (currentStory.config.characters[key]) {
+      showToast('Ya existe un personaje con ese ID', 'error');
+      return;
+    }
+    
+    currentStory.config.characters[key] = {
+      name: name || key,
+      icon: icon || '👤',
+      relationship,
+      met
+    };
+    
+    markDirty();
+    renderCharacters();
+    closeModal('characterModal');
+    showToast('Personaje agregado', 'success');
+  };
+};
+
+window.editCharacter = function(key) {
+  const char = currentStory.config.characters[key];
+  
+  openModal('characterModal');
+  document.getElementById('characterModalTitle').textContent = `Editar: ${key}`;
+  document.getElementById('characterKey').value = key;
+  document.getElementById('characterKey').disabled = true;
+  document.getElementById('characterName').value = char.name;
+  document.getElementById('characterIcon').value = char.icon;
+  document.getElementById('characterRelationship').value = char.relationship;
+  document.getElementById('characterMet').checked = char.met;
+  
+  const saveBtn = document.getElementById('characterModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const name = document.getElementById('characterName').value.trim();
+    const icon = document.getElementById('characterIcon').value.trim();
+    const relationship = parseInt(document.getElementById('characterRelationship').value);
+    const met = document.getElementById('characterMet').checked;
+    
+    currentStory.config.characters[key] = {
+      name,
+      icon,
+      relationship,
+      met
+    };
+    
+    markDirty();
+    renderCharacters();
+    closeModal('characterModal');
+    showToast('Personaje actualizado', 'success');
+  };
+};
+
+window.deleteCharacter = async function(key) {
+  const confirmed = await showConfirm(
+    `¿Estás seguro de eliminar el personaje "${key}"?`,
+    'Eliminar Personaje'
+  );
+  
+  if (!confirmed) return;
+  
+  delete currentStory.config.characters[key];
+  markDirty();
+  renderCharacters();
+  showToast('Personaje eliminado', 'success');
+};
+
+// Items
+function renderItems() {
+  const container = document.getElementById('itemsList');
+  const items = currentStory.config.inventory.items || {};
+  
+  if (Object.keys(items).length === 0) {
+    container.innerHTML = '<div class="empty-message"><p>No hay items definidos</p></div>';
+    return;
+  }
+  
+  container.innerHTML = Object.entries(items).map(([key, item]) => `
+    <div class="item-card">
+      <div class="item-header">
+        <div class="item-title">${item.icon || '📦'} ${item.name || key}</div>
+        <div class="item-actions">
+          <button class="btn-secondary" onclick="editItem('${key}')">✏️ Editar</button>
+          <button class="btn-danger" onclick="deleteItem('${key}')">🗑️</button>
+        </div>
+      </div>
+      <div class="item-content">
+        <div class="form-group">
+          <label>${item.description || 'Sin descripción'}</label>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.addItem = function() {
+  openModal('itemModal');
+  document.getElementById('itemModalTitle').textContent = 'Agregar Objeto';
+  document.getElementById('itemKey').value = '';
+  document.getElementById('itemKey').disabled = false;
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemIcon').value = '📦';
+  document.getElementById('itemDescription').value = '';
+  
+  const saveBtn = document.getElementById('itemModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const key = document.getElementById('itemKey').value.trim();
+    const name = document.getElementById('itemName').value.trim();
+    const icon = document.getElementById('itemIcon').value.trim();
+    const description = document.getElementById('itemDescription').value.trim();
+    
+    if (!key) {
+      showToast('El ID es obligatorio', 'error');
+      return;
+    }
+    
+    if (!currentStory.config.inventory.items) {
+      currentStory.config.inventory.items = {};
+    }
+    
+    if (currentStory.config.inventory.items[key]) {
+      showToast('Ya existe un objeto con ese ID', 'error');
+      return;
+    }
+    
+    currentStory.config.inventory.items[key] = {
+      name: name || key,
+      icon: icon || '📦',
+      description: description || ''
+    };
+    
+    markDirty();
+    renderItems();
+    closeModal('itemModal');
+    showToast('Objeto agregado', 'success');
+  };
+};
+
+window.editItem = function(key) {
+  const item = currentStory.config.inventory.items[key];
+  
+  openModal('itemModal');
+  document.getElementById('itemModalTitle').textContent = `Editar: ${key}`;
+  document.getElementById('itemKey').value = key;
+  document.getElementById('itemKey').disabled = true;
+  document.getElementById('itemName').value = item.name;
+  document.getElementById('itemIcon').value = item.icon;
+  document.getElementById('itemDescription').value = item.description || '';
+  
+  const saveBtn = document.getElementById('itemModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const name = document.getElementById('itemName').value.trim();
+    const icon = document.getElementById('itemIcon').value.trim();
+    const description = document.getElementById('itemDescription').value.trim();
+    
+    currentStory.config.inventory.items[key] = {
+      name: name || key,
+      icon: icon || '📦',
+      description: description || ''
+    };
+    
+    markDirty();
+    renderItems();
+    closeModal('itemModal');
+    showToast('Objeto actualizado', 'success');
+  };
+};
+
+window.deleteItem = async function(key) {
+  const confirmed = await showConfirm(
+    `¿Estás seguro de eliminar el item "${key}"?`,
+    'Eliminar Item'
+  );
+  
+  if (!confirmed) return;
+  
+  delete currentStory.config.inventory.items[key];
+  markDirty();
+  renderItems();
+  showToast('Item eliminado', 'success');
+};
+
+// Events
+let eventsFilter = 'all';
+let eventsSearchQuery = '';
+let dayFilterValue = 'all';
+
+function renderEvents() {
+  const container = document.getElementById('eventsList');
+  let events = currentStory.story.events || [];
+  
+  // Guardar índices originales antes de filtrar
+  const eventsWithOriginalIndex = events.map((event, originalIndex) => ({ event, originalIndex }));
+  let filteredEvents = eventsWithOriginalIndex;
+  
+  // Apply filters
+  if (eventsFilter !== 'all') {
+    filteredEvents = filteredEvents.filter(e => e.event.type === eventsFilter);
+  }
+  
+  if (dayFilterValue !== 'all') {
+    filteredEvents = filteredEvents.filter(e => e.event.day === parseInt(dayFilterValue));
+  }
+  
+  if (eventsSearchQuery) {
+    const query = eventsSearchQuery.toLowerCase();
+    filteredEvents = filteredEvents.filter(e => 
+      e.event.id.toLowerCase().includes(query) ||
+      e.event.situation.toLowerCase().includes(query)
+    );
+  }
+  
+  if (filteredEvents.length === 0) {
+    container.innerHTML = '';
+    document.getElementById('eventsEmpty').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('eventsEmpty').style.display = 'none';
+  
+  container.innerHTML = filteredEvents.map(({ event, originalIndex }) => {
+    const isFirst = originalIndex === 0;
+    const isLast = originalIndex === events.length - 1;
+    
+    return `
+    <div class="event-card">
+      <div class="event-header">
+        <div class="event-title">${event.id}</div>
+        <div style="display: flex; gap: 5px; align-items: center;">
+          <span class="event-type-badge ${event.type || 'optional'}">${event.type || 'optional'}</span>
+          <button class="btn-icon" onclick="moveEventUp(${originalIndex}); event.stopPropagation();" 
+                  ${isFirst ? 'disabled' : ''} title="Subir">⬆️</button>
+          <button class="btn-icon" onclick="moveEventDown(${originalIndex}); event.stopPropagation();" 
+                  ${isLast ? 'disabled' : ''} title="Bajar">⬇️</button>
+        </div>
+      </div>
+      <div class="event-situation" onclick="editEvent(${originalIndex})">${event.situation.substring(0, 150)}${event.situation.length > 150 ? '...' : ''}</div>
+      <div class="event-meta" onclick="editEvent(${originalIndex})">
+        <span>📅 Día ${event.day || 'cualquiera'}</span>
+        <span>🔀 ${event.choices?.length || 0} opciones</span>
+        ${event.can_repeat ? '<span>🔁 Repetible</span>' : ''}
+      </div>
+      ${event.choices && event.choices.length > 0 ? `
+        <div class="event-choices" onclick="editEvent(${originalIndex})">
+          <div class="event-choices-title">Opciones:</div>
+          ${event.choices.map((choice, i) => `
+            <div class="choice-item">${i + 1}. ${choice.text.substring(0, 60)}${choice.text.length > 60 ? '...' : ''}</div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+  }).join('');
+}
+
+function updateDayFilter() {
+  const select = document.getElementById('dayFilter');
+  const days = currentStory.config.story.days || 1;
+  
+  let options = '<option value="all">Todos los días</option>';
+  for (let i = 1; i <= days; i++) {
+    options += `<option value="${i}">Día ${i}</option>`;
+  }
+  
+  select.innerHTML = options;
+}
+
+document.getElementById('eventsSearch').addEventListener('input', (e) => {
+  eventsSearchQuery = e.target.value;
+  renderEvents();
+});
+
+document.getElementById('eventsFilter').addEventListener('change', (e) => {
+  eventsFilter = e.target.value;
+  renderEvents();
+});
+
+document.getElementById('dayFilter').addEventListener('change', (e) => {
+  dayFilterValue = e.target.value;
+  renderEvents();
+});
+
+window.addEvent = function() {
+  const event = {
+    id: `evento_${Date.now()}`,
+    type: 'optional',
+    day: 1,
+    situation: '',
+    choices: [
+      { text: 'Opción 1', effects: {} },
+      { text: 'Opción 2', effects: {} }
+    ],
+    can_repeat: false,
+    conditions: {}
+  };
+  
+  currentStory.story.events.push(event);
+  markDirty();
+  renderEvents();
+  editEvent(currentStory.story.events.length - 1);
+};
+
+window.editEvent = function(index) {
+  const event = currentStory.story.events[index];
+  currentEventEdit = index;
+  
+  // Create detailed modal for event editing
+  const modal = document.getElementById('eventModal');
+  const content = document.getElementById('eventModalContent');
+  
+  content.innerHTML = `
+    <div class="form-grid">
+      <div class="form-group">
+        <label>ID del Evento *</label>
+        <input type="text" id="eventId" value="${event.id}" required />
+      </div>
+      
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="eventType">
+          <option value="optional" ${event.type === 'optional' ? 'selected' : ''}>Opcional</option>
+          <option value="mandatory" ${event.type === 'mandatory' ? 'selected' : ''}>Obligatorio</option>
+          <option value="random" ${event.type === 'random' ? 'selected' : ''}>Aleatorio</option>
+          <option value="forced" ${event.type === 'forced' ? 'selected' : ''}>Forzado</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Día (0 = cualquiera)</label>
+        <input type="number" id="eventDay" min="0" value="${event.day || 0}" />
+      </div>
+      
+      <div class="form-group">
+        <label>Momento del día</label>
+        <select id="eventTime">
+          <option value="" ${!event.time ? 'selected' : ''}>Cualquier momento</option>
+          <option value="morning" ${event.time === 'morning' ? 'selected' : ''}>Mañana</option>
+          <option value="afternoon" ${event.time === 'afternoon' ? 'selected' : ''}>Tarde</option>
+          <option value="evening" ${event.time === 'evening' ? 'selected' : ''}>Noche</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Hora más temprana (0-23)</label>
+        <input type="number" id="eventEarliestHour" min="0" max="23" value="${event.earliest_hour !== undefined ? event.earliest_hour : ''}" placeholder="Ej: 8" />
+      </div>
+      
+      <div class="form-group">
+        <label>Hora más tardía (0-23)</label>
+        <input type="number" id="eventLatestHour" min="0" max="23" value="${event.latest_hour !== undefined ? event.latest_hour : ''}" placeholder="Ej: 22" />
+      </div>
+      
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="eventCanRepeat" ${event.can_repeat ? 'checked' : ''} />
+          Puede repetirse
+        </label>
+      </div>
+      
+      <div class="form-group full-width">
+        <label>Situación / Texto del Evento *</label>
+        <textarea id="eventSituation" rows="4" required>${event.situation || ''}</textarea>
+      </div>
+      
+      <div class="form-group full-width">
+        <h4>⏰ Condiciones para que aparezca este evento</h4>
+        <div class="conditions-builder">
+          <div class="condition-section">
+            <h4>📊 Estadísticas</h4>
+            <div id="eventStatsConditions"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addEventStatCondition()">+ Agregar condición</button>
+          </div>
+          
+          <div class="condition-section">
+            <h4>🚩 Variables</h4>
+            <div id="eventFlagsConditions"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addEventFlagCondition()">+ Agregar condición</button>
+          </div>
+          
+          <div class="condition-section">
+            <h4>👥 Personajes</h4>
+            <div id="eventCharactersConditions"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addEventCharacterCondition()">+ Agregar condición</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group full-width">
+        <h4>💬 Opciones</h4>
+        <div id="eventChoicesList"></div>
+        <button class="btn-add" onclick="addChoiceToEvent()" type="button">+ Agregar Opción</button>
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+      <button class="btn-primary" onclick="saveEvent()">💾 Guardar Evento</button>
+      <button class="btn-danger" onclick="deleteEvent()">🗑️ Eliminar Evento</button>
+      <button class="btn-secondary" onclick="closeModal('eventModal')">Cancelar</button>
+    </div>
+  `;
+  
+  // Load event conditions
+  loadEventConditions(event.conditions || {});
+  
+  // Render choices
+  renderEventChoices(event.choices);
+  
+  modal.classList.remove('hidden');
+};
+
+// Event conditions and choices helpers
+let eventConditionsData = { stats: {}, flags: {}, characters: {} };
+let eventChoicesData = [];
+
+function clearEventConditions() {
+  eventConditionsData = { stats: {}, flags: {}, characters: {} };
+  document.getElementById('eventStatsConditions').innerHTML = '';
+  document.getElementById('eventFlagsConditions').innerHTML = '';
+  document.getElementById('eventCharactersConditions').innerHTML = '';
+}
+
+function loadEventConditions(conditions) {
+  clearEventConditions();
+  
+  // Load stats - Soportar ambos formatos
+  if (conditions.stats) {
+    Object.entries(conditions.stats).forEach(([key, value]) => {
+      // Formato engine: { "honor_min": 50, "honor_max": 100 }
+      if (key.endsWith('_min')) {
+        const stat = key.replace('_min', '');
+        addEventStatCondition(stat, 'min', value);
+      } else if (key.endsWith('_max')) {
+        const stat = key.replace('_max', '');
+        addEventStatCondition(stat, 'max', value);
+      }
+      // Formato editor antiguo: { "honor": { min: 50, max: 100 } }
+      else if (typeof value === 'object') {
+        if (value.min !== undefined) addEventStatCondition(key, 'min', value.min);
+        if (value.max !== undefined) addEventStatCondition(key, 'max', value.max);
+      }
+    });
+  }
+  
+  if (conditions.flags) {
+    Object.entries(conditions.flags).forEach(([flag, value]) => {
+      addEventFlagCondition(flag, value);
+    });
+  }
+  
+  if (conditions.characters) {
+    Object.entries(conditions.characters).forEach(([char, values]) => {
+      if (values.relationship_min !== undefined) addEventCharacterCondition(char, 'relationship_min', values.relationship_min);
+      if (values.relationship_max !== undefined) addEventCharacterCondition(char, 'relationship_max', values.relationship_max);
+      if (values.met !== undefined) addEventCharacterCondition(char, 'met', values.met);
+    });
+  }
+}
+
+function getEventConditions() {
+  const conditions = {};
+  
+  // Stats - Convertir al formato del engine
+  if (Object.keys(eventConditionsData.stats).length > 0) {
+    conditions.stats = {};
+    Object.entries(eventConditionsData.stats).forEach(([stat, values]) => {
+      // Formato engine: { "honor_min": 50, "honor_max": 100 }
+      if (values.min !== undefined) {
+        conditions.stats[`${stat}_min`] = values.min;
+      }
+      if (values.max !== undefined) {
+        conditions.stats[`${stat}_max`] = values.max;
+      }
+    });
+  }
+  
+  if (Object.keys(eventConditionsData.flags).length > 0) {
+    conditions.flags = eventConditionsData.flags;
+  }
+  
+  if (Object.keys(eventConditionsData.characters).length > 0) {
+    conditions.characters = {};
+    Object.entries(eventConditionsData.characters).forEach(([char, values]) => {
+      conditions.characters[char] = values;
+    });
+  }
+  
+  return conditions;
+}
+
+window.addEventStatCondition = function(statKey = '', type = 'min', value = 0) {
+  const container = document.getElementById('eventStatsConditions');
+  const id = `event-stat-${Date.now()}-${Math.random()}`;
+  const availableStats = Object.keys(currentStory.config.stats);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="stat-select">
+      <option value="">Selecciona...</option>
+      ${availableStats.map(s => `<option value="${s}" ${s === statKey ? 'selected' : ''}>${currentStory.config.stats[s].name}</option>`).join('')}
+    </select>
+    <select class="stat-type">
+      <option value="min" ${type === 'min' ? 'selected' : ''}>Mínimo</option>
+      <option value="max" ${type === 'max' ? 'selected' : ''}>Máximo</option>
+    </select>
+    <input type="number" class="stat-value" value="${value}" />
+    <button class="btn-danger" onclick="removeEventStatCondition('${id}')" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const stat = div.querySelector('.stat-select').value;
+    const condType = div.querySelector('.stat-type').value;
+    const val = parseInt(div.querySelector('.stat-value').value) || 0;
+    if (stat) {
+      if (!eventConditionsData.stats[stat]) eventConditionsData.stats[stat] = {};
+      eventConditionsData.stats[stat][condType] = val;
+    }
+  };
+  div.querySelectorAll('select, input').forEach(el => el.addEventListener('change', update));
+  update();
+};
+
+window.removeEventStatCondition = function(id) {
+  const div = document.getElementById(id);
+  const stat = div.querySelector('.stat-select').value;
+  const type = div.querySelector('.stat-type').value;
+  if (eventConditionsData.stats[stat]) {
+    delete eventConditionsData.stats[stat][type];
+    if (Object.keys(eventConditionsData.stats[stat]).length === 0) delete eventConditionsData.stats[stat];
+  }
+  div.remove();
+};
+
+window.addEventFlagCondition = function(flagKey = '', value = true) {
+  const container = document.getElementById('eventFlagsConditions');
+  const id = `event-flag-${Date.now()}-${Math.random()}`;
+  const availableFlags = Object.keys(currentStory.config.flags);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="flag-select">
+      <option value="">Selecciona...</option>
+      ${availableFlags.map(f => `<option value="${f}" ${f === flagKey ? 'selected' : ''}>${f}</option>`).join('')}
+    </select>
+    <input type="text" class="flag-value" value="${value}" placeholder="Valor" />
+    <button class="btn-danger" onclick="removeEventFlagCondition('${id}')" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const flag = div.querySelector('.flag-select').value;
+    let val = div.querySelector('.flag-value').value;
+    if (flag) {
+      const currentType = typeof currentStory.config.flags[flag];
+      if (currentType === 'boolean') val = val === 'true' || val === true;
+      else if (currentType === 'number') val = parseFloat(val) || 0;
+      eventConditionsData.flags[flag] = val;
+    }
+  };
+  div.querySelectorAll('select, input').forEach(el => el.addEventListener('change', update));
+  update();
+};
+
+window.removeEventFlagCondition = function(id) {
+  const div = document.getElementById(id);
+  const flag = div.querySelector('.flag-select').value;
+  if (flag) delete eventConditionsData.flags[flag];
+  div.remove();
+};
+
+window.addEventCharacterCondition = function(charKey = '', type = 'relationship_min', value = 0) {
+  const container = document.getElementById('eventCharactersConditions');
+  const id = `event-char-${Date.now()}-${Math.random()}`;
+  const availableChars = Object.keys(currentStory.config.characters);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="char-select">
+      <option value="">Selecciona...</option>
+      ${availableChars.map(c => `<option value="${c}" ${c === charKey ? 'selected' : ''}>${currentStory.config.characters[c].name}</option>`).join('')}
+    </select>
+    <select class="char-type">
+      <option value="relationship_min" ${type === 'relationship_min' ? 'selected' : ''}>Relación mín</option>
+      <option value="relationship_max" ${type === 'relationship_max' ? 'selected' : ''}>Relación máx</option>
+      <option value="met" ${type === 'met' ? 'selected' : ''}>Conocido</option>
+    </select>
+    <input type="text" class="char-value" value="${value}" />
+    <button class="btn-danger" onclick="removeEventCharacterCondition('${id}')" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const char = div.querySelector('.char-select').value;
+    const condType = div.querySelector('.char-type').value;
+    let val = div.querySelector('.char-value').value;
+    if (char) {
+      if (condType === 'met') val = val === 'true' || val === true;
+      else val = parseInt(val) || 0;
+      if (!eventConditionsData.characters[char]) eventConditionsData.characters[char] = {};
+      eventConditionsData.characters[char][condType] = val;
+    }
+  };
+  div.querySelectorAll('select, input').forEach(el => el.addEventListener('change', update));
+  update();
+};
+
+window.removeEventCharacterCondition = function(id) {
+  const div = document.getElementById(id);
+  const char = div.querySelector('.char-select').value;
+  const type = div.querySelector('.char-type').value;
+  if (eventConditionsData.characters[char]) {
+    delete eventConditionsData.characters[char][type];
+    if (Object.keys(eventConditionsData.characters[char]).length === 0) delete eventConditionsData.characters[char];
+  }
+  div.remove();
+};
+
+// Render choices with visual effects builder
+function renderEventChoices(choices) {
+  const container = document.getElementById('eventChoicesList');
+  eventChoicesData = JSON.parse(JSON.stringify(choices)); // Deep copy
+  
+  container.innerHTML = choices.map((choice, i) => `
+    <div class="item-card" style="margin-bottom: 1rem;">
+      <div class="item-header">
+        <div class="item-title">Opción ${i + 1}</div>
+        <button class="btn-danger" onclick="removeChoice(${i})" type="button">🗑️</button>
+      </div>
+      <div class="form-group full-width">
+        <label>Texto de la opción</label>
+        <input type="text" class="choice-text" data-index="${i}" value="${choice.text}" />
+      </div>
+      <div class="form-group full-width">
+        <label>⚡ Efectos de esta opción</label>
+        <div class="conditions-builder" style="margin-top: 0.5rem;">
+          <div class="condition-section">
+            <h4>📊 Cambios en Stats</h4>
+            <div id="choice-${i}-stats"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addChoiceStatEffect(${i})">+ Agregar efecto</button>
+          </div>
+          
+          <div class="condition-section">
+            <h4>🚩 Cambios en Flags</h4>
+            <div id="choice-${i}-flags"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addChoiceFlagEffect(${i})">+ Agregar efecto</button>
+          </div>
+          
+          <div class="condition-section">
+            <h4>📦 Dar/Quitar Items</h4>
+            <div id="choice-${i}-items"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addChoiceItemEffect(${i})">+ Agregar efecto</button>
+          </div>
+          
+          <div class="condition-section">
+            <h4>👥 Cambios en Relaciones</h4>
+            <div id="choice-${i}-characters"></div>
+            <button type="button" class="btn-secondary btn-small" onclick="addChoiceCharacterEffect(${i})">+ Agregar efecto</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  
+  // Load existing effects
+  choices.forEach((choice, i) => {
+    if (choice.effects.stats) {
+      Object.entries(choice.effects.stats).forEach(([stat, value]) => {
+        addChoiceStatEffect(i, stat, value);
+      });
+    }
+    if (choice.effects.flags) {
+      Object.entries(choice.effects.flags).forEach(([flag, value]) => {
+        addChoiceFlagEffect(i, flag, value);
+      });
+    }
+    if (choice.effects.inventory) {
+      if (choice.effects.inventory.add) {
+        choice.effects.inventory.add.forEach(item => addChoiceItemEffect(i, item, 'add'));
+      }
+      if (choice.effects.inventory.remove) {
+        choice.effects.inventory.remove.forEach(item => addChoiceItemEffect(i, item, 'remove'));
+      }
+    }
+    if (choice.effects.characters) {
+      Object.entries(choice.effects.characters).forEach(([char, value]) => {
+        addChoiceCharacterEffect(i, char, value);
+      });
+    }
+  });
+  
+  // Update text on input
+  container.querySelectorAll('.choice-text').forEach(input => {
+    input.addEventListener('input', () => {
+      const idx = parseInt(input.dataset.index);
+      eventChoicesData[idx].text = input.value;
+    });
+  });
+}
+
+window.addChoiceStatEffect = function(choiceIndex, statKey = '', value = 0) {
+  const container = document.getElementById(`choice-${choiceIndex}-stats`);
+  const id = `choice-${choiceIndex}-stat-${Date.now()}`;
+  const availableStats = Object.keys(currentStory.config.stats);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="stat-select">
+      <option value="">Selecciona...</option>
+      ${availableStats.map(s => `<option value="${s}" ${s === statKey ? 'selected' : ''}>${currentStory.config.stats[s].name}</option>`).join('')}
+    </select>
+    <input type="number" class="stat-value" value="${value}" placeholder="Cambio (+/-)" />
+    <button class="btn-danger" onclick="removeChoiceStatEffect('${id}', ${choiceIndex})" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const stat = div.querySelector('.stat-select').value;
+    const val = parseInt(div.querySelector('.stat-value').value) || 0;
+    if (stat) {
+      if (!eventChoicesData[choiceIndex].effects.stats) eventChoicesData[choiceIndex].effects.stats = {};
+      eventChoicesData[choiceIndex].effects.stats[stat] = val;
+    }
+  };
+  div.querySelectorAll('select, input').forEach(el => el.addEventListener('change', update));
+  update();
+};
+
+window.removeChoiceStatEffect = function(id, choiceIndex) {
+  const div = document.getElementById(id);
+  const stat = div.querySelector('.stat-select').value;
+  if (eventChoicesData[choiceIndex].effects.stats && stat) {
+    delete eventChoicesData[choiceIndex].effects.stats[stat];
+  }
+  div.remove();
+};
+
+window.addChoiceFlagEffect = function(choiceIndex, flagKey = '', value = true) {
+  const container = document.getElementById(`choice-${choiceIndex}-flags`);
+  const id = `choice-${choiceIndex}-flag-${Date.now()}`;
+  const availableFlags = Object.keys(currentStory.config.flags);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="flag-select">
+      <option value="">Selecciona...</option>
+      ${availableFlags.map(f => `<option value="${f}" ${f === flagKey ? 'selected' : ''}>${f}</option>`).join('')}
+    </select>
+    <input type="text" class="flag-value" value="${value}" placeholder="Nuevo valor" />
+    <button class="btn-danger" onclick="removeChoiceFlagEffect('${id}', ${choiceIndex})" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const flag = div.querySelector('.flag-select').value;
+    let val = div.querySelector('.flag-value').value;
+    if (flag) {
+      const currentType = typeof currentStory.config.flags[flag];
+      if (currentType === 'boolean') val = val === 'true' || val === true;
+      else if (currentType === 'number') val = parseFloat(val) || 0;
+      if (!eventChoicesData[choiceIndex].effects.flags) eventChoicesData[choiceIndex].effects.flags = {};
+      eventChoicesData[choiceIndex].effects.flags[flag] = val;
+    }
+  };
+  div.querySelectorAll('select, input').forEach(el => el.addEventListener('change', update));
+  update();
+};
+
+window.removeChoiceFlagEffect = function(id, choiceIndex) {
+  const div = document.getElementById(id);
+  const flag = div.querySelector('.flag-select').value;
+  if (eventChoicesData[choiceIndex].effects.flags && flag) {
+    delete eventChoicesData[choiceIndex].effects.flags[flag];
+  }
+  div.remove();
+};
+
+window.addChoiceItemEffect = function(choiceIndex, itemKey = '', action = 'add') {
+  const container = document.getElementById(`choice-${choiceIndex}-items`);
+  const id = `choice-${choiceIndex}-item-${Date.now()}`;
+  const availableItems = Object.keys(currentStory.config.inventory.items || {});
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="item-select">
+      <option value="">Selecciona...</option>
+      ${availableItems.map(item => `<option value="${item}" ${item === itemKey ? 'selected' : ''}>${currentStory.config.inventory.items[item].name}</option>`).join('')}
+    </select>
+    <select class="item-action">
+      <option value="add" ${action === 'add' ? 'selected' : ''}>Dar</option>
+      <option value="remove" ${action === 'remove' ? 'selected' : ''}>Quitar</option>
+    </select>
+    <button class="btn-danger" onclick="removeChoiceItemEffect('${id}', ${choiceIndex})" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const item = div.querySelector('.item-select').value;
+    const act = div.querySelector('.item-action').value;
+    if (item) {
+      if (!eventChoicesData[choiceIndex].effects.inventory) eventChoicesData[choiceIndex].effects.inventory = {};
+      if (!eventChoicesData[choiceIndex].effects.inventory[act]) eventChoicesData[choiceIndex].effects.inventory[act] = [];
+      if (!eventChoicesData[choiceIndex].effects.inventory[act].includes(item)) {
+        eventChoicesData[choiceIndex].effects.inventory[act].push(item);
+      }
+    }
+  };
+  div.querySelectorAll('select').forEach(el => el.addEventListener('change', update));
+  update();
+};
+
+window.removeChoiceItemEffect = function(id, choiceIndex) {
+  const div = document.getElementById(id);
+  const item = div.querySelector('.item-select').value;
+  const action = div.querySelector('.item-action').value;
+  if (eventChoicesData[choiceIndex].effects.inventory && eventChoicesData[choiceIndex].effects.inventory[action]) {
+    const idx = eventChoicesData[choiceIndex].effects.inventory[action].indexOf(item);
+    if (idx > -1) eventChoicesData[choiceIndex].effects.inventory[action].splice(idx, 1);
+  }
+  div.remove();
+};
+
+window.addChoiceCharacterEffect = function(choiceIndex, charKey = '', value = 0) {
+  const container = document.getElementById(`choice-${choiceIndex}-characters`);
+  const id = `choice-${choiceIndex}-char-${Date.now()}`;
+  const availableChars = Object.keys(currentStory.config.characters);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="char-select">
+      <option value="">Selecciona...</option>
+      ${availableChars.map(c => `<option value="${c}" ${c === charKey ? 'selected' : ''}>${currentStory.config.characters[c].name}</option>`).join('')}
+    </select>
+    <input type="number" class="char-value" value="${value}" placeholder="Cambio (+/-)" />
+    <button class="btn-danger" onclick="removeChoiceCharacterEffect('${id}', ${choiceIndex})" type="button">🗑️</button>
+  `;
+  container.appendChild(div);
+  
+  const update = () => {
+    const char = div.querySelector('.char-select').value;
+    const val = parseInt(div.querySelector('.char-value').value) || 0;
+    if (char) {
+      if (!eventChoicesData[choiceIndex].effects.characters) eventChoicesData[choiceIndex].effects.characters = {};
+      eventChoicesData[choiceIndex].effects.characters[char] = val;
+    }
+  };
+  div.querySelectorAll('select, input').forEach(el => el.addEventListener('change', update));
+  update();
+};
+
+window.removeChoiceCharacterEffect = function(id, choiceIndex) {
+  const div = document.getElementById(id);
+  const char = div.querySelector('.char-select').value;
+  if (eventChoicesData[choiceIndex].effects.characters && char) {
+    delete eventChoicesData[choiceIndex].effects.characters[char];
+  }
+  div.remove();
+};
+
+window.removeChoice = async function(index) {
+  if (currentEventEdit === null) return;
+  
+  const event = currentStory.story.events[currentEventEdit];
+  if (event.choices.length <= 1) {
+    showToast('Debe haber al menos una opción', 'error');
+    return;
+  }
+  
+  const confirmed = await showConfirm(
+    '¿Eliminar esta opción?',
+    'Eliminar Opción'
+  );
+  
+  if (!confirmed) return;
+  
+  event.choices.splice(index, 1);
+  eventChoicesData.splice(index, 1);
+  renderEventChoices(event.choices);
+  showToast('Opción eliminada', 'success');
+};
+
+window.addChoiceToEvent = function() {
+  if (currentEventEdit === null) return;
+  
+  const event = currentStory.story.events[currentEventEdit];
+  event.choices.push({
+    text: `Nueva opción ${event.choices.length + 1}`,
+    effects: {}
+  });
+  
+  renderEventChoices(event.choices);
+};
+
+window.saveEvent = function() {
+  if (currentEventEdit === null) return;
+  
+  const event = currentStory.story.events[currentEventEdit];
+  
+  // Update basic fields
+  event.id = document.getElementById('eventId').value;
+  event.type = document.getElementById('eventType').value;
+  event.day = parseInt(document.getElementById('eventDay').value) || 0;
+  event.can_repeat = document.getElementById('eventCanRepeat').checked;
+  event.situation = document.getElementById('eventSituation').value;
+  
+  // Update time fields
+  const time = document.getElementById('eventTime').value;
+  if (time) {
+    event.time = time;
+  } else {
+    delete event.time;
+  }
+  
+  const earliestHour = document.getElementById('eventEarliestHour').value;
+  if (earliestHour !== '') {
+    event.earliest_hour = parseInt(earliestHour);
+  } else {
+    delete event.earliest_hour;
+  }
+  
+  const latestHour = document.getElementById('eventLatestHour').value;
+  if (latestHour !== '') {
+    event.latest_hour = parseInt(latestHour);
+  } else {
+    delete event.latest_hour;
+  }
+  
+  // Update conditions from visual builder
+  event.conditions = getEventConditions();
+  
+  // Update choices from visual builder
+  event.choices = eventChoicesData;
+  
+  markDirty();
+  renderEvents();
+  closeModal('eventModal');
+  showToast('Evento guardado', 'success');
+};
+
+window.deleteEvent = async function() {
+  if (currentEventEdit === null) return;
+  
+  const confirmed = await showConfirm(
+    '¿Estás seguro de eliminar este evento?',
+    'Eliminar Evento'
+  );
+  
+  if (!confirmed) return;
+  
+  currentStory.story.events.splice(currentEventEdit, 1);
+  currentEventEdit = null;
+  
+  markDirty();
+  renderEvents();
+  closeModal('eventModal');
+  showToast('Evento eliminado', 'success');
+};
+
+window.moveEventUp = function(index) {
+  if (index === 0) return; // Ya está en la primera posición
+  
+  const events = currentStory.story.events;
+  [events[index - 1], events[index]] = [events[index], events[index - 1]];
+  
+  markDirty();
+  renderEvents();
+  showToast('Evento movido hacia arriba', 'success');
+};
+
+window.moveEventDown = function(index) {
+  const events = currentStory.story.events;
+  if (index === events.length - 1) return; // Ya está en la última posición
+  
+  [events[index], events[index + 1]] = [events[index + 1], events[index]];
+  
+  markDirty();
+  renderEvents();
+  showToast('Evento movido hacia abajo', 'success');
+};
+
+// Endings
+function renderEndings() {
+  const container = document.getElementById('endingsList');
+  const endings = currentStory.endings.endings || [];
+  
+  if (endings.length === 0) {
+    container.innerHTML = '';
+    document.getElementById('endingsEmpty').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('endingsEmpty').style.display = 'none';
+  
+  container.innerHTML = endings.map((ending, index) => `
+    <div class="item-card">
+      <div class="item-header">
+        <div class="item-title">🏁 ${ending.id}</div>
+        <div class="item-actions">
+          <button class="btn-secondary" onclick="editEnding(${index})">✏️ Editar</button>
+          <button class="btn-danger" onclick="deleteEnding(${index})">🗑️</button>
+        </div>
+      </div>
+      <div class="item-content">
+        <div class="form-group">
+          <label>Título: <strong>${ending.title}</strong></label>
+        </div>
+        <div class="form-group">
+          <label>Prioridad: ${ending.priority || 999}</label>
+        </div>
+        <div class="form-group full-width">
+          <label>${ending.content.message.substring(0, 100)}...</label>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Helper functions para condiciones de endings
+let endingConditionsData = { stats: {}, flags: {}, characters: {} };
+
+function clearEndingConditions() {
+  endingConditionsData = { stats: {}, flags: {}, characters: {} };
+  document.getElementById('endingStatsConditions').innerHTML = '';
+  document.getElementById('endingFlagsConditions').innerHTML = '';
+  document.getElementById('endingCharactersConditions').innerHTML = '';
+}
+
+function loadEndingConditions(conditions) {
+  clearEndingConditions();
+  
+  // Load stats - Soportar ambos formatos
+  if (conditions.stats) {
+    Object.entries(conditions.stats).forEach(([key, value]) => {
+      // Formato engine: { "honor_min": 50, "honor_max": 100 }
+      if (key.endsWith('_min')) {
+        const stat = key.replace('_min', '');
+        addEndingStatCondition(stat, 'min', value);
+      } else if (key.endsWith('_max')) {
+        const stat = key.replace('_max', '');
+        addEndingStatCondition(stat, 'max', value);
+      } 
+      // Formato editor antiguo: { "honor": { min: 50, max: 100 } }
+      else if (typeof value === 'object') {
+        if (value.min !== undefined) {
+          addEndingStatCondition(key, 'min', value.min);
+        }
+        if (value.max !== undefined) {
+          addEndingStatCondition(key, 'max', value.max);
+        }
+      }
+    });
+  }
+  
+  // Load flags
+  if (conditions.flags) {
+    Object.entries(conditions.flags).forEach(([flag, value]) => {
+      addEndingFlagCondition(flag, value);
+    });
+  }
+  
+  // Load characters
+  if (conditions.characters) {
+    Object.entries(conditions.characters).forEach(([char, values]) => {
+      if (values.relationship_min !== undefined) {
+        addEndingCharacterCondition(char, 'relationship_min', values.relationship_min);
+      }
+      if (values.relationship_max !== undefined) {
+        addEndingCharacterCondition(char, 'relationship_max', values.relationship_max);
+      }
+      if (values.met !== undefined) {
+        addEndingCharacterCondition(char, 'met', values.met);
+      }
+    });
+  }
+}
+
+function getEndingConditions() {
+  const conditions = {};
+  
+  // Stats - Convertir al formato del engine
+  if (Object.keys(endingConditionsData.stats).length > 0) {
+    conditions.stats = {};
+    Object.entries(endingConditionsData.stats).forEach(([stat, values]) => {
+      // Formato engine: { "honor_min": 50, "honor_max": 100 }
+      if (values.min !== undefined) {
+        conditions.stats[`${stat}_min`] = values.min;
+      }
+      if (values.max !== undefined) {
+        conditions.stats[`${stat}_max`] = values.max;
+      }
+    });
+  }
+  
+  // Flags
+  if (Object.keys(endingConditionsData.flags).length > 0) {
+    conditions.flags = endingConditionsData.flags;
+  }
+  
+  // Characters
+  if (Object.keys(endingConditionsData.characters).length > 0) {
+    conditions.characters = {};
+    Object.entries(endingConditionsData.characters).forEach(([char, values]) => {
+      conditions.characters[char] = values;
+    });
+  }
+  
+  return conditions;
+}
+
+window.addEndingStatCondition = function(statKey = '', type = 'min', value = 0) {
+  const container = document.getElementById('endingStatsConditions');
+  const id = `stat-${Date.now()}-${Math.random()}`;
+  
+  const availableStats = Object.keys(currentStory.config.stats);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="stat-select" data-id="${id}">
+      <option value="">Selecciona una stat...</option>
+      ${availableStats.map(s => `<option value="${s}" ${s === statKey ? 'selected' : ''}>${currentStory.config.stats[s].name}</option>`).join('')}
+    </select>
+    <select class="stat-type" data-id="${id}">
+      <option value="min" ${type === 'min' ? 'selected' : ''}>Mínimo</option>
+      <option value="max" ${type === 'max' ? 'selected' : ''}>Máximo</option>
+    </select>
+    <input type="number" class="stat-value" data-id="${id}" value="${value}" placeholder="Valor" />
+    <button class="btn-danger" onclick="removeEndingStatCondition('${id}')">🗑️</button>
+  `;
+  
+  container.appendChild(div);
+  
+  // Update data
+  const updateData = () => {
+    const stat = div.querySelector('.stat-select').value;
+    const condType = div.querySelector('.stat-type').value;
+    const val = parseInt(div.querySelector('.stat-value').value) || 0;
+    
+    if (stat) {
+      if (!endingConditionsData.stats[stat]) {
+        endingConditionsData.stats[stat] = {};
+      }
+      endingConditionsData.stats[stat][condType] = val;
+    }
+  };
+  
+  div.querySelectorAll('select, input').forEach(el => {
+    el.addEventListener('change', updateData);
+    el.addEventListener('input', updateData);
+  });
+  
+  updateData();
+};
+
+window.removeEndingStatCondition = function(id) {
+  const div = document.getElementById(id);
+  const stat = div.querySelector('.stat-select').value;
+  const type = div.querySelector('.stat-type').value;
+  
+  if (endingConditionsData.stats[stat]) {
+    delete endingConditionsData.stats[stat][type];
+    if (Object.keys(endingConditionsData.stats[stat]).length === 0) {
+      delete endingConditionsData.stats[stat];
+    }
+  }
+  
+  div.remove();
+};
+
+window.addEndingFlagCondition = function(flagKey = '', value = true) {
+  const container = document.getElementById('endingFlagsConditions');
+  const id = `flag-${Date.now()}-${Math.random()}`;
+  
+  const availableFlags = Object.keys(currentStory.config.flags);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  
+  const flagType = flagKey && typeof currentStory.config.flags[flagKey];
+  
+  div.innerHTML = `
+    <select class="flag-select" data-id="${id}">
+      <option value="">Selecciona una variable...</option>
+      ${availableFlags.map(f => `<option value="${f}" ${f === flagKey ? 'selected' : ''}>${f}</option>`).join('')}
+    </select>
+    <input type="text" class="flag-value" data-id="${id}" value="${value}" placeholder="Valor esperado" />
+    <button class="btn-danger" onclick="removeEndingFlagCondition('${id}')">🗑️</button>
+  `;
+  
+  container.appendChild(div);
+  
+  // Update data
+  const updateData = () => {
+    const flag = div.querySelector('.flag-select').value;
+    let val = div.querySelector('.flag-value').value;
+    
+    if (flag) {
+      // Convert value based on type
+      const currentType = typeof currentStory.config.flags[flag];
+      if (currentType === 'boolean') {
+        val = val === 'true' || val === true;
+      } else if (currentType === 'number') {
+        val = parseFloat(val) || 0;
+      }
+      
+      endingConditionsData.flags[flag] = val;
+    }
+  };
+  
+  div.querySelectorAll('select, input').forEach(el => {
+    el.addEventListener('change', updateData);
+    el.addEventListener('input', updateData);
+  });
+  
+  updateData();
+};
+
+window.removeEndingFlagCondition = function(id) {
+  const div = document.getElementById(id);
+  const flag = div.querySelector('.flag-select').value;
+  
+  if (flag && endingConditionsData.flags[flag] !== undefined) {
+    delete endingConditionsData.flags[flag];
+  }
+  
+  div.remove();
+};
+
+window.addEndingCharacterCondition = function(charKey = '', type = 'relationship_min', value = 0) {
+  const container = document.getElementById('endingCharactersConditions');
+  const id = `char-${Date.now()}-${Math.random()}`;
+  
+  const availableChars = Object.keys(currentStory.config.characters);
+  
+  const div = document.createElement('div');
+  div.className = 'condition-item';
+  div.id = id;
+  div.innerHTML = `
+    <select class="char-select" data-id="${id}">
+      <option value="">Selecciona un personaje...</option>
+      ${availableChars.map(c => `<option value="${c}" ${c === charKey ? 'selected' : ''}>${currentStory.config.characters[c].name}</option>`).join('')}
+    </select>
+    <select class="char-type" data-id="${id}">
+      <option value="relationship_min" ${type === 'relationship_min' ? 'selected' : ''}>Relación mínima</option>
+      <option value="relationship_max" ${type === 'relationship_max' ? 'selected' : ''}>Relación máxima</option>
+      <option value="met" ${type === 'met' ? 'selected' : ''}>Conocido</option>
+    </select>
+    <input type="text" class="char-value" data-id="${id}" value="${value}" placeholder="Valor" />
+    <button class="btn-danger" onclick="removeEndingCharacterCondition('${id}')">🗑️</button>
+  `;
+  
+  container.appendChild(div);
+  
+  // Update data
+  const updateData = () => {
+    const char = div.querySelector('.char-select').value;
+    const condType = div.querySelector('.char-type').value;
+    let val = div.querySelector('.char-value').value;
+    
+    if (char) {
+      if (condType === 'met') {
+        val = val === 'true' || val === true;
+      } else {
+        val = parseInt(val) || 0;
+      }
+      
+      if (!endingConditionsData.characters[char]) {
+        endingConditionsData.characters[char] = {};
+      }
+      endingConditionsData.characters[char][condType] = val;
+    }
+  };
+  
+  div.querySelectorAll('select, input').forEach(el => {
+    el.addEventListener('change', updateData);
+    el.addEventListener('input', updateData);
+  });
+  
+  updateData();
+};
+
+window.removeEndingCharacterCondition = function(id) {
+  const div = document.getElementById(id);
+  const char = div.querySelector('.char-select').value;
+  const type = div.querySelector('.char-type').value;
+  
+  if (endingConditionsData.characters[char]) {
+    delete endingConditionsData.characters[char][type];
+    if (Object.keys(endingConditionsData.characters[char]).length === 0) {
+      delete endingConditionsData.characters[char];
+    }
+  }
+  
+  div.remove();
+};
+
+window.addEnding = function() {
+  clearEndingConditions();
+  
+  openModal('endingModal');
+  document.getElementById('endingModalTitle').textContent = 'Agregar Final';
+  document.getElementById('endingId').value = '';
+  document.getElementById('endingId').disabled = false;
+  document.getElementById('endingTitle').value = '';
+  document.getElementById('endingMessage').value = '';
+  document.getElementById('endingPriority').value = '100';
+  
+  const saveBtn = document.getElementById('endingModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const id = document.getElementById('endingId').value.trim();
+    const title = document.getElementById('endingTitle').value.trim();
+    const message = document.getElementById('endingMessage').value.trim();
+    const priority = parseInt(document.getElementById('endingPriority').value);
+    
+    if (!id) {
+      showToast('El ID es obligatorio', 'error');
+      return;
+    }
+    
+    const conditions = getEndingConditions();
+    
+    currentStory.endings.endings.push({
+      id,
+      title: title || id,
+      priority,
+      conditions,
+      content: {
+        message: message || ''
+      }
+    });
+    
+    markDirty();
+    renderEndings();
+    closeModal('endingModal');
+    showToast('Final agregado', 'success');
+  };
+};
+
+window.editEnding = function(index) {
+  const ending = currentStory.endings.endings[index];
+  
+  openModal('endingModal');
+  document.getElementById('endingModalTitle').textContent = `Editar: ${ending.id}`;
+  document.getElementById('endingId').value = ending.id;
+  document.getElementById('endingId').disabled = true;
+  document.getElementById('endingTitle').value = ending.title;
+  document.getElementById('endingMessage').value = ending.content.message;
+  document.getElementById('endingPriority').value = ending.priority || 100;
+  
+  // Load conditions
+  loadEndingConditions(ending.conditions || {});
+  
+  const saveBtn = document.getElementById('endingModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const title = document.getElementById('endingTitle').value.trim();
+    const message = document.getElementById('endingMessage').value.trim();
+    const priority = parseInt(document.getElementById('endingPriority').value);
+    
+    const conditions = getEndingConditions();
+    
+    currentStory.endings.endings[index] = {
+      ...ending,
+      title,
+      priority,
+      conditions,
+      content: {
+        message
+      }
+    };
+    
+    markDirty();
+    renderEndings();
+    closeModal('endingModal');
+    showToast('Final actualizado', 'success');
+  };
+};
+
+window.deleteEnding = async function(index) {
+  const confirmed = await showConfirm(
+    '¿Estás seguro de eliminar este final?',
+    'Eliminar Final'
+  );
+  
+  if (!confirmed) return;
+  
+  currentStory.endings.endings.splice(index, 1);
+  markDirty();
+  renderEndings();
+  showToast('Final eliminado', 'success');
+};
+
+// Achievements
+function renderAchievements() {
+  const container = document.getElementById('achievementsList');
+  const achievements = currentStory.config.achievements || {};
+  
+  if (Object.keys(achievements).length === 0) {
+    container.innerHTML = '';
+    document.getElementById('achievementsEmpty').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('achievementsEmpty').style.display = 'none';
+  
+  container.innerHTML = Object.entries(achievements).map(([key, ach]) => `
+    <div class="item-card">
+      <div class="item-header">
+        <div class="item-title">${ach.icon || '🏆'} ${ach.name || key}</div>
+        <div class="item-actions">
+          <button class="btn-secondary" onclick="editAchievement('${key}')">✏️ Editar</button>
+          <button class="btn-danger" onclick="deleteAchievement('${key}')">🗑️</button>
+        </div>
+      </div>
+      <div class="item-content">
+        <div class="form-group full-width">
+          <label>${ach.description || 'Sin descripción'}</label>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.addAchievement = function() {
+  openModal('achievementModal');
+  document.getElementById('achievementModalTitle').textContent = 'Agregar Logro';
+  document.getElementById('achievementKey').value = '';
+  document.getElementById('achievementKey').disabled = false;
+  document.getElementById('achievementName').value = '';
+  document.getElementById('achievementIcon').value = '🏆';
+  document.getElementById('achievementDescription').value = '';
+  
+  const saveBtn = document.getElementById('achievementModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const key = document.getElementById('achievementKey').value.trim();
+    const name = document.getElementById('achievementName').value.trim();
+    const icon = document.getElementById('achievementIcon').value.trim();
+    const description = document.getElementById('achievementDescription').value.trim();
+    
+    if (!key) {
+      showToast('El ID es obligatorio', 'error');
+      return;
+    }
+    
+    if (currentStory.config.achievements[key]) {
+      showToast('Ya existe un logro con ese ID', 'error');
+      return;
+    }
+    
+    currentStory.config.achievements[key] = {
+      name: name || key,
+      icon: icon || '🏆',
+      description: description || ''
+    };
+    
+    markDirty();
+    renderAchievements();
+    closeModal('achievementModal');
+    showToast('Logro agregado', 'success');
+  };
+};
+
+window.editAchievement = function(key) {
+  const ach = currentStory.config.achievements[key];
+  
+  openModal('achievementModal');
+  document.getElementById('achievementModalTitle').textContent = `Editar: ${key}`;
+  document.getElementById('achievementKey').value = key;
+  document.getElementById('achievementKey').disabled = true;
+  document.getElementById('achievementName').value = ach.name;
+  document.getElementById('achievementIcon').value = ach.icon || '🏆';
+  document.getElementById('achievementDescription').value = ach.description || '';
+  
+  const saveBtn = document.getElementById('achievementModalSave');
+  const newSave = saveBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSave, saveBtn);
+  
+  newSave.onclick = () => {
+    const name = document.getElementById('achievementName').value.trim();
+    const icon = document.getElementById('achievementIcon').value.trim();
+    const description = document.getElementById('achievementDescription').value.trim();
+    
+    currentStory.config.achievements[key] = {
+      name,
+      icon,
+      description
+    };
+    
+    markDirty();
+    renderAchievements();
+    closeModal('achievementModal');
+    showToast('Logro actualizado', 'success');
+  };
+};
+
+window.deleteAchievement = async function(key) {
+  const confirmed = await showConfirm(
+    `¿Eliminar el logro "${key}"?`,
+    'Eliminar Logro'
+  );
+  
+  if (!confirmed) return;
+  
+  delete currentStory.config.achievements[key];
+  markDirty();
+  renderAchievements();
+  showToast('Logro eliminado', 'success');
+};
+
+// Sync config changes
+document.getElementById('storyTitleInput').addEventListener('input', (e) => {
+  currentStory.config.story.title = e.target.value;
+  document.getElementById('storyTitle').textContent = e.target.value || 'Nueva Historia';
+  markDirty();
+});
+
+['storyId', 'storyVersion', 'storySubtitle', 'storyDescription', 'storyAuthor'].forEach(id => {
+  document.getElementById(id).addEventListener('input', (e) => {
+    const field = id.replace('story', '').toLowerCase().replace('input', '');
+    currentStory.config.story[field] = e.target.value;
+    markDirty();
+  });
+});
+
+['storyDays', 'startingDay', 'saveSlots'].forEach(id => {
+  document.getElementById(id).addEventListener('input', (e) => {
+    const field = id.replace('story', '').replace(/([A-Z])/g, '_$1').toLowerCase();
+    const target = id === 'saveSlots' ? currentStory.config.settings : currentStory.config.story;
+    target[field.replace('_', '')] = parseInt(e.target.value) || 1;
+    
+    if (id === 'storyDays') {
+      updateDayFilter();
+    }
+    
+    markDirty();
+  });
+});
+
+document.getElementById('startingTime').addEventListener('change', (e) => {
+  currentStory.config.story.starting_time = e.target.value;
+  markDirty();
+});
+
+['autoSave', 'enableSound', 'showCharacters', 'showInventory'].forEach(id => {
+  document.getElementById(id).addEventListener('change', (e) => {
+    const field = id.replace(/([A-Z])/g, '_$1').toLowerCase();
+    currentStory.config.settings[field] = e.target.checked;
+    markDirty();
+  });
+});
+
+document.getElementById('inventoryEnabled').addEventListener('change', (e) => {
+  currentStory.config.inventory.enabled = e.target.checked;
+  markDirty();
+});
+
+document.getElementById('initialMoney').addEventListener('input', (e) => {
+  currentStory.config.inventory.money = parseInt(e.target.value) || 0;
+  markDirty();
+});
+
+document.getElementById('defaultEndingTitle').addEventListener('input', (e) => {
+  currentStory.endings.default_ending.title = e.target.value;
+  markDirty();
+});
+
+document.getElementById('defaultEndingMessage').addEventListener('input', (e) => {
+  currentStory.endings.default_ending.content.message = e.target.value;
+  markDirty();
+});
+
+// Save, Export, Import
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  if (!currentStory.config.story.id) {
+    showToast('Debes especificar un ID para la historia', 'error');
+    return;
+  }
+  
+  try {
+    const storyId = currentStory.config.story.id;
+    
+    // Download files with delay to prevent browser blocking
+    downloadJSON(currentStory.config, `${storyId}_config.json`);
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    downloadJSON(currentStory.story, `${storyId}_story.json`);
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    downloadJSON(currentStory.endings, `${storyId}_endings.json`);
+    
+    markClean();
+    showToast('3 archivos descargados. Copia a stories/' + storyId + '/', 'success');
+  } catch (error) {
+    console.error('Error guardando:', error);
+    showToast('Error al guardar', 'error');
+  }
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const bundle = {
+    config: currentStory.config,
+    story: currentStory.story,
+    endings: currentStory.endings
+  };
+  
+  downloadJSON(bundle, `${currentStory.config.story.id || 'historia'}_completa.json`);
+  showToast('Historia exportada como bundle', 'success');
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFile').click();
+});
+
+document.getElementById('importFile').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    
+    if (data.config && data.story && data.endings) {
+      // Bundle completo
+      currentStory = data;
+    } else if (data.story && data.stats) {
+      // Solo config
+      currentStory.config = data;
+    } else if (data.events) {
+      // Solo story
+      currentStory.story = data;
+    } else if (data.endings) {
+      // Solo endings
+      currentStory.endings = data;
+    }
+    
+    updateUI();
+    markDirty();
+    showToast('Historia importada correctamente', 'success');
+  } catch (error) {
+    console.error('Error importando:', error);
+    showToast('Error al importar: ' + error.message, 'error');
+  }
+  
+  e.target.value = '';
+});
+
+// Test
+document.getElementById('testBtn').addEventListener('click', () => {
+  // Save to temp storage
+  localStorage.setItem('tempStory', JSON.stringify(currentStory));
+  
+  // Open in new tab
+  window.open('test-story.html', '_blank');
+});
+
+// Validate
+document.getElementById('validateBtn').addEventListener('click', () => {
+  const issues = validateStory();
+  
+  const modal = document.getElementById('validationModal');
+  const results = document.getElementById('validationResults');
+  
+  if (issues.length === 0) {
+    results.innerHTML = '<div style="color: var(--success); padding: 2rem; text-align: center;"><h2>✅ Historia válida</h2><p>No se encontraron problemas</p></div>';
+  } else {
+    results.innerHTML = `
+      <div style="color: var(--danger); padding: 1rem;">
+        <h3>⚠️ Se encontraron ${issues.length} problema(s):</h3>
+        <ul style="margin-top: 1rem; padding-left: 2rem;">
+          ${issues.map(issue => `<li style="margin-bottom: 0.5rem;">${issue}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+  
+  modal.classList.remove('hidden');
+});
+
+function validateStory() {
+  const issues = [];
+  
+  // Validar config
+  if (!currentStory.config.story.id) {
+    issues.push('Falta el ID de la historia');
+  }
+  
+  if (!currentStory.config.story.title) {
+    issues.push('Falta el título de la historia');
+  }
+  
+  if (Object.keys(currentStory.config.stats).length === 0) {
+    issues.push('No hay stats definidas');
+  }
+  
+  // Validar eventos
+  if (currentStory.story.events.length === 0) {
+    issues.push('No hay eventos definidos');
+  }
+  
+  const eventIds = new Set();
+  currentStory.story.events.forEach((event, i) => {
+    if (!event.id) {
+      issues.push(`Evento #${i + 1} sin ID`);
+    }
+    
+    if (eventIds.has(event.id)) {
+      issues.push(`ID duplicado: ${event.id}`);
+    }
+    eventIds.add(event.id);
+    
+    if (!event.situation) {
+      issues.push(`Evento "${event.id}" sin texto de situación`);
+    }
+    
+    if (!event.choices || event.choices.length === 0) {
+      issues.push(`Evento "${event.id}" sin opciones`);
+    }
+  });
+  
+  // Validar finales
+  if (currentStory.endings.endings.length === 0) {
+    issues.push('No hay finales definidos (al menos define 1)');
+  }
+  
+  return issues;
+}
+
+// Utilities
+function markDirty() {
+  isDirty = true;
+  const badge = document.getElementById('storyStatus');
+  badge.textContent = 'Sin guardar';
+  badge.classList.remove('saved');
+}
+
+function markClean() {
+  isDirty = false;
+  const badge = document.getElementById('storyStatus');
+  badge.textContent = 'Guardado';
+  badge.classList.add('saved');
+}
+
+function downloadJSON(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = `toast ${type}`;
+  toast.classList.remove('hidden');
+  
+  setTimeout(() => {
+    toast.classList.add('hidden');
+  }, 3000);
+}
+
+window.openModal = function(modalId) {
+  document.getElementById(modalId).classList.remove('hidden');
+};
+
+window.closeModal = function(modalId) {
+  document.getElementById(modalId).classList.add('hidden');
+  currentEventEdit = null;
+};
+
+// Init
+const urlParams = new URLSearchParams(window.location.search);
+const storyParam = urlParams.get('story');
+
+if (storyParam) {
+  loadExistingStory(storyParam);
+} else {
+  updateUI();
+}
+
+initTheme();
+
+// Warn before closing with unsaved changes
+window.addEventListener('beforeunload', (e) => {
+  if (isDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});

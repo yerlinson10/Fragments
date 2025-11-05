@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fragments - Editor Visual</title>
+  <link rel="stylesheet" href="editor-style.css" />
+</head>
+<body>
+  <!-- Botón de tema -->
+  <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
+    🌙
+  </button>
+
+  <div class="editor-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>📝 Editor</h2>
+        <button id="backBtn" class="btn-icon" title="Volver al selector">
+          ⬅️
+        </button>
+      </div>
+
+      <div class="sidebar-menu">
+        <button class="menu-item active" data-section="config">
+          ⚙️ Configuración
+        </button>
+        <button class="menu-item" data-section="stats">
+          📊 Stats
+        </button>
+        <button class="menu-item" data-section="flags">
+          🚩 Flags
+        </button>
+        <button class="menu-item" data-section="characters">
+          👥 Personajes
+        </button>
+        <button class="menu-item" data-section="inventory">
+          🎒 Inventario
+        </button>
+        <button class="menu-item" data-section="events">
+          📖 Eventos
+        </button>
+        <button class="menu-item" data-section="endings">
+          🏁 Finales
+        </button>
+        <button class="menu-item" data-section="achievements">
+          🏆 Logros
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <button id="saveBtn" class="btn-primary">
+          💾 Guardar
+        </button>
+        <button id="exportBtn" class="btn-secondary">
+          📤 Exportar
+        </button>
+        <button id="importBtn" class="btn-secondary">
+          📥 Importar
+        </button>
+        <input type="file" id="importFile" accept=".json" style="display:none" />
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="story-info">
+          <h1 id="storyTitle">Nueva Historia</h1>
+          <span id="storyStatus" class="status-badge">Sin guardar</span>
+        </div>
+        
+        <div class="toolbar-actions">
+          <button id="validateBtn" class="btn-secondary">
+            ✓ Validar
+          </button>
+          <button id="testBtn" class="btn-primary">
+            ▶️ Probar
+          </button>
+        </div>
+      </div>
+
+      <!-- Secciones del editor -->
+      <div class="editor-sections">
+        <!-- CONFIG SECTION -->
+        <section id="config-section" class="editor-section active">
+          <h2>⚙️ Configuración General</h2>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>ID de la Historia *</label>
+              <input type="text" id="storyId" placeholder="mi_historia" required />
+              <small>Solo letras minúsculas, números y guiones bajos</small>
+            </div>
+
+            <div class="form-group">
+              <label>Versión</label>
+              <input type="text" id="storyVersion" placeholder="1.0.0" value="1.0.0" />
+            </div>
+
+            <div class="form-group full-width">
+              <label>Título de la Historia *</label>
+              <input type="text" id="storyTitleInput" placeholder="Mi Historia Increíble" required />
+            </div>
+
+            <div class="form-group full-width">
+              <label>Subtítulo</label>
+              <input type="text" id="storySubtitle" placeholder="Una aventura épica" />
+            </div>
+
+            <div class="form-group full-width">
+              <label>Descripción</label>
+              <textarea id="storyDescription" rows="3" placeholder="Descripción de la historia..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Autor</label>
+              <input type="text" id="storyAuthor" placeholder="Tu nombre" />
+            </div>
+
+            <div class="form-group">
+              <label>Duración (días)</label>
+              <input type="number" id="storyDays" min="1" value="1" />
+            </div>
+
+            <div class="form-group">
+              <label>Día inicial</label>
+              <input type="number" id="startingDay" min="1" value="1" />
+            </div>
+
+            <div class="form-group">
+              <label>Hora inicial</label>
+              <select id="startingTime">
+                <option value="morning">Mañana</option>
+                <option value="afternoon">Tarde</option>
+                <option value="evening">Noche</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Slots de guardado</label>
+              <input type="number" id="saveSlots" min="1" max="10" value="3" />
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="autoSave" checked />
+                Auto-guardado
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="enableSound" checked />
+                Sonidos
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="showCharacters" />
+                Mostrar personajes
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="showInventory" />
+                Mostrar inventario
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- STATS SECTION -->
+        <section id="stats-section" class="editor-section">
+          <div class="section-header">
+            <h2>📊 Estadísticas</h2>
+            <button class="btn-add" onclick="addStat()">+ Agregar Stat</button>
+          </div>
+
+          <div id="statsList" class="items-list">
+            <!-- Se llenará dinámicamente -->
+          </div>
+
+          <div class="empty-message" id="statsEmpty">
+            <p>No hay stats definidas. Las stats son valores numéricos que representan características del jugador (energía, carisma, etc.)</p>
+          </div>
+        </section>
+
+        <!-- FLAGS SECTION -->
+        <section id="flags-section" class="editor-section">
+          <div class="section-header">
+            <h2>🚩 Flags (Variables)</h2>
+            <button class="btn-add" onclick="addFlag()">+ Agregar Flag</button>
+          </div>
+
+          <div id="flagsList" class="items-list">
+            <!-- Se llenará dinámicamente -->
+          </div>
+
+          <div class="empty-message" id="flagsEmpty">
+            <p>No hay flags definidas. Las flags son variables booleanas, numéricas o de texto para controlar la historia.</p>
+          </div>
+        </section>
+
+        <!-- CHARACTERS SECTION -->
+        <section id="characters-section" class="editor-section">
+          <div class="section-header">
+            <h2>👥 Personajes</h2>
+            <button class="btn-add" onclick="addCharacter()">+ Agregar Personaje</button>
+          </div>
+
+          <div id="charactersList" class="items-list">
+            <!-- Se llenará dinámicamente -->
+          </div>
+
+          <div class="empty-message" id="charactersEmpty">
+            <p>No hay personajes definidos. Los personajes pueden tener relación con el jugador (-100 a +100).</p>
+          </div>
+        </section>
+
+        <!-- INVENTORY SECTION -->
+        <section id="inventory-section" class="editor-section">
+          <div class="section-header">
+            <h2>🎒 Sistema de Inventario</h2>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="inventoryEnabled" />
+                Habilitar inventario
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>Dinero inicial</label>
+              <input type="number" id="initialMoney" min="0" value="0" />
+            </div>
+          </div>
+
+          <div class="section-header">
+            <h3>Items Disponibles</h3>
+            <button class="btn-add" onclick="addItem()">+ Agregar Item</button>
+          </div>
+
+          <div id="itemsList" class="items-list">
+            <!-- Se llenará dinámicamente -->
+          </div>
+        </section>
+
+        <!-- EVENTS SECTION -->
+        <section id="events-section" class="editor-section">
+          <div class="section-header">
+            <h2>📖 Eventos</h2>
+            <button class="btn-add" onclick="addEvent()">+ Agregar Evento</button>
+          </div>
+
+          <div class="events-toolbar">
+            <input type="text" id="eventsSearch" placeholder="🔍 Buscar evento..." />
+            <select id="eventsFilter">
+              <option value="all">Todos los eventos</option>
+              <option value="mandatory">Obligatorios</option>
+              <option value="optional">Opcionales</option>
+              <option value="random">Aleatorios</option>
+              <option value="forced">Forzados</option>
+            </select>
+            <select id="dayFilter">
+              <option value="all">Todos los días</option>
+            </select>
+          </div>
+
+          <div id="eventsList" class="events-list">
+            <!-- Se llenará dinámicamente -->
+          </div>
+
+          <div class="empty-message" id="eventsEmpty">
+            <p>No hay eventos creados. Los eventos son las situaciones narrativas donde el jugador toma decisiones.</p>
+          </div>
+        </section>
+
+        <!-- ENDINGS SECTION -->
+        <section id="endings-section" class="editor-section">
+          <div class="section-header">
+            <h2>🏁 Finales</h2>
+            <button class="btn-add" onclick="addEnding()">+ Agregar Final</button>
+          </div>
+
+          <div class="info-box">
+            <strong>💡 Prioridades:</strong> Menor número = más específico. El engine evalúa los finales de menor a mayor prioridad.
+          </div>
+
+          <div id="endingsList" class="items-list">
+            <!-- Se llenará dinámicamente -->
+          </div>
+
+          <div class="empty-message" id="endingsEmpty">
+            <p>No hay finales definidos. Los finales determinan cómo termina la historia según las decisiones del jugador.</p>
+          </div>
+
+          <div class="section-header">
+            <h3>Final por Defecto</h3>
+          </div>
+
+          <div class="form-group">
+            <label>Título</label>
+            <input type="text" id="defaultEndingTitle" placeholder="Un nuevo comienzo" />
+          </div>
+
+          <div class="form-group">
+            <label>Mensaje</label>
+            <textarea id="defaultEndingMessage" rows="4" placeholder="Tu historia termina aquí..."></textarea>
+          </div>
+        </section>
+
+        <!-- ACHIEVEMENTS SECTION -->
+        <section id="achievements-section" class="editor-section">
+          <div class="section-header">
+            <h2>🏆 Logros</h2>
+            <button class="btn-add" onclick="addAchievement()">+ Agregar Logro</button>
+          </div>
+
+          <div id="achievementsList" class="items-list">
+            <!-- Se llenará dinámicamente -->
+          </div>
+
+          <div class="empty-message" id="achievementsEmpty">
+            <p>No hay logros definidos. Los logros son objetivos opcionales que los jugadores pueden desbloquear.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modales -->
+  <!-- Modal de validación -->
+  <div id="validationModal" class="modal hidden">
+    <div class="modal-content large">
+      <h3>✓ Resultados de Validación</h3>
+      <div id="validationResults"></div>
+      <button class="btn-primary" onclick="closeModal('validationModal')">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Modal de evento (edición) -->
+  <div id="eventModal" class="modal hidden">
+    <div class="modal-content xlarge">
+      <h3 id="eventModalTitle">Editar Evento</h3>
+      <div id="eventModalContent">
+        <!-- Se llenará dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación genérico -->
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="confirmModalTitle">Confirmar</h3>
+      <p id="confirmModalMessage"></p>
+      <div class="modal-actions">
+        <button id="confirmModalYes" class="btn-primary">Aceptar</button>
+        <button id="confirmModalNo" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de input (reemplazo de prompt) -->
+  <div id="inputModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="inputModalTitle">Ingresa el valor</h3>
+      <div class="form-group">
+        <label id="inputModalLabel"></label>
+        <input type="text" id="inputModalInput" class="modal-input" />
+        <small id="inputModalHint"></small>
+      </div>
+      <div class="modal-actions">
+        <button id="inputModalSubmit" class="btn-primary">Aceptar</button>
+        <button id="inputModalCancel" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de formulario complejo -->
+  <div id="formModal" class="modal hidden">
+    <div class="modal-content large">
+      <h3 id="formModalTitle">Formulario</h3>
+      <div id="formModalContent" class="form-grid">
+        <!-- Se llenará dinámicamente -->
+      </div>
+      <div class="modal-actions">
+        <button id="formModalSubmit" class="btn-primary">Guardar</button>
+        <button id="formModalCancel" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de selección (select) -->
+  <div id="selectModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="selectModalTitle">Selecciona una opción</h3>
+      <div class="form-group">
+        <label id="selectModalLabel"></label>
+        <select id="selectModalSelect" class="modal-select"></select>
+      </div>
+      <div class="modal-actions">
+        <button id="selectModalSubmit" class="btn-primary">Aceptar</button>
+        <button id="selectModalCancel" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Stats -->
+  <div id="statModal" class="modal hidden">
+    <div class="modal-content large">
+      <h3 id="statModalTitle">Agregar Estadística</h3>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>ID de la estadística *</label>
+          <input type="text" id="statKey" placeholder="energia, salud, dinero..." />
+          <small>Solo letras minúsculas y guiones bajos</small>
+        </div>
+        <div class="form-group full-width">
+          <label>Nombre visible *</label>
+          <input type="text" id="statName" placeholder="Energía" />
+        </div>
+        <div class="form-group">
+          <label>Icono (emoji)</label>
+          <input type="text" id="statIcon" placeholder="⚡" />
+        </div>
+        <div class="form-group">
+          <label>Valor mínimo</label>
+          <input type="number" id="statMin" value="0" />
+        </div>
+        <div class="form-group">
+          <label>Valor máximo</label>
+          <input type="number" id="statMax" value="100" />
+        </div>
+        <div class="form-group">
+          <label>Valor inicial</label>
+          <input type="number" id="statStart" value="50" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="statModalSave" class="btn-primary">Guardar</button>
+        <button id="statModalCancel" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Flags -->
+  <div id="flagModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="flagModalTitle">Agregar Variable</h3>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>ID de la variable *</label>
+          <input type="text" id="flagKey" placeholder="conoce_maria, dinero_extra..." />
+          <small>Solo letras minúsculas y guiones bajos</small>
+        </div>
+        <div class="form-group full-width">
+          <label>Tipo de variable *</label>
+          <select id="flagType">
+            <option value="boolean">Booleano (true/false)</option>
+            <option value="number">Número</option>
+            <option value="string">Texto</option>
+          </select>
+        </div>
+        <div class="form-group full-width" id="flagValueGroup">
+          <label id="flagValueLabel">Valor inicial</label>
+          <input type="text" id="flagValue" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="flagModalSave" class="btn-primary">Guardar</button>
+        <button id="flagModalCancel" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Characters -->
+  <div id="characterModal" class="modal hidden">
+    <div class="modal-content large">
+      <h3 id="characterModalTitle">Agregar Personaje</h3>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>ID del personaje *</label>
+          <input type="text" id="characterKey" placeholder="maria, juan, antagonista..." />
+          <small>Solo letras minúsculas y guiones bajos</small>
+        </div>
+        <div class="form-group full-width">
+          <label>Nombre del personaje *</label>
+          <input type="text" id="characterName" placeholder="María González" />
+        </div>
+        <div class="form-group">
+          <label>Icono (emoji)</label>
+          <input type="text" id="characterIcon" placeholder="👤" />
+        </div>
+        <div class="form-group">
+          <label>Relación inicial (-100 a 100)</label>
+          <input type="number" id="characterRelationship" value="0" min="-100" max="100" />
+        </div>
+        <div class="form-group full-width">
+          <label>
+            <input type="checkbox" id="characterMet" />
+            ¿El jugador ya conoce a este personaje?
+          </label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="characterModalSave" class="btn-primary">Guardar</button>
+        <button id="characterModalCancel" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Items -->
+  <div id="itemModal" class="modal hidden">
+    <div class="modal-content large">
+      <h3 id="itemModalTitle">Agregar Objeto</h3>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>ID del objeto *</label>
+          <input type="text" id="itemKey" placeholder="llave, mapa, espada..." />
+          <small>Solo letras minúsculas y guiones bajos</small>
+        </div>
+        <div class="form-group full-width">
+          <label>Nombre del objeto *</label>
+          <input type="text" id="itemName" placeholder="Llave oxidada" />
+        </div>
+        <div class="form-group full-width">
+          <label>Icono (emoji)</label>
+          <input type="text" id="itemIcon" placeholder="🔑" />
+        </div>
+        <div class="form-group full-width">
+          <label>Descripción</label>
+          <textarea id="itemDescription" rows="3" placeholder="Una vieja llave que parece abrir algo importante..."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="itemModalSave" class="btn-primary">Guardar</button>
+        <button id="itemModalCancel" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Endings -->
+  <div id="endingModal" class="modal hidden">
+    <div class="modal-content xlarge">
+      <h3 id="endingModalTitle">Agregar Final</h3>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>ID del final *</label>
+          <input type="text" id="endingId" placeholder="final_bueno, final_malo..." />
+          <small>Solo letras minúsculas y guiones bajos</small>
+        </div>
+        <div class="form-group full-width">
+          <label>Título del final *</label>
+          <input type="text" id="endingTitle" placeholder="Un nuevo comienzo" />
+        </div>
+        <div class="form-group">
+          <label>Prioridad (menor = más específico)</label>
+          <input type="number" id="endingPriority" value="100" min="1" max="999" />
+          <small>Finales con menor prioridad se evalúan primero</small>
+        </div>
+        <div class="form-group full-width">
+          <label>Mensaje *</label>
+          <textarea id="endingMessage" rows="4" placeholder="Tu historia termina aquí..."></textarea>
+        </div>
+        
+        <!-- Condiciones visuales -->
+        <div class="form-group full-width">
+          <label>Condiciones para este final</label>
+          <div class="conditions-builder">
+            <!-- Stats -->
+            <div class="condition-section">
+              <h4>📊 Estadísticas</h4>
+              <div id="endingStatsConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addEndingStatCondition()">+ Agregar condición de stat</button>
+            </div>
+            
+            <!-- Flags -->
+            <div class="condition-section">
+              <h4>🚩 Variables</h4>
+              <div id="endingFlagsConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addEndingFlagCondition()">+ Agregar condición de flag</button>
+            </div>
+            
+            <!-- Characters -->
+            <div class="condition-section">
+              <h4>👥 Personajes</h4>
+              <div id="endingCharactersConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addEndingCharacterCondition()">+ Agregar condición de personaje</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="endingModalSave" class="btn-primary">Guardar</button>
+        <button id="endingModalCancel" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Achievements -->
+  <div id="achievementModal" class="modal hidden">
+    <div class="modal-content large">
+      <h3 id="achievementModalTitle">Agregar Logro</h3>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>ID del logro *</label>
+          <input type="text" id="achievementKey" placeholder="primer_logro, explorador..." />
+          <small>Solo letras minúsculas y guiones bajos</small>
+        </div>
+        <div class="form-group full-width">
+          <label>Nombre del logro *</label>
+          <input type="text" id="achievementName" placeholder="Primer Paso" />
+        </div>
+        <div class="form-group full-width">
+          <label>Icono (emoji)</label>
+          <input type="text" id="achievementIcon" placeholder="🏆" value="🏆" />
+        </div>
+        <div class="form-group full-width">
+          <label>Descripción</label>
+          <textarea id="achievementDescription" rows="3" placeholder="Completa tu primera decisión..."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="achievementModalSave" class="btn-primary">Guardar</button>
+        <button id="achievementModalCancel" class="btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de notificaciones -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="story-editor.js"></script>
+</body>
+</html>
