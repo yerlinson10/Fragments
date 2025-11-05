@@ -10,6 +10,7 @@
   --energia: #10b981;
   --animo: #3b82f6;
   --caos: #ef4444;
+  --border-light: rgba(0, 0, 0, 0.05);
 }
 
 body.dark-theme {
@@ -20,6 +21,7 @@ body.dark-theme {
   --accent: #5ca3f5;
   --accent-hover: #4a90e2;
   --shadow: rgba(0, 0, 0, 0.4);
+  --border-light: rgba(255, 255, 255, 0.1);
 }
 
 * {
@@ -34,9 +36,9 @@ body {
   color: var(--text-primary);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
-  padding: 1rem;
+  padding: 2rem 1rem;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -81,15 +83,92 @@ body {
   transition: background 0.3s ease;
 }
 
+.game-container {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 5px 20px var(--shadow);
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+  transition: background 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ============================================
+   SECCIONES SEMÁNTICAS
+   ============================================ */
+
+/* HEADER: Título y Progreso */
+.game-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.game-header h1 {
+  margin-bottom: 0;
+}
+
+/* ESTADO DEL JUGADOR */
+.player-state {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Grid para Personajes e Inventario lado a lado */
+.state-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.state-grid > .hidden {
+  display: none;
+}
+
+/* Cuando solo hay un elemento visible, ocupa todo el ancho */
+.state-grid > :only-child {
+  grid-column: 1 / -1;
+}
+
+/* NARRATIVA */
+.narrative-section {
+  margin: 0;
+}
+
+/* ACCIONES */
+.actions-section {
+  margin: 0;
+}
+
+/* RESULTADO */
+.result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.result-section.hidden {
+  display: none;
+}
+
 h1 {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   font-size: 2rem;
   color: var(--accent);
 }
 
 /* Progreso del día */
 .day-progress {
-  margin: 1.5rem 0;
+  margin: 0;
 }
 
 .progress-bar {
@@ -115,13 +194,17 @@ h1 {
   font-weight: 500;
 }
 
-/* Stats Container */
+/* Stats Container - GRID LAYOUT */
 .stats-container {
-  margin: 1.5rem 0;
-  padding: 1rem;
+  margin: 0;
+  padding: 1.25rem;
   background: var(--bg-primary);
   border-radius: 1rem;
   transition: opacity 0.3s ease;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  border: 1px solid var(--border-light);
 }
 
 .stats-container.hidden {
@@ -129,10 +212,6 @@ h1 {
 }
 
 .stat-item {
-  margin-bottom: 1rem;
-}
-
-.stat-item:last-child {
   margin-bottom: 0;
 }
 
@@ -140,18 +219,18 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
 
 .stat-icon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  margin-right: 0.3rem;
 }
 
 .stat-name {
   flex: 1;
   text-align: left;
-  margin-left: 0.5rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -159,13 +238,14 @@ h1 {
 .stat-value {
   font-weight: bold;
   color: var(--accent);
-  min-width: 30px;
+  min-width: 35px;
   text-align: right;
+  font-size: 0.95rem;
 }
 
 .stat-bar {
   width: 100%;
-  height: 12px;
+  height: 10px;
   background: var(--bg-secondary);
   border-radius: 10px;
   overflow: hidden;
@@ -235,23 +315,28 @@ h1 {
   }
 }
 
-/* Situación con animaciones */
+/* Situación con animaciones - MÁS COMPACTA */
 .situation {
-  margin: 2rem 0;
-  font-size: 1.1rem;
+  margin: 0;
+  font-size: 1.05rem;
   line-height: 1.6;
-  min-height: 120px;
+  min-height: 80px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   transition: opacity 0.3s ease;
+  padding: 1rem;
+  background: var(--bg-primary);
+  border-radius: 0.8rem;
+  border: 1px solid var(--border-light);
 }
 
 .situation small {
   display: block;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
   color: var(--text-secondary);
   font-weight: 500;
+  font-size: 0.9rem;
 }
 
 .fade-in {
@@ -284,12 +369,12 @@ h1 {
   }
 }
 
-/* Botones */
+/* Botones - GRID LAYOUT */
 .buttons {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin: 0;
 }
 
 button {
@@ -337,22 +422,24 @@ button:active {
 }
 
 .choice-btn {
-  text-align: left;
-  padding-left: 1.5rem;
+  text-align: center;
+  padding: 1rem 1.5rem;
 }
 
 .hidden {
   display: none !important;
 }
 
+/* Resultado final - MEJORADO */
 .result {
-  margin-top: 2rem;
+  margin: 0;
   font-size: 1.05rem;
   line-height: 1.6;
   padding: 1.5rem;
   background: var(--bg-primary);
   border-radius: 1rem;
   animation: fadeIn 0.5s ease-in;
+  border-left: 4px solid var(--accent);
 }
 
 .result strong {
@@ -363,37 +450,60 @@ button:active {
 }
 
 #restart {
-  margin-top: 1.5rem;
+  margin: 0;
   width: 100%;
   background: var(--accent);
-  font-size: 1.1rem;
-  padding: 1.2rem;
+  font-size: 1.05rem;
+  padding: 1rem;
 }
 
 /* Subtítulo */
 .subtitle {
   color: var(--text-secondary);
   font-size: 0.9rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   font-weight: 400;
 }
 
-/* Day info */
+/* Separadores visuales sutiles - YA APLICADOS EN COMPONENTES INDIVIDUALES */
+
+/* Hover states mejorados para interactividad */
+.stat-item {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s ease;
+}
+
+.stat-item:hover {
+  background: rgba(74, 144, 226, 0.05);
+}
+
+.character-item {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s ease;
+}
+
+.character-item:hover {
+  background: rgba(74, 144, 226, 0.05);
+}
+
+/* Day info - MÁS COMPACTO */
 .day-info {
-  margin: 1.5rem 0;
+  margin: 0;
 }
 
 .day-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
 #dayCounter {
   font-weight: 600;
   color: var(--accent);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 .menu-btn {
@@ -521,35 +631,42 @@ button:active {
   background: var(--bg-secondary);
 }
 
-/* Characters */
+/* Characters - GRID LAYOUT COMPACTO */
 .characters-container {
-  margin: 1rem 0;
-  padding: 1rem;
+  margin: 0;
+  padding: 1.25rem;
   background: var(--bg-primary);
   border-radius: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  border: 1px solid var(--border-light);
 }
 
 .characters-container h3 {
+  grid-column: 1 / -1;
   font-size: 1rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
   color: var(--text-primary);
+  text-align: left;
 }
 
 .character-item {
-  margin-bottom: 0.8rem;
+  margin-bottom: 0;
 }
 
 .char-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
   font-size: 0.85rem;
 }
 
 .char-value {
   font-weight: bold;
   color: var(--accent);
+  font-size: 0.9rem;
 }
 
 .char-bar {
@@ -567,12 +684,13 @@ button:active {
   transition: width 0.6s ease;
 }
 
-/* Inventario */
+/* Inventario - OPTIMIZADO */
 .inventory-container {
-  margin: 1rem 0;
-  padding: 1rem;
+  margin: 0;
+  padding: 1rem 1.25rem;
   background: var(--bg-primary);
   border-radius: 1rem;
+  border: 1px solid var(--border-light);
 }
 
 .inventory-header {
@@ -581,20 +699,29 @@ button:active {
   align-items: center;
   margin-bottom: 0.8rem;
   font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .inventory-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.6rem;
 }
 
 .inventory-item {
   background: var(--bg-secondary);
-  padding: 0.4rem 0.8rem;
+  padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   text-transform: capitalize;
+  text-align: center;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.inventory-item:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
 }
 
 /* Achievements notification */
@@ -636,24 +763,27 @@ button:active {
   font-size: 0.85rem;
 }
 
-/* Epilogue */
+/* Epilogue - MEJORADO */
 .epilogue {
-  margin-top: 1.5rem;
-  padding: 1rem;
+  margin: 0;
+  padding: 1.25rem;
   background: var(--bg-primary);
   border-radius: 0.8rem;
   font-style: italic;
+  border-left: 3px solid var(--accent);
 }
 
 .epilogue p {
   margin: 0.5rem 0;
   line-height: 1.6;
+  font-size: 0.95rem;
 }
 
-/* Action buttons */
+/* Action buttons - MEJORADO */
 .action-buttons {
-  margin-top: 1.5rem;
-  display: flex;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
 }
 
@@ -675,11 +805,48 @@ button:active {
   box-shadow: 0 4px 12px var(--shadow);
 }
 
-/* Responsive */
+/* Responsive - MEJORADO */
+@media (max-width: 768px) {
+  .game-container {
+    max-width: 600px;
+    gap: 1.25rem;
+  }
+
+  .stats-container {
+    grid-template-columns: 1fr;
+  }
+
+  .characters-container {
+    grid-template-columns: 1fr;
+  }
+
+  .state-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 600px) {
+  body {
+    padding: 1rem 0.5rem;
+  }
+
   .game-container {
     padding: 1.5rem;
     border-radius: 1rem;
+    gap: 1rem;
+  }
+
+  .game-header {
+    gap: 0.8rem;
+    padding-bottom: 0.8rem;
   }
 
   h1 {
@@ -688,7 +855,8 @@ button:active {
 
   .situation {
     font-size: 1rem;
-    min-height: 100px;
+    min-height: 70px;
+    padding: 1rem;
   }
 
   button {
@@ -722,8 +890,8 @@ button:active {
     max-width: none;
   }
 
-  .action-buttons {
-    flex-direction: column;
+  .inventory-items {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
 }
 
@@ -734,6 +902,7 @@ button:active {
 
   .game-container {
     padding: 1rem;
+    gap: 0.8rem;
   }
 
   h1 {
@@ -742,10 +911,15 @@ button:active {
 
   .situation {
     font-size: 0.95rem;
+    padding: 0.8rem;
   }
 
   button {
     font-size: 0.9rem;
+  }
+
+  .inventory-items {
+    grid-template-columns: 1fr;
   }
 }
 

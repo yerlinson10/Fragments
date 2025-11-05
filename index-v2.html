@@ -13,9 +13,67 @@
   </button>
 
   <div class="game-container">
-    <h1 id="gameTitle">Fragments Engine</h1>
-    <p id="gameSubtitle" class="subtitle"></p>
+    <!-- HEADER: Título y Progreso -->
+    <header class="game-header">
+      <h1 id="gameTitle">Fragments Engine</h1>
+      <p id="gameSubtitle" class="subtitle"></p>
+      
+      <div class="day-info">
+        <div class="day-header">
+          <span id="dayCounter">Día 1</span>
+          <button id="menuBtn" class="menu-btn" title="Menú de guardado">⚙️</button>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <small id="progressText" class="progress-text">Evento 0/0</small>
+      </div>
+    </header>
 
+    <!-- ESTADO DEL JUGADOR: Stats, Personajes, Inventario -->
+    <section class="player-state">
+      <!-- Stats dinámicas -->
+      <div id="statsContainer" class="stats-container"></div>
+
+      <!-- Grid para Personajes e Inventario (lado a lado en desktop) -->
+      <div class="state-grid">
+        <!-- Personajes (opcional) -->
+        <div id="charactersContainer" class="characters-container hidden"></div>
+
+        <!-- Inventario (opcional) -->
+        <div id="inventoryContainer" class="inventory-container hidden">
+          <div class="inventory-header">
+            <span>🎒 Inventario</span>
+            <span id="moneyDisplay">💰 $0</span>
+          </div>
+          <div id="inventoryItems" class="inventory-items"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NARRATIVA: Situación actual -->
+    <section class="narrative-section">
+      <div id="situation" class="situation fade-in">
+        Cargando historia...
+      </div>
+    </section>
+
+    <!-- ACCIONES: Botones de elección -->
+    <section class="actions-section">
+      <div id="choicesContainer" class="buttons"></div>
+    </section>
+
+    <!-- RESULTADO: Final de historia -->
+    <section class="result-section hidden" id="resultSection">
+      <div id="result" class="result hidden"></div>
+      
+      <div id="actionButtons" class="action-buttons hidden">
+        <button id="restart" class="btn-primary">🔄 Jugar de nuevo</button>
+        <button id="continueBtn" class="btn-primary hidden">➡️ Continuar</button>
+      </div>
+    </section>
+
+    <!-- OVERLAYS Y MODALES -->
     <!-- Menú de guardado -->
     <div id="saveMenu" class="save-menu hidden">
       <h3>Gestión de Guardado</h3>
@@ -39,41 +97,6 @@
       </div>
     </div>
 
-    <!-- Progreso del día -->
-    <div class="day-info">
-      <div class="day-header">
-        <span id="dayCounter">Día 1</span>
-        <button id="menuBtn" class="menu-btn" title="Menú de guardado">⚙️</button>
-      </div>
-      <div class="progress-bar">
-        <div id="progressFill" class="progress-fill"></div>
-      </div>
-      <small id="progressText" class="progress-text">Evento 0/0</small>
-    </div>
-
-    <!-- Stats dinámicas -->
-    <div id="statsContainer" class="stats-container"></div>
-
-    <!-- Personajes (opcional) -->
-    <div id="charactersContainer" class="characters-container hidden"></div>
-
-    <!-- Inventario (opcional) -->
-    <div id="inventoryContainer" class="inventory-container hidden">
-      <div class="inventory-header">
-        <span>🎒 Inventario</span>
-        <span id="moneyDisplay">💰 $0</span>
-      </div>
-      <div id="inventoryItems" class="inventory-items"></div>
-    </div>
-
-    <!-- Situación actual -->
-    <div id="situation" class="situation fade-in">
-      Cargando historia...
-    </div>
-
-    <!-- Botones de elección -->
-    <div id="choicesContainer" class="buttons"></div>
-
     <!-- Indicador flotante de cambios -->
     <div id="statChange" class="stat-change-indicator"></div>
 
@@ -84,14 +107,6 @@
         <strong id="achievementTitle"></strong>
         <small id="achievementDesc"></small>
       </div>
-    </div>
-
-    <!-- Resultado final -->
-    <div id="result" class="result hidden"></div>
-    
-    <div id="actionButtons" class="action-buttons hidden">
-      <button id="restart" class="btn-primary">🔄 Jugar de nuevo</button>
-      <button id="continueBtn" class="btn-primary hidden">➡️ Continuar</button>
     </div>
   </div>
 
