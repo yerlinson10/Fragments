@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test - Fragments Engine</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Botón de tema -->
+  <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
+    🌙
+  </button>
+
+  <div class="game-container">
+    <!-- Header con botón de volver -->
+    <header class="game-header">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 id="gameTitle">Test Mode</h1>
+        <button onclick="window.close()" class="btn-secondary" style="padding: 0.5rem 1rem;">
+          ⬅️ Cerrar Test
+        </button>
+      </div>
+      <p id="gameSubtitle" class="subtitle"></p>
+      
+      <div class="day-info">
+        <div class="day-header">
+          <span id="dayCounter">Día 1</span>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <small id="progressText" class="progress-text">Evento 0/0</small>
+      </div>
+    </header>
+
+    <!-- Estado del jugador -->
+    <section class="player-state">
+      <div id="statsContainer" class="stats-container"></div>
+
+      <div class="state-grid">
+        <div id="charactersContainer" class="characters-container hidden"></div>
+        <div id="inventoryContainer" class="inventory-container hidden">
+          <div class="inventory-header">
+            <span>🎒 Inventario</span>
+            <span id="moneyDisplay">💰 $0</span>
+          </div>
+          <div id="inventoryItems" class="inventory-items"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Narrativa -->
+    <section class="narrative-section">
+      <div id="situation" class="situation fade-in">
+        Cargando historia de prueba...
+      </div>
+    </section>
+
+    <!-- Acciones -->
+    <section class="actions-section">
+      <div id="choicesContainer" class="buttons"></div>
+    </section>
+
+    <!-- Resultado -->
+    <section class="result-section hidden" id="resultSection">
+      <div id="result" class="result hidden"></div>
+      
+      <div id="actionButtons" class="action-buttons hidden">
+        <button id="restart" class="btn-primary">🔄 Reiniciar Test</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="engine/engine.js"></script>
+  <script src="test-main.js"></script>
+</body>
+</html>
