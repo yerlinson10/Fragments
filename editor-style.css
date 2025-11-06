@@ -909,6 +909,34 @@ body {
   font-size: 0.85rem;
 }
 
+/* Tarjetas de estadísticas mejoradas */
+.stat-card {
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid var(--border-light);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--accent);
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .sidebar {

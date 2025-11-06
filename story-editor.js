@@ -1913,28 +1913,61 @@ window.addChoiceCharacterEffect = function(choiceIndex, charKey = '', value = 0)
   const id = `choice-${choiceIndex}-char-${Date.now()}`;
   const availableChars = Object.keys(currentStory.config.characters);
   
+  // Si value es un objeto {relationship: X, met: Y}, extraer los valores
+  let relationshipValue = 0;
+  let metValue = false;
+  
+  if (typeof value === 'object' && value !== null) {
+    relationshipValue = value.relationship || 0;
+    metValue = value.met !== undefined ? value.met : false;
+  } else {
+    // Formato antiguo: solo un número
+    relationshipValue = value || 0;
+  }
+  
   const div = document.createElement('div');
   div.className = 'condition-item';
   div.id = id;
+  div.style.display = 'grid';
+  div.style.gridTemplateColumns = '1fr 120px 80px 40px';
+  div.style.gap = '0.5rem';
+  div.style.alignItems = 'center';
   div.innerHTML = `
     <select class="char-select">
       <option value="">Selecciona...</option>
       ${availableChars.map(c => `<option value="${c}" ${c === charKey ? 'selected' : ''}>${currentStory.config.characters[c].name}</option>`).join('')}
     </select>
-    <input type="number" class="char-value" value="${value}" placeholder="Cambio (+/-)" />
-    <button class="btn-danger" onclick="removeChoiceCharacterEffect('${id}', ${choiceIndex})" type="button">🗑️</button>
+    <input type="number" class="char-relationship" value="${relationshipValue}" placeholder="Relación (+/-)" title="Cambio en relación" />
+    <label style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.9rem;">
+      <input type="checkbox" class="char-met" ${metValue ? 'checked' : ''} />
+      <span>Conocer</span>
+    </label>
+    <button class="btn-danger" onclick="removeChoiceCharacterEffect('${id}', ${choiceIndex})" type="button" title="Eliminar">🗑️</button>
   `;
   container.appendChild(div);
   
   const update = () => {
     const char = div.querySelector('.char-select').value;
-    const val = parseInt(div.querySelector('.char-value').value) || 0;
+    const relationship = parseInt(div.querySelector('.char-relationship').value) || 0;
+    const met = div.querySelector('.char-met').checked;
+    
     if (char) {
-      if (!eventChoicesData[choiceIndex].effects.characters) eventChoicesData[choiceIndex].effects.characters = {};
-      eventChoicesData[choiceIndex].effects.characters[char] = val;
+      if (!eventChoicesData[choiceIndex].effects.characters) {
+        eventChoicesData[choiceIndex].effects.characters = {};
+      }
+      
+      // Crear objeto con relationship y met (si está marcado)
+      const charEffect = { relationship };
+      if (met) {
+        charEffect.met = true;
+      }
+      
+      eventChoicesData[choiceIndex].effects.characters[char] = charEffect;
     }
   };
+  
   div.querySelectorAll('select, input').forEach(el => el.addEventListener('change', update));
+  div.querySelectorAll('select, input').forEach(el => el.addEventListener('input', update));
   update();
 };
 
@@ -2974,42 +3007,874 @@ let flowchartState = {
 };
 
 /**
+ * ========================================
+ * FLOWCHART - Sistema de visualización con Mermaid.js
+ * ========================================
+ */
+
+// Variable global para el control de zoom
+let panZoomInstance = null;
+
+/**
  * Actualizar el flowchart completo
  */
-window.refreshFlowchart = function() {
-  console.log('🔄 Actualizando flowchart...');
+window.refreshFlowchart = async function() {
+  console.log('🔄 Actualizando flowchart con Mermaid...');
   
   // Verificar si hay eventos
   if (!currentStory.story.events || currentStory.story.events.length === 0) {
-    document.getElementById('flowchartSvg').style.display = 'none';
+    document.getElementById('mermaidFlowchart').style.display = 'none';
     document.getElementById('flowchartEmpty').style.display = 'block';
     document.getElementById('flowchartStats').innerHTML = '<p>No hay eventos para analizar.</p>';
     return;
   }
   
-  document.getElementById('flowchartSvg').style.display = 'block';
+  document.getElementById('mermaidFlowchart').style.display = 'block';
   document.getElementById('flowchartEmpty').style.display = 'none';
   
-  // Construir grafo
-  buildFlowchartGraph();
-  
-  // Analizar alcanzabilidad
-  analyzeReachability();
-  
-  // Renderizar
-  renderFlowchart();
-  
-  // Actualizar estadísticas
-  updateFlowchartStats();
-  
-  // Actualizar filtro de días
-  updateFlowchartDayFilter();
-  
-  showToast('Flowchart actualizado', 'success');
+  try {
+    // Generar código Mermaid
+    const mermaidCode = generateMermaidCode();
+    
+    // Renderizar con Mermaid
+    const container = document.getElementById('mermaidFlowchart');
+    container.innerHTML = `<pre class="mermaid">${mermaidCode}</pre>`;
+    
+    // Esperar a que Mermaid esté disponible
+    if (window.mermaid) {
+      await window.mermaid.run({
+        querySelector: '.mermaid'
+      });
+      
+      // Inicializar zoom y pan después del renderizado
+      setTimeout(() => {
+        initializeFlowchartInteractivity();
+      }, 100);
+    }
+    
+    // Actualizar estadísticas
+    updateFlowchartStats();
+    
+    // Actualizar filtro de días
+    updateFlowchartDayFilter();
+    
+    showToast('Flowchart actualizado', 'success');
+  } catch (error) {
+    console.error('Error al renderizar flowchart:', error);
+    showToast('Error al generar flowchart', 'error');
+  }
 };
 
 /**
- * Construir el grafo de eventos
+ * Inicializar interactividad del flowchart
+ */
+function initializeFlowchartInteractivity() {
+  const svg = document.querySelector('#mermaidFlowchart svg');
+  
+  if (!svg) {
+    console.warn('No se encontró SVG del flowchart');
+    return;
+  }
+  
+  // Destruir instancia anterior si existe
+  if (panZoomInstance) {
+    panZoomInstance.destroy();
+  }
+  
+  // Inicializar pan & zoom con svg-pan-zoom
+  if (window.svgPanZoom) {
+    panZoomInstance = svgPanZoom(svg, {
+      zoomEnabled: true,
+      controlIconsEnabled: false,
+      fit: true,
+      center: true,
+      minZoom: 0.1,
+      maxZoom: 10,
+      zoomScaleSensitivity: 0.3,
+      onZoom: function(scale) {
+        document.getElementById('zoomLevel').textContent = Math.round(scale * 100) + '%';
+      }
+    });
+  }
+  
+  // Agregar click handlers a los nodos
+  addNodeClickHandlers();
+}
+
+/**
+ * Agregar manejadores de click a los nodos
+ */
+function addNodeClickHandlers() {
+  const nodes = document.querySelectorAll('#mermaidFlowchart .node');
+  
+  nodes.forEach(node => {
+    // Extraer ID del nodo desde el elemento
+    const nodeId = extractNodeId(node);
+    if (!nodeId) return;
+    
+    // Encontrar el evento correspondiente
+    const event = currentStory.story.events.find(e => sanitizeId(e.id) === nodeId);
+    if (!event) return;
+    
+    // Agregar cursor pointer
+    node.style.cursor = 'pointer';
+    
+    // Agregar evento click
+    node.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showEventDetails(event);
+    });
+    
+    // Agregar tooltip
+    node.setAttribute('title', `Click para ver detalles de "${event.id}"`);
+  });
+}
+
+/**
+ * Extraer ID del nodo desde el elemento DOM
+ */
+function extractNodeId(nodeElement) {
+  // Intentar obtener el ID desde diferentes posibles ubicaciones
+  const id = nodeElement.id || nodeElement.getAttribute('id');
+  
+  if (id) {
+    // El ID en Mermaid suele tener formato "flowchart-{nodeId}-{number}"
+    const match = id.match(/flowchart-(.+?)-\d+/);
+    return match ? match[1] : id;
+  }
+  
+  return null;
+}
+
+/**
+ * Mostrar detalles del evento en un modal
+ */
+function showEventDetails(event) {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  // Asegurar que el modal use flex para centrar el contenido
+  modal.style.display = 'flex';
+  modal.style.justifyContent = 'center';
+  modal.style.alignItems = 'center';
+  
+  const choicesHtml = event.choices ? event.choices.map((choice, i) => `
+    <div style="padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 0.5rem;">
+      <strong>Opción ${i + 1}:</strong> ${choice.text || 'Sin texto'}
+      ${choice.effects ? `
+        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.25rem;">
+          ${Object.keys(choice.effects).length} efectos
+        </div>
+      ` : ''}
+    </div>
+  `).join('') : '<p>Sin opciones</p>';
+  
+  const conditionsHtml = event.conditions && Object.keys(event.conditions).length > 0 
+    ? `<pre style="background: var(--bg-secondary); padding: 0.5rem; border-radius: 4px; overflow: auto; max-height: 200px;">${JSON.stringify(event.conditions, null, 2)}</pre>`
+    : '<p>Sin condiciones</p>';
+  
+  modal.innerHTML = `
+    <div class="modal-content large">
+      <h3>📖 ${event.id}</h3>
+      
+      <div style="display: grid; gap: 1rem;">
+        <div>
+          <strong>Tipo:</strong> <span style="padding: 0.25rem 0.5rem; background: var(--accent); color: white; border-radius: 4px; font-size: 0.9rem;">${event.type || 'optional'}</span>
+          <strong style="margin-left: 1rem;">Día:</strong> ${event.day || 1}
+        </div>
+        
+        <div>
+          <strong>Situación:</strong>
+          <p style="padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px; margin-top: 0.5rem;">${event.text || 'Sin texto'}</p>
+        </div>
+        
+        <div>
+          <strong>Opciones (${event.choices ? event.choices.length : 0}):</strong>
+          <div style="margin-top: 0.5rem;">
+            ${choicesHtml}
+          </div>
+        </div>
+        
+        <div>
+          <strong>Condiciones:</strong>
+          <div style="margin-top: 0.5rem;">
+            ${conditionsHtml}
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+        <button class="btn-primary" onclick="editEventFromFlowchart('${event.id}')">✏️ Editar Evento</button>
+        <button class="btn-secondary" onclick="this.closest('.modal').remove()">Cerrar</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Click fuera para cerrar
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
+}
+
+/**
+ * Editar evento desde el flowchart
+ */
+window.editEventFromFlowchart = function(eventId) {
+  // Cerrar modal de detalles
+  document.querySelector('.modal')?.remove();
+  
+  // Ir a la sección de eventos
+  document.querySelector('[data-section="events"]').click();
+  
+  // Buscar y editar el evento
+  setTimeout(() => {
+    const eventIndex = currentStory.story.events.findIndex(e => e.id === eventId);
+    if (eventIndex !== -1) {
+      editEvent(eventIndex);
+    }
+  }, 100);
+};
+
+/**
+ * Controles de zoom
+ */
+window.zoomIn = function() {
+  if (panZoomInstance) {
+    panZoomInstance.zoomIn();
+  }
+};
+
+window.zoomOut = function() {
+  if (panZoomInstance) {
+    panZoomInstance.zoomOut();
+  }
+};
+
+window.resetZoom = function() {
+  if (panZoomInstance) {
+    panZoomInstance.resetZoom();
+    panZoomInstance.center();
+  }
+};
+
+window.fitToScreen = function() {
+  if (panZoomInstance) {
+    panZoomInstance.fit();
+    panZoomInstance.center();
+  }
+};
+
+/**
+ * ✨ MEJORA 5: Búsqueda de eventos en el flowchart
+ */
+window.handleFlowchartSearch = function() {
+  // Debounce para evitar renderizar en cada tecla
+  clearTimeout(window.flowchartSearchTimeout);
+  window.flowchartSearchTimeout = setTimeout(() => {
+    refreshFlowchart();
+  }, 300);
+};
+
+/**
+ * ✨ MEJORA 6: Exportar código Mermaid para análisis externo
+ */
+window.exportFlowchartCode = function() {
+  const mermaidCode = generateMermaidCode();
+  
+  // Crear modal para mostrar el código
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.display = 'flex';
+  
+  modal.innerHTML = `
+    <div class="modal-content large">
+      <h3>📋 Código Mermaid del Flowchart</h3>
+      <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+        Puedes copiar este código y usarlo en herramientas como 
+        <a href="https://mermaid.live" target="_blank" style="color: var(--accent);">Mermaid Live Editor</a>
+      </p>
+      <textarea 
+        readonly 
+        style="width: 100%; height: 400px; font-family: monospace; padding: 1rem; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 4px;"
+        onclick="this.select()"
+      >${mermaidCode}</textarea>
+      <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+        <button class="btn-primary" onclick="navigator.clipboard.writeText(this.parentElement.previousElementSibling.value).then(() => showToast('Código copiado', 'success'))">
+          📋 Copiar al Portapapeles
+        </button>
+        <button class="btn-secondary" onclick="this.closest('.modal').remove()">Cerrar</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
+};
+
+/**
+ * Generar código Mermaid para el flowchart
+ */
+function generateMermaidCode() {
+  const events = currentStory.story.events;
+  
+  if (!events || events.length === 0) {
+    return 'graph TD\n  Start["No hay eventos"]';
+  }
+  
+  const dayFilter = document.getElementById('flowchartDayFilter')?.value || 'all';
+  const typeFilter = document.getElementById('flowchartTypeFilter')?.value || 'all';
+  const showUnreachable = document.getElementById('showUnreachable')?.checked !== false;
+  const showOnlyMandatory = document.getElementById('showOnlyMandatory')?.checked || false;
+  const searchText = document.getElementById('flowchartSearch')?.value.toLowerCase() || '';
+  
+  // ✨ MEJORA 4: Filtrado avanzado
+  let filteredEvents = events.filter(event => {
+    // Filtro por día
+    if (dayFilter !== 'all' && event.day !== parseInt(dayFilter)) return false;
+    
+    // Filtro por tipo
+    if (typeFilter !== 'all' && event.type !== typeFilter) return false;
+    
+    // ✨ NUEVO: Filtro solo principales (mandatory/forced)
+    if (showOnlyMandatory) {
+      const type = event.type || 'optional';
+      if (type !== 'mandatory' && type !== 'forced') return false;
+    }
+    
+    // ✨ NUEVO: Búsqueda por texto
+    if (searchText) {
+      const matchId = event.id.toLowerCase().includes(searchText);
+      const matchText = event.text && event.text.toLowerCase().includes(searchText);
+      if (!matchId && !matchText) return false;
+    }
+    
+    return true;
+  });
+  
+  // Analizar alcanzabilidad
+  const reachable = analyzeReachability(events);
+  
+  if (!showUnreachable) {
+    filteredEvents = filteredEvents.filter(event => reachable && reachable.has(event.id));
+  }
+  
+  // Usar layout TD (Top to Down) - más natural y legible
+  let mermaidCode = 'graph TD\n';
+  
+  // Definir estilos mejorados por tipo
+  mermaidCode += '  classDef mandatory fill:#4a90e2,stroke:#2563eb,stroke-width:3px,color:#fff,font-weight:bold\n';
+  mermaidCode += '  classDef optional fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff\n';
+  mermaidCode += '  classDef random fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff\n';
+  mermaidCode += '  classDef forced fill:#8b5cf6,stroke:#7c3aed,stroke-width:3px,color:#fff,font-weight:bold\n';
+  mermaidCode += '  classDef unreachable fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff,opacity:0.6\n';
+  mermaidCode += '  classDef dayLabel fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px,color:#374151,font-weight:bold\n';
+  
+  // Agrupar eventos por día
+  const eventsByDay = new Map();
+  const noSpecificDay = []; // Eventos sin día específico
+  
+  filteredEvents.forEach(event => {
+    const day = event.day || 0;
+    
+    if (day === 0) {
+      noSpecificDay.push(event);
+    } else {
+      if (!eventsByDay.has(day)) {
+        eventsByDay.set(day, []);
+      }
+      eventsByDay.get(day).push(event);
+    }
+  });
+  
+  // Ordenar días
+  const sortedDays = Array.from(eventsByDay.keys()).sort((a, b) => a - b);
+  
+  // Variables para tracking de conexiones y nodos previos
+  const processedEdges = new Set(); // Mover aquí para evitar redeclaración
+  let lastNodeOfPreviousDay = null;
+  
+  // Generar nodos organizados por día
+  sortedDays.forEach((day, dayIndex) => {
+    const dayEvents = eventsByDay.get(day);
+    
+    // Ordenar eventos del día por tipo (mandatory primero)
+    const typeOrder = { mandatory: 0, forced: 1, optional: 2, random: 3 };
+    dayEvents.sort((a, b) => {
+      const orderA = typeOrder[a.type || 'optional'] || 999;
+      const orderB = typeOrder[b.type || 'optional'] || 999;
+      return orderA - orderB;
+    });
+    
+    // Crear etiqueta de día (nodo especial)
+    const dayLabelId = `day_${day}_label`;
+    mermaidCode += `  ${dayLabelId}["📅 DÍA ${day}"]:::dayLabel\n`;
+    
+    // Conectar con el día anterior
+    if (lastNodeOfPreviousDay) {
+      mermaidCode += `  ${lastNodeOfPreviousDay} -.-> ${dayLabelId}\n`;
+    }
+    
+    // Conectar etiqueta del día con el primer evento del día
+    if (dayEvents.length > 0) {
+      const firstEventId = sanitizeId(dayEvents[0].id);
+      mermaidCode += `  ${dayLabelId} --> ${firstEventId}\n`;
+    }
+    
+    // Crear nodos de eventos
+    dayEvents.forEach((event, index) => {
+      const nodeId = sanitizeId(event.id);
+      
+      // Crear texto del nodo más compacto y legible
+      const eventType = event.type || 'optional';
+      const typeEmoji = {
+        mandatory: '🔵',
+        optional: '🟢', 
+        random: '🟡',
+        forced: '🟣'
+      }[eventType] || '⚪';
+      
+      // Texto truncado a 30 caracteres (dejamos espacio para indicadores)
+      let text = event.text || 'Sin texto';
+      text = text.substring(0, 30).replace(/"/g, "'").replace(/\n/g, ' ');
+      if (event.text && event.text.length > 30) text += '...';
+      
+      // ✨ MEJORA 1: Indicadores adicionales
+      const indicators = [];
+      
+      // Número de opciones
+      if (event.choices && event.choices.length > 0) {
+        indicators.push(`${event.choices.length} opciones`);
+      }
+      
+      // Repetible
+      if (event.can_repeat) {
+        indicators.push('↻ Repetible');
+      }
+      
+      // Tiene condiciones complejas
+      if (event.conditions) {
+        const conditionCount = Object.keys(event.conditions).length;
+        if (conditionCount > 0) {
+          indicators.push(`🔒 ${conditionCount} condiciones`);
+        }
+      }
+      
+      // Probabilidad para eventos random
+      let probabilityText = '';
+      if (eventType === 'random' && event.probability !== undefined) {
+        probabilityText = ` (${Math.round(event.probability * 100)}%)`;
+      }
+      
+      // Determinar clase CSS
+      let cssClass = eventType;
+      if (reachable && !reachable.has(event.id)) {
+        cssClass = 'unreachable';
+      }
+      
+      // ✨ MEJORA 2: Formato del nodo enriquecido
+      const typeLabel = eventType.toUpperCase() + probabilityText;
+      const indicatorsText = indicators.length > 0 ? `<br/><small>${indicators.join(' • ')}</small>` : '';
+      mermaidCode += `  ${nodeId}["${typeEmoji} <b>${typeLabel}</b><br/>${text}${indicatorsText}"]:::${cssClass}\n`;
+      
+      // Conectar eventos del mismo día en secuencia visual
+      if (index > 0) {
+        const prevEventId = sanitizeId(dayEvents[index - 1].id);
+        const edgeKey = `seq_${prevEventId}_${nodeId}`;
+        if (!processedEdges.has(edgeKey)) {
+          mermaidCode += `  ${prevEventId} -.-> ${nodeId}\n`;
+          processedEdges.add(edgeKey);
+        }
+      }
+    });
+    
+    // Guardar último nodo del día para conectar con el siguiente día
+    if (dayEvents.length > 0) {
+      lastNodeOfPreviousDay = sanitizeId(dayEvents[dayEvents.length - 1].id);
+    }
+  });
+  
+  // Agregar eventos sin día específico al final
+  if (noSpecificDay.length > 0) {
+    const anyDayLabelId = 'anyday_label';
+    mermaidCode += `  ${anyDayLabelId}["🔀 CUALQUIER DÍA"]:::dayLabel\n`;
+    
+    if (lastNodeOfPreviousDay) {
+      mermaidCode += `  ${lastNodeOfPreviousDay} -.-> ${anyDayLabelId}\n`;
+    }
+    
+    noSpecificDay.forEach((event, index) => {
+      const nodeId = sanitizeId(event.id);
+      const eventType = event.type || 'optional';
+      const typeEmoji = {
+        mandatory: '🔵',
+        optional: '🟢',
+        random: '🟡',
+        forced: '🟣'
+      }[eventType] || '⚪';
+      
+      let text = event.text || 'Sin texto';
+      text = text.substring(0, 30).replace(/"/g, "'").replace(/\n/g, ' ');
+      if (event.text && event.text.length > 30) text += '...';
+      
+      // Indicadores adicionales (igual que arriba)
+      const indicators = [];
+      if (event.choices && event.choices.length > 0) {
+        indicators.push(`${event.choices.length} opciones`);
+      }
+      if (event.can_repeat) {
+        indicators.push('↻ Repetible');
+      }
+      if (event.conditions) {
+        const conditionCount = Object.keys(event.conditions).length;
+        if (conditionCount > 0) {
+          indicators.push(`🔒 ${conditionCount} condiciones`);
+        }
+      }
+      
+      let probabilityText = '';
+      if (eventType === 'random' && event.probability !== undefined) {
+        probabilityText = ` (${Math.round(event.probability * 100)}%)`;
+      }
+      
+      let cssClass = eventType;
+      if (reachable && !reachable.has(event.id)) {
+        cssClass = 'unreachable';
+      }
+      
+      const typeLabel = eventType.toUpperCase() + probabilityText;
+      const indicatorsText = indicators.length > 0 ? `<br/><small>${indicators.join(' • ')}</small>` : '';
+      mermaidCode += `  ${nodeId}["${typeEmoji} <b>${typeLabel}</b><br/>${text}${indicatorsText}"]:::${cssClass}\n`;
+      
+      if (index === 0) {
+        mermaidCode += `  ${anyDayLabelId} --> ${nodeId}\n`;
+      } else {
+        const prevEventId = sanitizeId(noSpecificDay[index - 1].id);
+        mermaidCode += `  ${prevEventId} -.-> ${nodeId}\n`;
+      }
+    });
+  }
+  
+  // Crear aristas (conexiones entre eventos por efectos)
+  // Reutilizar processedEdges ya declarado arriba
+  
+  filteredEvents.forEach(event => {
+    const fromId = sanitizeId(event.id);
+    
+    // 1. Conexiones por unlock_events con efectos descriptivos
+    if (event.choices) {
+      event.choices.forEach((choice, choiceIndex) => {
+        if (choice.effects?.unlock_events) {
+          choice.effects.unlock_events.forEach(targetId => {
+            if (events.find(e => e.id === targetId)) {
+              const toId = sanitizeId(targetId);
+              const edgeKey = `${fromId}->${toId}`;
+              if (!processedEdges.has(edgeKey)) {
+                // ✨ MEJORA 3: Mostrar efectos en la conexión
+                const effectsSummary = getEffectsSummary(choice.effects);
+                const label = effectsSummary 
+                  ? `Opción ${choiceIndex + 1}: ${effectsSummary}` 
+                  : `Opción ${choiceIndex + 1}`;
+                mermaidCode += `  ${fromId} -->|${label}| ${toId}\n`;
+                processedEdges.add(edgeKey);
+              }
+            }
+          });
+        }
+        
+        // 2. Conexiones por lock_events (línea punteada)
+        if (choice.effects?.lock_events) {
+          choice.effects.lock_events.forEach(targetId => {
+            if (events.find(e => e.id === targetId)) {
+              const toId = sanitizeId(targetId);
+              const edgeKey = `${fromId}-.->${toId}`;
+              if (!processedEdges.has(edgeKey)) {
+                const effectsSummary = getEffectsSummary(choice.effects);
+                const label = effectsSummary 
+                  ? `Bloquea: ${effectsSummary}` 
+                  : 'Bloquea';
+                mermaidCode += `  ${fromId} -.${label}.-> ${toId}\n`;
+                processedEdges.add(edgeKey);
+              }
+            }
+          });
+        }
+      });
+    }
+    
+    // 3. Conexiones por completed_events
+    events.forEach(targetEvent => {
+      if (targetEvent.conditions?.completed_events) {
+        if (targetEvent.conditions.completed_events.includes(event.id)) {
+          const toId = sanitizeId(targetEvent.id);
+          const edgeKey = `${fromId}==>${toId}`;
+          if (!processedEdges.has(edgeKey)) {
+            mermaidCode += `  ${fromId} ==>|⚡ Requerido| ${toId}\n`;
+            processedEdges.add(edgeKey);
+          }
+        }
+      }
+    });
+    
+    // 4. Conexiones por previous_choices
+    events.forEach(targetEvent => {
+      if (targetEvent.conditions?.previous_choices) {
+        if (targetEvent.conditions.previous_choices[event.id] !== undefined) {
+          const choiceIndex = targetEvent.conditions.previous_choices[event.id];
+          const toId = sanitizeId(targetEvent.id);
+          const edgeKey = `${fromId}-->${toId}-choice`;
+          if (!processedEdges.has(edgeKey)) {
+            mermaidCode += `  ${fromId} -->|🎯 Si elegiste ${choiceIndex + 1}| ${toId}\n`;
+            processedEdges.add(edgeKey);
+          }
+        }
+      }
+    });
+  });
+  
+  return mermaidCode;
+}
+
+/**
+ * Obtener resumen de efectos para mostrar en conexiones
+ */
+function getEffectsSummary(effects) {
+  if (!effects) return '';
+  
+  const summary = [];
+  
+  // Stats modificadas
+  if (effects.stats) {
+    const statChanges = Object.entries(effects.stats)
+      .map(([key, value]) => {
+        const sign = value > 0 ? '+' : '';
+        return `${sign}${value} ${key}`;
+      })
+      .slice(0, 2); // Máximo 2 para no saturar
+    if (statChanges.length > 0) {
+      summary.push(...statChanges);
+    }
+  }
+  
+  // Flags importantes
+  if (effects.flags) {
+    const flagChanges = Object.entries(effects.flags)
+      .filter(([_, value]) => typeof value === 'boolean')
+      .slice(0, 1);
+    if (flagChanges.length > 0) {
+      summary.push(`🚩 ${flagChanges[0][0]}`);
+    }
+  }
+  
+  // Personajes
+  if (effects.characters) {
+    const charChanges = Object.keys(effects.characters).slice(0, 1);
+    if (charChanges.length > 0) {
+      summary.push(`👤 ${charChanges[0]}`);
+    }
+  }
+  
+  // Inventario
+  if (effects.inventory) {
+    if (effects.inventory.money) {
+      const sign = effects.inventory.money > 0 ? '+' : '';
+      summary.push(`${sign}${effects.inventory.money}💰`);
+    }
+    if (effects.inventory.items && effects.inventory.items.length > 0) {
+      summary.push(`+${effects.inventory.items[0]}`);
+    }
+  }
+  
+  return summary.slice(0, 3).join(', '); // Máximo 3 efectos
+}
+
+/**
+ * Sanitizar ID para Mermaid (solo alfanuméricos y guiones bajos)
+ */
+function sanitizeId(id) {
+  return id.replace(/[^a-zA-Z0-9_]/g, '_');
+}
+
+/**
+ * Analizar alcanzabilidad de eventos (simplificado)
+ */
+function analyzeReachability(events) {
+  const reachable = new Set();
+  
+  // Marcar eventos mandatory como alcanzables
+  events.forEach(event => {
+    if (event.type === 'mandatory') {
+      reachable.add(event.id);
+    }
+  });
+  
+  // Marcar eventos sin condiciones como potencialmente alcanzables
+  events.forEach(event => {
+    const hasConditions = event.conditions && Object.keys(event.conditions).length > 0;
+    if (!hasConditions && event.type !== 'mandatory') {
+      reachable.add(event.id);
+    }
+  });
+  
+  // Propagar alcanzabilidad a través de unlock_events
+  let changed = true;
+  let iterations = 0;
+  
+  while (changed && iterations < 100) {
+    changed = false;
+    iterations++;
+    
+    events.forEach(event => {
+      if (reachable.has(event.id)) {
+        if (event.choices) {
+          event.choices.forEach(choice => {
+            if (choice.effects?.unlock_events) {
+              choice.effects.unlock_events.forEach(targetId => {
+                if (!reachable.has(targetId)) {
+                  reachable.add(targetId);
+                  changed = true;
+                }
+              });
+            }
+          });
+        }
+      }
+    });
+    
+    // Marcar eventos cuyas condiciones sean satisfacibles
+    events.forEach(event => {
+      if (!reachable.has(event.id)) {
+        if (event.conditions?.completed_events) {
+          const allReachable = event.conditions.completed_events.every(reqId => reachable.has(reqId));
+          if (allReachable) {
+            reachable.add(event.id);
+            changed = true;
+          }
+        }
+      }
+    });
+  }
+  
+  return reachable;
+}
+
+/**
+ * Actualizar estadísticas del flowchart
+ */
+function updateFlowchartStats() {
+  const events = currentStory.story.events;
+  
+  if (!events || events.length === 0) {
+    document.getElementById('flowchartStats').innerHTML = '<p>No hay eventos para analizar.</p>';
+    return;
+  }
+  
+  const reachable = analyzeReachability(events);
+  
+  const stats = {
+    total: events.length,
+    mandatory: events.filter(e => e.type === 'mandatory').length,
+    optional: events.filter(e => e.type === 'optional').length,
+    random: events.filter(e => e.type === 'random').length,
+    forced: events.filter(e => e.type === 'forced').length,
+    reachable: reachable ? reachable.size : 0,
+    unreachable: reachable ? (events.length - reachable.size) : events.length,
+    withConditions: events.filter(e => e.conditions && Object.keys(e.conditions).length > 0).length,
+    repeatable: events.filter(e => e.can_repeat).length
+  };
+  
+  // ✨ MEJORA 7: Calcular camino crítico (eventos mandatory)
+  const criticalPath = events.filter(e => e.type === 'mandatory').sort((a, b) => (a.day || 0) - (b.day || 0));
+  const criticalPathText = criticalPath.length > 0 
+    ? `${criticalPath.length} eventos (${criticalPath.map(e => `Día ${e.day}`).join(' → ')})` 
+    : 'No definido';
+  
+  // ✨ MEJORA 8: Opciones totales
+  const totalChoices = events.reduce((sum, e) => sum + (e.choices ? e.choices.length : 0), 0);
+  
+  document.getElementById('flowchartStats').innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+      <div class="stat-card">
+        <div class="stat-label">📊 Total de Eventos</div>
+        <div class="stat-value">${stats.total}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🔵 Mandatory</div>
+        <div class="stat-value">${stats.mandatory}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🟢 Optional</div>
+        <div class="stat-value">${stats.optional}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🟡 Random</div>
+        <div class="stat-value">${stats.random}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🟣 Forced</div>
+        <div class="stat-value">${stats.forced}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">✅ Alcanzables</div>
+        <div class="stat-value">${stats.reachable}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">❌ Inalcanzables</div>
+        <div class="stat-value" style="color: ${stats.unreachable > 0 ? 'var(--error)' : 'inherit'}">${stats.unreachable}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🔒 Con Condiciones</div>
+        <div class="stat-value">${stats.withConditions}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">↻ Repetibles</div>
+        <div class="stat-value">${stats.repeatable}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🎯 Total Opciones</div>
+        <div class="stat-value">${totalChoices}</div>
+      </div>
+    </div>
+    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; border-left: 4px solid var(--accent);">
+      <strong>⚡ Camino Crítico (Mandatory):</strong><br/>
+      <span style="color: var(--text-secondary);">${criticalPathText}</span>
+    </div>
+  `;
+}
+
+/**
+ * Exportar código Mermaid
+ */
+window.exportFlowchartCode = async function() {
+  const mermaidCode = generateMermaidCode();
+  
+  // Copiar al portapapeles
+  try {
+    await navigator.clipboard.writeText(mermaidCode);
+    showToast('Código Mermaid copiado al portapapeles', 'success');
+  } catch (err) {
+    // Fallback: mostrar en modal
+    await showAlert(
+      `Código Mermaid (copia manualmente):\n\n${mermaidCode}`,
+      'Código del Flowchart'
+    );
+  }
+};
+
+// ============================================
+// FUNCIONES OBSOLETAS DEL FLOWCHART MANUAL
+// (Ya no se usan - reemplazadas por Mermaid.js)
+// ============================================
+
+/**
+ * Construir el grafo de eventos (OBSOLETO)
  */
 function buildFlowchartGraph() {
   flowchartData.nodes = [];
