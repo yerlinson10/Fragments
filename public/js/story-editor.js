@@ -3,6 +3,36 @@
  */
 
 // ============================================
+// EVENTO GLOBAL PARA CERRAR MODALES CON ESC
+// ============================================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    // Buscar todos los modales abiertos y cerrarlos
+    const modals = document.querySelectorAll('.modal:not(.hidden)');
+    modals.forEach(modal => {
+      modal.classList.add('hidden');
+    });
+  }
+});
+
+// ============================================
+// UTILIDADES DE COLAPSABLES
+// ============================================
+function toggleCollapsible(headerId) {
+  const header = document.getElementById(headerId);
+  const content = header.nextElementSibling;
+  const isActive = header.classList.contains('active');
+  
+  if (isActive) {
+    header.classList.remove('active');
+    content.classList.remove('active');
+  } else {
+    header.classList.add('active');
+    content.classList.add('active');
+  }
+}
+
+// ============================================
 // UTILIDADES DE MODAL (reemplazo de alert/prompt/confirm)
 // ============================================
 
@@ -1156,62 +1186,67 @@ window.editEvent = function(index) {
       </div>
       
       <div class="form-group full-width">
-        <h4>⏰ Condiciones para que aparezca este evento</h4>
-        <div class="conditions-builder">
-          <div class="condition-section">
-            <h4>📊 Estadísticas</h4>
-            <div id="eventStatsConditions"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addEventStatCondition()">+ Agregar condición</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>🚩 Variables</h4>
-            <div id="eventFlagsConditions"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addEventFlagCondition()">+ Agregar condición</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>👥 Personajes</h4>
-            <div id="eventCharactersConditions"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addEventCharacterCondition()">+ Agregar condición</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>📅 Rango de Días</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-              <div>
-                <label>Día mínimo</label>
-                <input type="number" id="eventDayMin" min="0" value="${event.conditions?.day_min || ''}" placeholder="Desde día..." />
-              </div>
-              <div>
-                <label>Día máximo</label>
-                <input type="number" id="eventDayMax" min="0" value="${event.conditions?.day_max || ''}" placeholder="Hasta día..." />
+        <div class="collapsible-header" id="event-conditions-header" onclick="toggleCollapsible('event-conditions-header')">
+          <h4>⏰ Condiciones para que aparezca este evento</h4>
+          <span class="collapsible-icon">►</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="conditions-builder">
+            <div class="condition-section">
+              <h4>📊 Estadísticas</h4>
+              <div id="eventStatsConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addEventStatCondition()">+ Agregar condición</button>
+            </div>
+            
+            <div class="condition-section">
+              <h4>🚩 Variables</h4>
+              <div id="eventFlagsConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addEventFlagCondition()">+ Agregar condición</button>
+            </div>
+            
+            <div class="condition-section">
+              <h4>👥 Personajes</h4>
+              <div id="eventCharactersConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addEventCharacterCondition()">+ Agregar condición</button>
+            </div>
+            
+            <div class="condition-section">
+              <h4>📅 Rango de Días</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <div>
+                  <label>Día mínimo</label>
+                  <input type="number" id="eventDayMin" min="0" value="${event.conditions?.day_min || ''}" placeholder="Desde día..." />
+                </div>
+                <div>
+                  <label>Día máximo</label>
+                  <input type="number" id="eventDayMax" min="0" value="${event.conditions?.day_max || ''}" placeholder="Hasta día..." />
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div class="condition-section">
-            <h4>✅ Eventos Completados Requeridos</h4>
-            <div id="eventCompletedEventsConditions"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addCompletedEventCondition()">+ Agregar evento</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>🎯 Decisiones Previas</h4>
-            <div id="eventPreviousChoicesConditions"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addPreviousChoiceCondition()">+ Agregar decisión</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>💰 Inventario</h4>
-            <div>
-              <label>Dinero mínimo requerido</label>
-              <input type="number" id="eventMoneyMin" value="${event.conditions?.inventory?.money_min || ''}" placeholder="Ej: 100" />
+            
+            <div class="condition-section">
+              <h4>✅ Eventos Completados Requeridos</h4>
+              <div id="eventCompletedEventsConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addCompletedEventCondition()">+ Agregar evento</button>
             </div>
-            <div style="margin-top: 0.5rem;">
-              <label>Items requeridos</label>
-              <div id="eventRequiredItems"></div>
-              <button type="button" class="btn-secondary btn-small" onclick="addRequiredItem()">+ Agregar item</button>
+            
+            <div class="condition-section">
+              <h4>🎯 Decisiones Previas</h4>
+              <div id="eventPreviousChoicesConditions"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addPreviousChoiceCondition()">+ Agregar decisión</button>
+            </div>
+            
+            <div class="condition-section">
+              <h4>💰 Inventario</h4>
+              <div>
+                <label>Dinero mínimo requerido</label>
+                <input type="number" id="eventMoneyMin" value="${event.conditions?.inventory?.money_min || ''}" placeholder="Ej: 100" />
+              </div>
+              <div style="margin-top: 0.5rem;">
+                <label>Items requeridos</label>
+                <div id="eventRequiredItems"></div>
+                <button type="button" class="btn-secondary btn-small" onclick="addRequiredItem()">+ Agregar item</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1662,56 +1697,61 @@ function renderEventChoices(choices) {
         <input type="text" class="choice-text" data-index="${i}" value="${choice.text}" />
       </div>
       <div class="form-group full-width">
-        <label>⚡ Efectos de esta opción</label>
-        <div class="conditions-builder" style="margin-top: 0.5rem;">
-          <div class="condition-section">
-            <h4>📊 Cambios en Stats</h4>
-            <div id="choice-${i}-stats"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addChoiceStatEffect(${i})">+ Agregar efecto</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>🚩 Cambios en Flags</h4>
-            <div id="choice-${i}-flags"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addChoiceFlagEffect(${i})">+ Agregar efecto</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>📦 Dar/Quitar Items</h4>
-            <div id="choice-${i}-items"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addChoiceItemEffect(${i})">+ Agregar efecto</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>👥 Cambios en Relaciones</h4>
-            <div id="choice-${i}-characters"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addChoiceCharacterEffect(${i})">+ Agregar efecto</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>🎬 Triggers Especiales</h4>
-            <label class="checkbox-label">
-              <input type="checkbox" class="trigger-ending" data-index="${i}" ${choice.effects?.trigger_ending ? 'checked' : ''} />
-              Terminar juego (trigger_ending)
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" class="trigger-next-day" data-index="${i}" ${choice.effects?.trigger_next_day ? 'checked' : ''} />
-              Avanzar al siguiente día (trigger_next_day)
-            </label>
-          </div>
-          
-          <div class="condition-section">
-            <h4>🔓 Control de Eventos</h4>
-            <div id="choice-${i}-unlock-events"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addUnlockEvent(${i})">+ Desbloquear evento</button>
-            <div id="choice-${i}-lock-events" style="margin-top: 0.5rem;"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addLockEvent(${i})">+ Bloquear evento</button>
-          </div>
-          
-          <div class="condition-section">
-            <h4>🏆 Logros</h4>
-            <div id="choice-${i}-achievement"></div>
-            <button type="button" class="btn-secondary btn-small" onclick="addAchievementUnlock(${i})">+ Desbloquear logro</button>
+        <div class="collapsible-header" id="choice-${i}-effects-header" onclick="toggleCollapsible('choice-${i}-effects-header')">
+          <label>⚡ Efectos de esta opción</label>
+          <span class="collapsible-icon">►</span>
+        </div>
+        <div class="collapsible-content">
+          <div class="conditions-builder" style="margin-top: 0.5rem;">
+            <div class="condition-section">
+              <h4>📊 Cambios en Stats</h4>
+              <div id="choice-${i}-stats"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addChoiceStatEffect(${i})">+ Agregar efecto</button>
+            </div>
+            
+            <div class="condition-section">
+              <h4>🚩 Cambios en Flags</h4>
+              <div id="choice-${i}-flags"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addChoiceFlagEffect(${i})">+ Agregar efecto</button>
+            </div>
+            
+            <div class="condition-section">
+              <h4>📦 Dar/Quitar Items</h4>
+              <div id="choice-${i}-items"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addChoiceItemEffect(${i})">+ Agregar efecto</button>
+            </div>
+            
+            <div class="condition-section">
+              <h4>👥 Cambios en Relaciones</h4>
+              <div id="choice-${i}-characters"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addChoiceCharacterEffect(${i})">+ Agregar efecto</button>
+            </div>
+            
+            <div class="condition-section">
+              <h4>🎬 Triggers Especiales</h4>
+              <label class="checkbox-label">
+                <input type="checkbox" class="trigger-ending" data-index="${i}" ${choice.effects?.trigger_ending ? 'checked' : ''} />
+                Terminar juego (trigger_ending)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" class="trigger-next-day" data-index="${i}" ${choice.effects?.trigger_next_day ? 'checked' : ''} />
+                Avanzar al siguiente día (trigger_next_day)
+              </label>
+            </div>
+            
+            <div class="condition-section">
+              <h4>🔓 Control de Eventos</h4>
+              <div id="choice-${i}-unlock-events"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addUnlockEvent(${i})">+ Desbloquear evento</button>
+              <div id="choice-${i}-lock-events" style="margin-top: 0.5rem;"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addLockEvent(${i})">+ Bloquear evento</button>
+            </div>
+            
+            <div class="condition-section">
+              <h4>🏆 Logros</h4>
+              <div id="choice-${i}-achievement"></div>
+              <button type="button" class="btn-secondary btn-small" onclick="addAchievementUnlock(${i})">+ Desbloquear logro</button>
+            </div>
           </div>
         </div>
       </div>
