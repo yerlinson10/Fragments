@@ -1,6 +1,37 @@
-# 🧩 Fragments - Motor de Historias Interactivas
+# 🧩 Fragments - Motor de Historias Interactivas v2.0
 
 > Un sistema completo para crear y jugar historias narrativas donde cada decisión importa.
+
+**🆕 Ahora con Node.js y Mermaid.js local** - Sin dependencias de CDN
+
+---
+
+## 📦 Instalación
+
+### Requisitos
+- **Node.js** >= 14.0.0 ([Descargar aquí](https://nodejs.org/))
+
+### Instalación Rápida
+
+```bash
+# 1. Clonar o descargar el proyecto
+git clone https://github.com/tu-usuario/Fragments.git
+cd Fragments
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Iniciar servidor
+npm start
+```
+
+**O usa los scripts de inicio:**
+- Windows: Doble clic en `start.bat`
+- Linux/Mac: `./start.sh`
+
+El servidor se abrirá en: **http://localhost:3000**
+
+📖 **Guía completa**: Lee [INSTALL.md](./INSTALL.md)
 
 ---
 
@@ -12,9 +43,9 @@
 - ✅ Sistema simple de stats (energía, ánimo, caos)
 - ✅ 3 stats fijas
 - ✅ Un solo día de juego
-- 🎯 **Para jugar**: Abre `index.html`
+- 🎯 **Para jugar**: http://localhost:3000/index.html
 
-### **Versión 2.0 (Engine)** - `index-v2.html` ⭐
+### **Versión 2.0 (Engine)** - `game.html` ⭐
 - ✅ **Sistema modular** para crear historias custom
 - ✅ **Stats dinámicas**: Define las que quieras
 - ✅ **Flags y variables** personalizadas
@@ -25,23 +56,43 @@
 - ✅ **Eventos especiales**: Random, forced, one-time
 - ✅ **Achievements** desbloqueables
 - ✅ **Validador automático** de historias
-- 🎯 **Para jugar**: Abre `index-v2.html`
+- ✅ **Editor visual con flowchart interactivo** �
+- �🎯 **Para jugar**: http://localhost:3000/game.html
 - 📚 **Para crear historias**: Lee `STORY_CREATION_GUIDE.md`
 
 ---
 
 ## 🚀 Inicio Rápido
 
+### Opción 1: Editor Visual (Recomendado)
+
+```bash
+npm start
+# Abre: http://localhost:3000/story-editor.html
+```
+
+Características del editor:
+- 📊 **Flowchart interactivo** con Mermaid.js
+- 🎨 Interfaz visual completa
+- ✅ Validación automática
+- 📤 Export/Import JSON
+- 🔍 Búsqueda y filtros avanzados
+- 📈 Análisis de camino crítico
+
 ### Opción 2: Jugar con el Nuevo Engine (v2.0)
 
-1. Abre `index-v2.html` en tu navegador
-2. Disfruta la historia "Fragments" mejorada con:
-   - 3 días de juego
-   - Sistema de personajes (Madre, Pablo, Ex, Jefe)
-   - Relaciones que evolucionan
-   - Posibilidad de adoptar un perro
-   - Múltiples caminos y consecuencias
-   - 10+ finales diferentes
+```bash
+npm start
+# Abre: http://localhost:3000/game.html
+```
+
+Disfruta la historia "Fragments" mejorada con:
+- 3 días de juego
+- Sistema de personajes (Madre, Pablo, Ex, Jefe)
+- Relaciones que evolucionan
+- Posibilidad de adoptar un perro
+- Múltiples caminos y consecuencias
+- 10+ finales diferentes
 
 ### Opción 3: Crear Tu Propia Historia
 
