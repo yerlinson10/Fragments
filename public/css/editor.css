@@ -337,6 +337,31 @@ body {
   box-shadow: 0 8px 24px var(--shadow-lg);
 }
 
+/* Drag & Drop styles */
+.event-card.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  cursor: grabbing !important;
+}
+
+.event-card.drag-over {
+  border: 2px dashed var(--accent);
+  background: var(--accent-light);
+  transform: translateY(0);
+}
+
+.drag-handle {
+  cursor: grab;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
 .event-header {
   display: flex;
   justify-content: space-between;
@@ -560,6 +585,22 @@ body {
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes highlight {
+  0% {
+    background: var(--accent-light);
+    transform: scale(1);
+  }
+  50% {
+    background: var(--accent-light);
+    transform: scale(1.02);
+    box-shadow: 0 8px 32px var(--shadow-lg);
+  }
+  100% {
+    background: var(--bg-secondary);
+    transform: scale(1);
   }
 }
 
@@ -1083,3 +1124,60 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Keyboard Shortcuts Panel */
+.keyboard-shortcuts {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px var(--shadow-lg);
+  z-index: 1500;
+  min-width: 280px;
+  animation: fadeIn 0.3s ease;
+}
+
+.keyboard-shortcuts h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.shortcut-item kbd {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: 0 2px 4px var(--shadow);
+}
+
+.shortcut-item span {
+  flex: 1;
+}
+

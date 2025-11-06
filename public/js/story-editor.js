@@ -3,17 +3,251 @@
  */
 
 // ============================================
-// EVENTO GLOBAL PARA CERRAR MODALES CON ESC
+// EVENTO GLOBAL PARA CERRAR MODALES CON ESC Y ATAJOS DE TECLADO
 // ============================================
 document.addEventListener('keydown', (e) => {
+  // ESC: Cerrar modales
   if (e.key === 'Escape') {
-    // Buscar todos los modales abiertos y cerrarlos
     const modals = document.querySelectorAll('.modal:not(.hidden)');
     modals.forEach(modal => {
       modal.classList.add('hidden');
     });
   }
+  
+  // Ctrl+S: Guardar (prevenir guardado del navegador)
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault();
+    saveStory();
+  }
+  
+  // Ctrl+Z: Undo
+  if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    undo();
+  }
+  
+  // Ctrl+Y o Ctrl+Shift+Z: Redo
+  if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+    e.preventDefault();
+    redo();
+  }
+  
+  // Ctrl+N: Nuevo evento (solo en sección de eventos)
+  if (e.ctrlKey && e.key === 'n') {
+    const activeSection = document.querySelector('.editor-section.active');
+    if (activeSection && activeSection.id === 'events-section') {
+      e.preventDefault();
+      addEvent();
+    }
+  }
 });
+
+// ============================================
+// SISTEMA DE UNDO/REDO
+// ============================================
+const history = {
+  past: [],
+  present: null,
+  future: [],
+  maxSize: 50 // Máximo 50 estados en el historial
+};
+
+function saveToHistory() {
+  // Guardar el estado actual en el pasado
+  if (history.present) {
+    history.past.push(JSON.parse(JSON.stringify(history.present)));
+    
+    // Limitar el tamaño del historial
+    if (history.past.length > history.maxSize) {
+      history.past.shift();
+    }
+  }
+  
+  // El presente ahora es el estado actual
+  history.present = JSON.parse(JSON.stringify(currentStory));
+  
+  // Limpiar el futuro (ya no podemos hacer redo)
+  history.future = [];
+  
+  updateHistoryButtons();
+}
+
+function undo() {
+  if (history.past.length === 0) {
+    showToast('No hay más acciones para deshacer', 'warning');
+    return;
+  }
+  
+  console.log('⏪ UNDO - Estado antes:', {
+    past: history.past.length,
+    future: history.future.length,
+    present: history.present
+  });
+  
+  // Mover el presente al futuro
+  if (history.present) {
+    history.future.push(JSON.parse(JSON.stringify(history.present)));
+  }
+  
+  // Restaurar el último estado del pasado
+  history.present = history.past.pop();
+  currentStory = JSON.parse(JSON.stringify(history.present));
+  
+  console.log('⏪ UNDO - Estado después:', {
+    past: history.past.length,
+    future: history.future.length,
+    currentStory: currentStory
+  });
+  
+  // Re-renderizar todo
+  renderAll();
+  markDirty();
+  updateHistoryButtons();
+  showToast('Acción deshecha', 'success');
+}
+
+function redo() {
+  if (history.future.length === 0) {
+    showToast('No hay más acciones para rehacer', 'warning');
+    return;
+  }
+  
+  console.log('⏩ REDO - Estado antes:', {
+    past: history.past.length,
+    future: history.future.length,
+    present: history.present
+  });
+  
+  // Mover el presente al pasado
+  if (history.present) {
+    history.past.push(JSON.parse(JSON.stringify(history.present)));
+  }
+  
+  // Restaurar el primer estado del futuro
+  history.present = history.future.pop();
+  currentStory = JSON.parse(JSON.stringify(history.present));
+  
+  console.log('⏩ REDO - Estado después:', {
+    past: history.past.length,
+    future: history.future.length,
+    currentStory: currentStory
+  });
+  
+  // Re-renderizar todo
+  renderAll();
+  markDirty();
+  updateHistoryButtons();
+  showToast('Acción rehecha', 'success');
+}
+
+function updateHistoryButtons() {
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  
+  if (undoBtn) {
+    undoBtn.disabled = history.past.length === 0;
+    undoBtn.title = history.past.length > 0 
+      ? `Deshacer (Ctrl+Z) - ${history.past.length} acciones disponibles`
+      : 'No hay acciones para deshacer';
+  }
+  
+  if (redoBtn) {
+    redoBtn.disabled = history.future.length === 0;
+    redoBtn.title = history.future.length > 0
+      ? `Rehacer (Ctrl+Y) - ${history.future.length} acciones disponibles`
+      : 'No hay acciones para rehacer';
+  }
+}
+
+// Función para re-renderizar todas las secciones
+function renderAll() {
+  console.log('🔄 Iniciando renderAll() completo...');
+  console.log('📦 Estado actual:', currentStory);
+  
+  // Cerrar TODOS los modales abiertos antes de re-renderizar
+  closeAllModals();
+  
+  // Actualizar todas las secciones del editor
+  console.log('  → Renderizando Stats...');
+  renderStats();
+  console.log('  → Renderizando Flags...');
+  renderFlags();
+  console.log('  → Renderizando Characters...');
+  renderCharacters();
+  console.log('  → Renderizando Items...');
+  renderItems();
+  console.log('  → Renderizando Events...');
+  renderEvents();
+  console.log('  → Renderizando Endings...');
+  renderEndings();
+  console.log('  → Renderizando Achievements...');
+  renderAchievements();
+  
+  // Actualizar información general (config)
+  if (currentStory && currentStory.config) {
+    console.log('  → Actualizando campos de configuración...');
+    const storyIdInput = document.getElementById('storyId');
+    if (storyIdInput) storyIdInput.value = currentStory.config.story_id || '';
+    
+    // Actualizar título en múltiples lugares
+    const titleValue = currentStory.config.title || 'Nueva Historia';
+    const titleInput = document.getElementById('storyTitleInput');
+    const titleHeader = document.querySelector('.story-info h1');
+    
+    if (titleInput) titleInput.value = titleValue;
+    if (titleHeader) titleHeader.textContent = titleValue;
+    
+    // Actualizar otros campos de configuración
+    const fields = [
+      { id: 'storySubtitle', value: currentStory.config.subtitle || '' },
+      { id: 'storyDescription', value: currentStory.config.description || '' },
+      { id: 'storyVersion', value: currentStory.config.version || '1.0.0' },
+      { id: 'storyAuthor', value: currentStory.config.author || '' },
+      { id: 'storyDays', value: currentStory.config.max_days || 1 },
+      { id: 'startingDay', value: currentStory.config.starting_day || 1 },
+      { id: 'startingTime', value: currentStory.config.starting_time || 'morning' },
+      { id: 'saveSlots', value: currentStory.config.save_slots || 3 }
+    ];
+    
+    fields.forEach(field => {
+      const element = document.getElementById(field.id);
+      if (element) element.value = field.value;
+    });
+    
+    // Checkboxes
+    const autoSaveEl = document.getElementById('autoSave');
+    if (autoSaveEl) autoSaveEl.checked = currentStory.config.auto_save !== false;
+    
+    const enableSoundEl = document.getElementById('enableSound');
+    if (enableSoundEl) enableSoundEl.checked = currentStory.config.enable_sound !== false;
+    
+    const showCharactersEl = document.getElementById('showCharacters');
+    if (showCharactersEl) showCharactersEl.checked = currentStory.config.show_characters || false;
+    
+    const showInventoryEl = document.getElementById('showInventory');
+    if (showInventoryEl) showInventoryEl.checked = currentStory.config.show_inventory || false;
+    
+    // Inventario
+    const inventoryEnabledEl = document.getElementById('inventoryEnabled');
+    if (inventoryEnabledEl) inventoryEnabledEl.checked = currentStory.config.inventory?.enabled || false;
+    
+    const initialMoneyEl = document.getElementById('initialMoney');
+    if (initialMoneyEl) initialMoneyEl.value = currentStory.config.inventory?.initial_money || 0;
+    
+    // Final por defecto
+    const defaultEndingTitleEl = document.getElementById('defaultEndingTitle');
+    if (defaultEndingTitleEl) defaultEndingTitleEl.value = currentStory.endings.default?.title || '';
+    
+    const defaultEndingMessageEl = document.getElementById('defaultEndingMessage');
+    if (defaultEndingMessageEl) defaultEndingMessageEl.value = currentStory.endings.default?.message || '';
+  }
+  
+  // Actualizar filtros de día
+  console.log('  → Actualizando filtros...');
+  updateDayFilter();
+  
+  console.log('✅ Vista actualizada completamente con undo/redo');
+}
 
 // ============================================
 // UTILIDADES DE COLAPSABLES
@@ -326,6 +560,12 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   localStorage.setItem('fragmentsTheme', isDark ? 'dark' : 'light');
 });
 
+// Toggle keyboard shortcuts panel
+document.getElementById('keyboardShortcutsBtn').addEventListener('click', () => {
+  const panel = document.getElementById('keyboardShortcuts');
+  panel.classList.toggle('hidden');
+});
+
 // Navegación entre secciones
 document.querySelectorAll('.menu-item').forEach(item => {
   item.addEventListener('click', () => {
@@ -459,6 +699,12 @@ function updateUI() {
   
   // Update day filter
   updateDayFilter();
+  
+  // Inicializar historial con el estado cargado
+  history.present = JSON.parse(JSON.stringify(currentStory));
+  history.past = [];
+  history.future = [];
+  updateHistoryButtons();
 }
 
 // Stats
@@ -531,6 +777,8 @@ window.addStat = function() {
       return;
     }
     
+    saveToHistory(); // Guardar antes de agregar
+    
     currentStory.config.stats[key] = {
       name: name || key,
       icon: icon || '📊',
@@ -570,6 +818,8 @@ window.editStat = function(key) {
     const max = parseInt(document.getElementById('statMax').value);
     const start = parseInt(document.getElementById('statStart').value);
     
+    saveToHistory(); // Guardar antes de editar
+    
     currentStory.config.stats[key] = {
       name,
       icon,
@@ -592,6 +842,8 @@ window.deleteStat = async function(key) {
   );
   
   if (!confirmed) return;
+  
+  saveToHistory(); // Guardar antes de eliminar
   
   delete currentStory.config.stats[key];
   markDirty();
@@ -662,6 +914,8 @@ window.addFlag = function() {
       return;
     }
     
+    saveToHistory(); // Guardar antes de agregar
+    
     let value;
     if (type === 'boolean') {
       value = valueInput.checked;
@@ -716,6 +970,8 @@ window.editFlag = function(key) {
   newSave.onclick = () => {
     const type = typeSelect.value;
     
+    saveToHistory(); // Guardar antes de editar
+    
     let value;
     if (type === 'boolean') {
       value = valueInput.checked;
@@ -740,6 +996,8 @@ window.deleteFlag = async function(key) {
   );
   
   if (!confirmed) return;
+  
+  saveToHistory(); // Guardar antes de eliminar
   
   delete currentStory.config.flags[key];
   markDirty();
@@ -812,6 +1070,8 @@ window.addCharacter = function() {
       return;
     }
     
+    saveToHistory(); // Guardar antes de agregar
+    
     currentStory.config.characters[key] = {
       name: name || key,
       icon: icon || '👤',
@@ -848,6 +1108,8 @@ window.editCharacter = function(key) {
     const relationship = parseInt(document.getElementById('characterRelationship').value);
     const met = document.getElementById('characterMet').checked;
     
+    saveToHistory(); // Guardar antes de editar
+    
     currentStory.config.characters[key] = {
       name,
       icon,
@@ -869,6 +1131,8 @@ window.deleteCharacter = async function(key) {
   );
   
   if (!confirmed) return;
+  
+  saveToHistory(); // Guardar antes de eliminar
   
   delete currentStory.config.characters[key];
   markDirty();
@@ -937,6 +1201,8 @@ window.addItem = function() {
       return;
     }
     
+    saveToHistory(); // Guardar antes de agregar
+    
     currentStory.config.inventory.items[key] = {
       name: name || key,
       icon: icon || '📦',
@@ -970,6 +1236,8 @@ window.editItem = function(key) {
     const icon = document.getElementById('itemIcon').value.trim();
     const description = document.getElementById('itemDescription').value.trim();
     
+    saveToHistory(); // Guardar antes de editar
+    
     currentStory.config.inventory.items[key] = {
       name: name || key,
       icon: icon || '📦',
@@ -990,6 +1258,8 @@ window.deleteItem = async function(key) {
   );
   
   if (!confirmed) return;
+  
+  saveToHistory(); // Guardar antes de eliminar
   
   delete currentStory.config.inventory.items[key];
   markDirty();
@@ -1040,11 +1310,16 @@ function renderEvents() {
     const isLast = originalIndex === events.length - 1;
     
     return `
-    <div class="event-card">
+    <div class="event-card" draggable="true" data-index="${originalIndex}">
       <div class="event-header">
-        <div class="event-title">${event.id}</div>
+        <div class="event-title">
+          <span class="drag-handle" title="Arrastrar para reordenar">⋮⋮</span>
+          ${event.id}
+        </div>
         <div style="display: flex; gap: 5px; align-items: center;">
           <span class="event-type-badge ${event.type || 'optional'}">${event.type || 'optional'}</span>
+          <button class="btn-icon" onclick="duplicateEvent(${originalIndex}); event.stopPropagation();" 
+                  title="Duplicar evento">📋</button>
           <button class="btn-icon" onclick="moveEventUp(${originalIndex}); event.stopPropagation();" 
                   ${isFirst ? 'disabled' : ''} title="Subir">⬆️</button>
           <button class="btn-icon" onclick="moveEventDown(${originalIndex}); event.stopPropagation();" 
@@ -1068,6 +1343,73 @@ function renderEvents() {
     </div>
   `;
   }).join('');
+  
+  // Inicializar drag and drop
+  initDragAndDrop();
+}
+
+// ============================================
+// DRAG AND DROP PARA REORDENAR EVENTOS
+// ============================================
+function initDragAndDrop() {
+  const eventCards = document.querySelectorAll('.event-card');
+  let draggedElement = null;
+  let draggedIndex = null;
+  
+  eventCards.forEach((card) => {
+    card.addEventListener('dragstart', (e) => {
+      draggedElement = card;
+      draggedIndex = parseInt(card.dataset.index);
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', card.innerHTML);
+    });
+    
+    card.addEventListener('dragend', (e) => {
+      card.classList.remove('dragging');
+      
+      // Remover todos los indicadores de drop
+      document.querySelectorAll('.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+      });
+    });
+    
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      if (draggedElement !== card) {
+        card.classList.add('drag-over');
+      }
+    });
+    
+    card.addEventListener('dragleave', (e) => {
+      card.classList.remove('drag-over');
+    });
+    
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      card.classList.remove('drag-over');
+      
+      if (draggedElement !== card) {
+        const targetIndex = parseInt(card.dataset.index);
+        
+        // Reordenar en el array
+        if (draggedIndex !== null && targetIndex !== null) {
+          saveToHistory(); // Guardar antes de mover
+          
+          const [movedEvent] = currentStory.story.events.splice(draggedIndex, 1);
+          currentStory.story.events.splice(targetIndex, 0, movedEvent);
+          
+          markDirty();
+          renderEvents();
+          showToast('Evento reordenado', 'success');
+        }
+      }
+    });
+  });
 }
 
 function updateDayFilter() {
@@ -1098,6 +1440,8 @@ document.getElementById('dayFilter').addEventListener('change', (e) => {
 });
 
 window.addEvent = function() {
+  saveToHistory(); // Guardar antes de agregar
+  
   const event = {
     id: `evento_${Date.now()}`,
     type: 'optional',
@@ -2196,6 +2540,8 @@ window.addChoiceToEvent = function() {
 window.saveEvent = function() {
   if (currentEventEdit === null) return;
   
+  saveToHistory(); // Guardar antes de modificar
+  
   const event = currentStory.story.events[currentEventEdit];
   
   // Update basic fields
@@ -2259,6 +2605,8 @@ window.deleteEvent = async function() {
   
   if (!confirmed) return;
   
+  saveToHistory(); // Guardar antes de eliminar
+  
   currentStory.story.events.splice(currentEventEdit, 1);
   currentEventEdit = null;
   
@@ -2270,6 +2618,8 @@ window.deleteEvent = async function() {
 
 window.moveEventUp = function(index) {
   if (index === 0) return; // Ya está en la primera posición
+  
+  saveToHistory(); // Guardar antes de mover
   
   const events = currentStory.story.events;
   [events[index - 1], events[index]] = [events[index], events[index - 1]];
@@ -2283,11 +2633,41 @@ window.moveEventDown = function(index) {
   const events = currentStory.story.events;
   if (index === events.length - 1) return; // Ya está en la última posición
   
+  saveToHistory(); // Guardar antes de mover
+  
   [events[index], events[index + 1]] = [events[index + 1], events[index]];
   
   markDirty();
   renderEvents();
   showToast('Evento movido hacia abajo', 'success');
+};
+
+window.duplicateEvent = function(index) {
+  saveToHistory(); // Guardar antes de duplicar
+  const original = currentStory.story.events[index];
+  
+  // Deep copy del evento original
+  const duplicate = JSON.parse(JSON.stringify(original));
+  
+  // Generar nuevo ID único con timestamp
+  const timestamp = Date.now();
+  duplicate.id = `${original.id}_copia_${timestamp}`;
+  
+  // Insertar el duplicado justo después del original
+  currentStory.story.events.splice(index + 1, 0, duplicate);
+  
+  markDirty();
+  renderEvents();
+  showToast(`Evento duplicado: ${duplicate.id}`, 'success');
+  
+  // Hacer scroll al evento duplicado y resaltarlo
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.event-card');
+    if (cards[index + 1]) {
+      cards[index + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      cards[index + 1].style.animation = 'highlight 1s ease';
+    }
+  }, 100);
 };
 
 // Endings
@@ -2831,6 +3211,8 @@ window.addEnding = function() {
       return;
     }
     
+    saveToHistory(); // Guardar antes de agregar
+    
     const conditions = getEndingConditions();
     
     currentStory.endings.endings.push({
@@ -2873,6 +3255,8 @@ window.editEnding = function(index) {
     const message = document.getElementById('endingMessage').value.trim();
     const priority = parseInt(document.getElementById('endingPriority').value);
     
+    saveToHistory(); // Guardar antes de editar
+    
     const conditions = getEndingConditions();
     
     currentStory.endings.endings[index] = {
@@ -2899,6 +3283,8 @@ window.deleteEnding = async function(index) {
   );
   
   if (!confirmed) return;
+  
+  saveToHistory(); // Guardar antes de eliminar
   
   currentStory.endings.endings.splice(index, 1);
   markDirty();
@@ -2966,6 +3352,8 @@ window.addAchievement = function() {
       return;
     }
     
+    saveToHistory(); // Guardar antes de agregar
+    
     currentStory.config.achievements[key] = {
       name: name || key,
       icon: icon || '🏆',
@@ -2999,6 +3387,8 @@ window.editAchievement = function(key) {
     const icon = document.getElementById('achievementIcon').value.trim();
     const description = document.getElementById('achievementDescription').value.trim();
     
+    saveToHistory(); // Guardar antes de editar
+    
     currentStory.config.achievements[key] = {
       name,
       icon,
@@ -3019,6 +3409,8 @@ window.deleteAchievement = async function(key) {
   );
   
   if (!confirmed) return;
+  
+  saveToHistory(); // Guardar antes de eliminar
   
   delete currentStory.config.achievements[key];
   markDirty();
@@ -4776,6 +5168,35 @@ window.closeModal = function(modalId) {
   currentEventEdit = null;
 };
 
+// Función para cerrar TODOS los modales (útil para Undo/Redo)
+function closeAllModals() {
+  const modals = [
+    'statModal',
+    'flagModal',
+    'characterModal',
+    'itemModal',
+    'eventModal',
+    'endingModal',
+    'achievementModal',
+    'validationModal',
+    'confirmModal',
+    'inputModal',
+    'formModal',
+    'selectModal'
+  ];
+  
+  modals.forEach(modalId => {
+    const modal = document.getElementById(modalId);
+    if (modal && !modal.classList.contains('hidden')) {
+      console.log(`  → Cerrando modal: ${modalId}`);
+      modal.classList.add('hidden');
+    }
+  });
+  
+  // Resetear el índice de evento en edición
+  currentEventEdit = null;
+}
+
 // Init
 const urlParams = new URLSearchParams(window.location.search);
 const storyParam = urlParams.get('story');
@@ -4784,6 +5205,8 @@ if (storyParam) {
   loadExistingStory(storyParam);
 } else {
   updateUI();
+  // Inicializar botones de historial al cargar sin historia
+  updateHistoryButtons();
 }
 
 initTheme();
