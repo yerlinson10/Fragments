@@ -2,7 +2,7 @@
 
 > Un sistema completo para crear y jugar historias narrativas donde cada decisión importa.
 
-**🆕 Ahora con Node.js y Mermaid.js local** - Sin dependencias de CDN
+**🆕 Ahora con Express.js y arquitectura modular** - URLs limpias, estructura profesional
 
 ---
 
@@ -25,59 +25,67 @@ npm install
 npm start
 ```
 
-**O usa los scripts de inicio:**
-- Windows: Doble clic en `start.bat`
-- Linux/Mac: `./start.sh`
-
 El servidor se abrirá en: **http://localhost:3000**
 
 📖 **Guía completa**: Lee [INSTALL.md](./INSTALL.md)
 
 ---
 
-## 🎮 Dos Versiones Disponibles
+## � Páginas Disponibles
 
-### **Versión 1.0 (Original)** - `index.html`
-- ✅ Historia fija "Fragments" pre-programada
-- ✅ 33 situaciones, 33 finales
-- ✅ Sistema simple de stats (energía, ánimo, caos)
-- ✅ 3 stats fijas
-- ✅ Un solo día de juego
-- 🎯 **Para jugar**: http://localhost:3000/index.html
+### **Landing** - `/`
+- Página de bienvenida con acceso a todas las funcionalidades
+- � **Jugar**: Accede al selector de historias
+- ✏️ **Crear**: Abre el editor visual
 
-### **Versión 2.0 (Engine)** - `game.html` ⭐
-- ✅ **Sistema modular** para crear historias custom
-- ✅ **Stats dinámicas**: Define las que quieras
-- ✅ **Flags y variables** personalizadas
-- ✅ **Sistema de personajes** con relaciones
-- ✅ **Inventario** (items + dinero)
-- ✅ **Multi-día** con persistencia
-- ✅ **Guardado completo**: LocalStorage + Export/Import
-- ✅ **Eventos especiales**: Random, forced, one-time
-- ✅ **Achievements** desbloqueables
-- ✅ **Validador automático** de historias
-- ✅ **Editor visual con flowchart interactivo** �
-- �🎯 **Para jugar**: http://localhost:3000/game.html
-- 📚 **Para crear historias**: Lee `STORY_CREATION_GUIDE.md`
+### **Selector de Historias** - `/selector`
+- Explora historias disponibles
+- Vista previa con detalles (stats, días, eventos)
+- Jugar o editar cualquier historia
+
+### **Juego** - `/game`
+- Motor interactivo v2.0
+- Sistema completo de guardado
+- Múltiples slots de guardado
+- Export/Import de partidas
+
+### **Editor Visual** - `/editor` ⭐
+- Interfaz completa para crear historias
+- Flowchart interactivo con Mermaid.js
+- Validación automática
+- Sistema de tabs organizado
+- 📚 **Guía**: Lee `STORY_CREATION_GUIDE.md`
 
 ---
 
-## 🚀 Inicio Rápido
+## 🏗️ Arquitectura v2.0
 
-### Opción 1: Editor Visual (Recomendado)
+### Estructura de Carpetas
 
-```bash
-npm start
-# Abre: http://localhost:3000/story-editor.html
+```
+Fragments/
+├── public/              # Frontend assets
+│   ├── css/            # Estilos modulares
+│   ├── js/             # JavaScript del cliente
+│   ├── game.html       # Juego principal
+│   └── index.html      # Landing page
+├── views/              # Páginas específicas
+│   ├── selector.html   # Selector de historias
+│   └── editor.html     # Editor visual
+├── src/engine/         # Motor del juego
+├── stories/            # Historias JSON
+├── docs/               # Documentación
+├── server.js           # Servidor Express.js
+└── package.json        # Dependencias
 ```
 
-Características del editor:
-- 📊 **Flowchart interactivo** con Mermaid.js
-- 🎨 Interfaz visual completa
-- ✅ Validación automática
-- 📤 Export/Import JSON
-- 🔍 Búsqueda y filtros avanzados
-- 📈 Análisis de camino crítico
+### Características Técnicas
+
+- ✅ **Express.js**: Routing profesional con URLs limpias
+- ✅ **CSS Modular**: variables.css + common.css + específicos
+- ✅ **Mermaid.js local**: Import directo desde node_modules
+- ✅ **Query params preservados**: Compatibilidad total
+- ✅ **Symlinks**: engine/ → src/engine/ para compatibilidad
 
 ### Opción 2: Jugar con el Nuevo Engine (v2.0)
 

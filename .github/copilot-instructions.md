@@ -2,11 +2,75 @@
 
 ## 🎯 Project Overview
 
-Fragments is a **vanilla JavaScript narrative engine** for creating interactive stories with branching paths. Zero dependencies, file-based architecture, dual-version system (v1.0 legacy, v2.0 engine).
+Fragments is a **vanilla JavaScript narrative engine** for creating interactive stories with branching paths. Modern Node.js server with Express.js for routing, clean URL structure, modular CSS architecture.
 
 **Core Philosophy**: Dynamic configuration over hardcoded logic. Stories are JSON-driven; the engine adapts to any stat/flag/character structure defined in `config.json`.
 
 ## 🏗️ Architecture
+
+### Project Structure (Professional Layout)
+
+```
+Fragments/
+├── public/              # Frontend assets (served as static files)
+│   ├── css/            # Stylesheets
+│   │   ├── variables.css   # Theme variables (colors, spacing)
+│   │   ├── common.css      # Reusable components (buttons, modals)
+│   │   ├── game.css        # Game-specific styles
+│   │   ├── selector.css    # Selector-specific styles
+│   │   └── editor.css      # Editor-specific styles
+│   ├── js/             # JavaScript files
+│   │   ├── main.js         # Game UI controller
+│   │   ├── story-selector.js
+│   │   └── story-editor.js
+│   ├── assets/         # Images, fonts, etc.
+│   ├── game.html       # Main game page
+│   └── index.html      # Landing page
+├── views/              # Specific view templates
+│   ├── selector.html   # Story selector page
+│   └── editor.html     # Story editor page
+├── src/                # Source code
+│   └── engine/         # Game engine (symlinked to /engine/)
+│       └── engine.js   # Core logic (~700 lines)
+├── stories/            # Story data (JSON files)
+│   └── [story_name]/
+│       ├── config.json
+│       ├── story.json
+│       └── endings.json
+├── docs/               # Documentation
+├── node_modules/       # NPM dependencies
+├── server.js           # Express.js HTTP server
+└── package.json        # Project metadata
+
+```
+
+### Server Architecture (Express.js)
+
+**Port**: 3000  
+**Framework**: Express.js v5.x  
+**File**: `server.js`
+
+```javascript
+// Clean URL routing (no .html extensions)
+GET /              → public/index.html
+GET /game          → public/game.html
+GET /selector      → views/selector.html
+GET /editor        → views/editor.html
+
+// Static file serving
+/css/*            → public/css/
+/js/*             → public/js/
+/engine/*         → engine/ (symlink to src/engine/)
+/stories/*        → stories/
+/node_modules/*   → node_modules/
+
+// Redirects (backward compatibility with query params preservation)
+/game.html        → /game (preserves ?query=params)
+/story-selector.html → /selector?story=xxx
+/story-editor.html   → /editor?story=xxx
+```
+
+**Critical**: Query parameters MUST be preserved in redirects for story loading to work.
 
 ### Three-Component Story System
 Every story requires exactly **3 JSON files**:
@@ -14,16 +78,6 @@ Every story requires exactly **3 JSON files**:
 1. **`config.json`** - Story metadata, stats, flags, characters, inventory, achievements
 2. **`story.json`** - Events (narrative situations with choices)
 3. **`endings.json`** - End conditions with priority-based evaluation
-
-### Core Components
-
-```
-game.html + main.js          → UI controller (dual-mode: normal + test)
-engine/engine.js             → Core logic (~700 lines)
-story-editor.html/.js        → Visual editor (~3900 lines)
-story-selector.html/.js      → Story browser
-stories/[name]/*.json        → Story data
-```
 
 ### Data Flow
 
@@ -168,6 +222,67 @@ checkEnding() {
 4. **Direct gameState Mutations**: Use engine methods, not direct assignment (breaks reactivity)
 5. **Hardcoded Stats**: Don't assume stat names - iterate `config.stats` dynamically
 6. **LocalStorage Keys**: Use consistent prefixes (e.g., `fragments_save_0`, `fragments_autosave`)
+7. **Relative Paths in Views**: Always use absolute paths (`/css/...` NOT `./css/...`) in HTML files
+8. **Query Parameters**: Preserve query params in Express redirects for story loading
+9. **Mermaid.js Import**: Use `/node_modules/mermaid/...` (absolute path) not `./node_modules/...`
+
+## 🌐 Server Development
+
+### Starting the Server
+```bash
+npm start           # Start Express server on port 3000
+npm run dev         # Same as start (development mode)
+```
+
+### Adding New Routes
+```javascript
+// In server.js
+app.get('/new-route', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views/new-page.html'));
+});
+
+// With query param preservation
+app.get('/old-route.html', (req, res) => {
+  const queryString = req.url.includes('?') ? req.url.split('?')[1] : '';
+  res.redirect('/new-route' + (queryString ? '?' + queryString : ''));
+});
+```
+
+### Static Files
+All static file directories are configured in `server.js`:
+```javascript
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
+app.use('/js', express.static(path.join(__dirname, 'public/js')));
+// Add more as needed
+```
+
+## 🎨 CSS Architecture
+
+### Modular CSS Structure
+1. **variables.css** - Theme variables (colors, spacing, transitions)
+   - Light/dark theme using CSS custom properties
+   - `body.dark-theme` class for theme switching
+   
+2. **common.css** - Reusable components
+   - Buttons: `.btn-primary`, `.btn-secondary`, `.btn-danger`, `.btn-icon`
+   - Modals: `.modal`, `.modal-content`, `.modal-actions`
+   - Forms: `.form-group`, `input`, `textarea`, `select`
+   - Toast notifications with animations
+   - Theme toggle button
+   - Utility classes: `.hidden`, `.fade-in`, `.fade-out`
+
+3. **Page-specific CSS** - game.css, selector.css, editor.css
+   - Import variables.css and common.css first
+   - Override/extend as needed
+
+### Import Order (CRITICAL)
+```html
+<link rel="stylesheet" href="/css/variables.css" />  <!-- ALWAYS FIRST -->
+<link rel="stylesheet" href="/css/common.css" />     <!-- SECOND -->
+<link rel="stylesheet" href="/css/page-specific.css" /> <!-- LAST -->
+```
+
+## 🚨 Common Pitfalls
 
 ## 🔍 Debugging Workflows
 
@@ -206,6 +321,10 @@ engine.getAvailableEvents()              // See current event pool
 
 ## 🔄 Recent Major Changes
 
+- **2024-11 (v2.0)**: Express.js server implementation with clean URL routing
+- **2024-11 (v2.0)**: Professional folder structure (public/, views/, src/, docs/)
+- **2024-11 (v2.0)**: Modular CSS architecture (variables.css + common.css)
+- **2024-11 (v2.0)**: Direct Mermaid.js import from node_modules (no file copying)
 - **2024-11**: Unified test system - removed `test-story.html`, now uses `game.html?test=true`
 - **2024-11**: Field name standardization - `situation` → `text`, `days` → `max_days`
 - **2024-11**: Added `loadStoryFromData()` method for in-memory story loading
@@ -218,6 +337,8 @@ engine.getAvailableEvents()              // See current event pool
 3. **UI changes**: Test both light/dark themes, mobile + desktop
 4. **Story format**: Document in `STORY_CREATION_GUIDE.md` with examples
 5. **Breaking changes**: Add migration logic in `loadExistingStory()` and `importFile()`
+6. **New routes**: Add to `server.js` with query param preservation if needed
+7. **New static folders**: Add to Express static middleware in `server.js`
 
 ## 📚 Key Documentation Files
 
@@ -225,7 +346,56 @@ engine.getAvailableEvents()              // See current event pool
 - `STORY_CREATION_GUIDE.md` - Complete story authoring reference
 - `SELECTOR_EDITOR_GUIDE.md` - Editor usage guide
 - `FLOWCHART_*.md` - Visual story flow documentation
+- `MIGRATION_STATUS.md` - v2.0 migration progress and changes
+
+## 🔍 Debugging Workflows
+
+### Server Issues
+```bash
+# Check if server is running
+taskkill //F //IM node.exe   # Windows: Stop all Node processes
+pkill -f "node server.js"    # Linux/Mac: Stop server
+
+# Start server with logging
+node server.js               # Watch console for 404s and errors
+
+# Common issues:
+# - 404 on page load: Check route mapping in server.js
+# - 404 on assets: Verify static middleware paths
+# - Query params lost: Check redirect preserves query string
+```
+
+### Test Story in Editor
+1. Click "🧪 Probar Historia" button (story-editor.js:3748)
+2. Opens `game.html?test=true` with `localStorage.testStory`
+3. Check browser console (F12) for engine logs: `✅ Historia cargada:` or `❌ Error...`
+
+### Validate Story Structure
+1. Click "✔️ Validar Historia" in editor
+2. Reviews event IDs, required fields, ending definitions
+3. Shows modal with issue list (see `validateStory()` implementation)
+
+### Check Conditions at Runtime
+```javascript
+// In browser console:
+engine.gameState           // Current state
+engine.checkConditions(event.conditions)  // Test specific conditions
+engine.getAvailableEvents()              // See current event pool
+```
+
+## 📂 File References
+
+- **Server**: `server.js` (Express.js routing and static files)
+- **Engine core**: `src/engine/engine.js` or `engine/engine.js` (symlink) (lines 1-705)
+- **UI controller**: `public/js/main.js` (lines 1-732)
+- **Editor logic**: `public/js/story-editor.js` (lines 1-3893)
+- **Selector**: `public/js/story-selector.js`
+- **Example story**: `stories/fragments_original/*.json`
+- **Full documentation**: `docs/STORY_CREATION_GUIDE.md` (3957 lines)
+- **CSS Variables**: `public/css/variables.css`
+- **CSS Components**: `public/css/common.css`
 
 ---
 
 **Remember**: Stories are JSON, engine is dynamic. Never hardcode stat/flag names. Always test in both normal and test modes.
+ Use absolute paths (/) for imports in HTML, preserve query params in redirects.
