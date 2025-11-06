@@ -52,6 +52,29 @@ class FragmentsEngine {
   }
 
   /**
+   * Cargar una historia desde datos en memoria (para modo test)
+   */
+  loadStoryFromData(storyData) {
+    try {
+      this.currentStoryPath = null; // No hay ruta física
+      
+      this.config = storyData.config;
+      this.story = storyData.story;
+      this.endings = storyData.endings;
+
+      console.log('✅ Historia cargada desde datos:', this.config.story.title);
+      
+      // Validar historia
+      this.validateStory();
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Error cargando historia desde datos:', error);
+      return false;
+    }
+  }
+
+  /**
    * Inicializar un nuevo juego
    */
   initGame() {
@@ -433,13 +456,6 @@ class FragmentsEngine {
     // Actualizar timestamp
     this.gameState.last_played = new Date().toISOString();
 
-    // Verificar si hay un ending inmediato (game over)
-    const immediateEnding = this.checkImmediateEnding();
-    if (immediateEnding) {
-      effects.trigger_ending = true;
-      effects.immediate_ending = immediateEnding;
-    }
-
     console.log('🎯 Elección realizada:', {
       event: event.id,
       choice: choiceIndex,
@@ -447,25 +463,6 @@ class FragmentsEngine {
     });
 
     return effects;
-  }
-
-  /**
-   * Verificar si hay un ending que debe activarse inmediatamente
-   * (por ejemplo, muerte, game over, etc)
-   */
-  checkImmediateEnding() {
-    // Buscar endings con prioridad alta (1-10) que se cumplan
-    const immediateEndings = this.endings.endings
-      .filter(ending => ending.priority <= 10)
-      .sort((a, b) => (a.priority || 999) - (b.priority || 999));
-
-    for (const ending of immediateEndings) {
-      if (this.meetsConditions(ending.conditions)) {
-        return ending;
-      }
-    }
-
-    return null;
   }
 
   /**

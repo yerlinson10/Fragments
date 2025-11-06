@@ -112,36 +112,84 @@ function playSound(type) {
 async function init() {
   initTheme();
   
-  // Obtener historia seleccionada o usar default
-  const selectedStory = localStorage.getItem('selectedStory') || 'fragments_original';
+  // Verificar si estamos en modo test (URL param o localStorage)
+  const urlParams = new URLSearchParams(window.location.search);
+  const testMode = urlParams.get('test') === 'true' || localStorage.getItem('testMode') === 'true';
   
-  // Limpiar selección
-  localStorage.removeItem('selectedStory');
-  
-  // Cargar historia
-  const loaded = await engine.loadStory(`stories/${selectedStory}`);
-  
-  if (!loaded) {
-    elements.situation.innerHTML = `
-      <strong>❌ Error cargando historia</strong><br><br>
-      No se pudo cargar "${selectedStory}".<br>
-      Verifica que existan los archivos en la carpeta stories/${selectedStory}/<br><br>
-      <button class="btn-primary" onclick="window.location.href='story-selector.html'">
-        ⬅️ Volver al Selector
-      </button>
-    `;
-    return;
-  }
-
-  // Actualizar UI con info de la historia
-  elements.title.textContent = engine.config.story.title;
-  elements.subtitle.textContent = engine.config.story.subtitle || '';
-
-  // Intentar cargar auto-save
-  if (engine.loadFromLocalStorage(0)) {
-    showContinuePrompt();
+  if (testMode) {
+    // Modo test: cargar desde localStorage
+    const testStory = localStorage.getItem('testStory');
+    if (!testStory) {
+      elements.situation.innerHTML = `
+        <strong>❌ Error</strong><br><br>
+        No hay historia de prueba disponible.<br><br>
+        <button class="btn-primary" onclick="window.location.href='story-editor.html'">
+          ⬅️ Volver al Editor
+        </button>
+      `;
+      return;
+    }
+    
+    try {
+      const storyData = JSON.parse(testStory);
+      const loaded = engine.loadStoryFromData(storyData);
+      
+      if (!loaded) {
+        throw new Error('No se pudo cargar la historia de prueba');
+      }
+      
+      // Limpiar el flag de test
+      localStorage.removeItem('testMode');
+      
+      // Agregar indicador visual de modo test
+      elements.title.innerHTML = `${engine.config.story.title} <small style="color: #f39c12; font-size: 0.6em;">🧪 PRUEBA</small>`;
+      elements.subtitle.textContent = engine.config.story.subtitle || '';
+      
+      startNewGame();
+      
+    } catch (error) {
+      console.error('Error en modo test:', error);
+      elements.situation.innerHTML = `
+        <strong>❌ Error al cargar historia de prueba</strong><br><br>
+        ${error.message}<br><br>
+        <button class="btn-primary" onclick="window.location.href='story-editor.html'">
+          ⬅️ Volver al Editor
+        </button>
+      `;
+      return;
+    }
   } else {
-    startNewGame();
+    // Modo normal: cargar desde carpeta stories
+    const selectedStory = localStorage.getItem('selectedStory') || 'fragments_original';
+    
+    // Limpiar selección
+    localStorage.removeItem('selectedStory');
+    
+    // Cargar historia
+    const loaded = await engine.loadStory(`stories/${selectedStory}`);
+    
+    if (!loaded) {
+      elements.situation.innerHTML = `
+        <strong>❌ Error cargando historia</strong><br><br>
+        No se pudo cargar "${selectedStory}".<br>
+        Verifica que existan los archivos en la carpeta stories/${selectedStory}/<br><br>
+        <button class="btn-primary" onclick="window.location.href='story-selector.html'">
+          ⬅️ Volver al Selector
+        </button>
+      `;
+      return;
+    }
+
+    // Actualizar UI con info de la historia
+    elements.title.textContent = engine.config.story.title;
+    elements.subtitle.textContent = engine.config.story.subtitle || '';
+
+    // Intentar cargar auto-save
+    if (engine.loadFromLocalStorage(0)) {
+      showContinuePrompt();
+    } else {
+      startNewGame();
+    }
   }
 }
 

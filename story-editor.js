@@ -370,6 +370,16 @@ async function loadExistingStory(storyId) {
       currentStory.story = await storyRes.json();
       currentStory.endings = await endingsRes.json();
       
+      // Normalizar: convertir 'situation' a 'text' si existe (backward compatibility)
+      if (currentStory.story.events) {
+        currentStory.story.events.forEach(event => {
+          if (event.situation && !event.text) {
+            event.text = event.situation;
+            delete event.situation;
+          }
+        });
+      }
+      
       updateUI();
       showToast('Historia cargada correctamente', 'success');
     }
@@ -388,7 +398,7 @@ function updateUI() {
   document.getElementById('storySubtitle').value = currentStory.config.story.subtitle || '';
   document.getElementById('storyDescription').value = currentStory.config.story.description || '';
   document.getElementById('storyAuthor').value = currentStory.config.story.author || '';
-  document.getElementById('storyDays').value = currentStory.config.story.days || 1;
+  document.getElementById('storyDays').value = currentStory.config.story.max_days || currentStory.config.story.days || 1;
   document.getElementById('startingDay').value = currentStory.config.story.starting_day || 1;
   document.getElementById('startingTime').value = currentStory.config.story.starting_time || 'morning';
   document.getElementById('saveSlots').value = currentStory.config.settings.save_slots || 3;
@@ -983,7 +993,7 @@ function renderEvents() {
     const query = eventsSearchQuery.toLowerCase();
     filteredEvents = filteredEvents.filter(e => 
       e.event.id.toLowerCase().includes(query) ||
-      e.event.situation.toLowerCase().includes(query)
+      (e.event.text && e.event.text.toLowerCase().includes(query))
     );
   }
   
@@ -1011,7 +1021,7 @@ function renderEvents() {
                   ${isLast ? 'disabled' : ''} title="Bajar">⬇️</button>
         </div>
       </div>
-      <div class="event-situation" onclick="editEvent(${originalIndex})">${event.situation.substring(0, 150)}${event.situation.length > 150 ? '...' : ''}</div>
+      <div class="event-situation" onclick="editEvent(${originalIndex})">${event.text ? event.text.substring(0, 150) : ''}${event.text && event.text.length > 150 ? '...' : ''}</div>
       <div class="event-meta" onclick="editEvent(${originalIndex})">
         <span>📅 Día ${event.day || 'cualquiera'}</span>
         <span>🔀 ${event.choices?.length || 0} opciones</span>
@@ -1032,7 +1042,7 @@ function renderEvents() {
 
 function updateDayFilter() {
   const select = document.getElementById('dayFilter');
-  const days = currentStory.config.story.days || 1;
+  const days = currentStory.config.story.max_days || currentStory.config.story.days || 1;
   
   let options = '<option value="all">Todos los días</option>';
   for (let i = 1; i <= days; i++) {
@@ -1062,7 +1072,7 @@ window.addEvent = function() {
     id: `evento_${Date.now()}`,
     type: 'optional',
     day: 1,
-    situation: '',
+    text: '',
     choices: [
       { text: 'Opción 1', effects: {} },
       { text: 'Opción 2', effects: {} }
@@ -1142,7 +1152,7 @@ window.editEvent = function(index) {
       
       <div class="form-group full-width">
         <label>Situación / Texto del Evento *</label>
-        <textarea id="eventSituation" rows="4" required>${event.situation || ''}</textarea>
+        <textarea id="eventSituation" rows="4" required>${event.text || ''}</textarea>
       </div>
       
       <div class="form-group full-width">
@@ -2120,7 +2130,7 @@ window.saveEvent = function() {
   event.type = document.getElementById('eventType').value;
   event.day = parseInt(document.getElementById('eventDay').value) || 0;
   event.can_repeat = document.getElementById('eventCanRepeat').checked;
-  event.situation = document.getElementById('eventSituation').value;
+  event.text = document.getElementById('eventSituation').value;
   
   // Probability for random events
   if (event.type === 'random') {
@@ -3552,7 +3562,7 @@ window.applyFlowchartZoom = function(value) {
  */
 function updateFlowchartDayFilter() {
   const select = document.getElementById('flowchartDayFilter');
-  const days = currentStory.config.story.days || 1;
+  const days = currentStory.config.story.max_days || currentStory.config.story.days || 1;
   
   select.innerHTML = '<option value="all">Todos los días</option>';
   for (let i = 1; i <= days; i++) {
@@ -3596,9 +3606,17 @@ document.getElementById('storyTitleInput').addEventListener('input', (e) => {
 
 ['storyDays', 'startingDay', 'saveSlots'].forEach(id => {
   document.getElementById(id).addEventListener('input', (e) => {
-    const field = id.replace('story', '').replace(/([A-Z])/g, '_$1').toLowerCase();
+    let field = id.replace('story', '').replace(/([A-Z])/g, '_$1').toLowerCase().replace('_', '');
+    
+    // Convertir 'days' a 'max_days' para consistencia con el formato oficial
+    if (field === 'days') {
+      field = 'max_days';
+    } else if (field === 'startingday') {
+      field = 'starting_day';
+    }
+    
     const target = id === 'saveSlots' ? currentStory.config.settings : currentStory.config.story;
-    target[field.replace('_', '')] = parseInt(e.target.value) || 1;
+    target[field] = parseInt(e.target.value) || 1;
     
     if (id === 'storyDays') {
       updateDayFilter();
@@ -3705,6 +3723,16 @@ document.getElementById('importFile').addEventListener('change', async (e) => {
       currentStory.endings = data;
     }
     
+    // Normalizar: convertir 'situation' a 'text' si existe (backward compatibility)
+    if (currentStory.story.events) {
+      currentStory.story.events.forEach(event => {
+        if (event.situation && !event.text) {
+          event.text = event.situation;
+          delete event.situation;
+        }
+      });
+    }
+    
     updateUI();
     markDirty();
     showToast('Historia importada correctamente', 'success');
@@ -3716,13 +3744,14 @@ document.getElementById('importFile').addEventListener('change', async (e) => {
   e.target.value = '';
 });
 
-// Test
+// Test - Ahora usa game.html con modo test
 document.getElementById('testBtn').addEventListener('click', () => {
-  // Save to temp storage
-  localStorage.setItem('tempStory', JSON.stringify(currentStory));
+  // Guardar historia completa en localStorage
+  localStorage.setItem('testStory', JSON.stringify(currentStory));
+  localStorage.setItem('testMode', 'true');
   
-  // Open in new tab
-  window.open('test-story.html', '_blank');
+  // Abrir game.html con parámetro de test
+  window.open('game.html?test=true', '_blank');
 });
 
 // Validate
@@ -3780,7 +3809,7 @@ function validateStory() {
     }
     eventIds.add(event.id);
     
-    if (!event.situation) {
+    if (!event.text) {
       issues.push(`Evento "${event.id}" sin texto de situación`);
     }
     
