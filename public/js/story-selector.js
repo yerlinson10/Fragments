@@ -197,7 +197,7 @@ document.getElementById('sortSelect').addEventListener('change', (e) => {
 // Jugar historia
 function playStory(storyId) {
   localStorage.setItem('selectedStory', storyId);
-  window.location.href = 'index.html';
+  window.location.href = 'game.html';
 }
 
 // Editar historia

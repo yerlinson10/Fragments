@@ -1,0 +1,51 @@
+/**
+ * VARIABLES DE TEMA - Fragments Engine v2.0
+ * Colores y estilos compartidos por toda la aplicación
+ */
+
+:root {
+  /* Colores principales */
+  --accent: #6c5ce7;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #2d3436;
+  --text-secondary: #636e72;
+  --border-light: #dfe6e9;
+  --shadow: rgba(0, 0, 0, 0.1);
+  
+  /* Estados */
+  --success: #00b894;
+  --warning: #fdcb6e;
+  --danger: #d63031;
+  --info: #74b9ff;
+  
+  /* Transiciones */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Bordes */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 15px;
+  
+  /* Espaciado */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+}
+
+body.dark-theme {
+  /* Colores oscuros */
+  --accent: #a29bfe;
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #3d3d3d;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --border-light: #444;
+  --shadow: rgba(0, 0, 0, 0.3);
+}

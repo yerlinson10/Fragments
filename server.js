@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Servidor HTTP simple para desarrollo de Fragments
- * Sirve archivos estáticos con soporte para módulos ES6
+ * Servidor HTTP para Fragments v2.0
+ * Compatible con estructura antigua y nueva
  */
 
 const http = require('http');
@@ -12,7 +12,6 @@ const path = require('path');
 const PORT = 3000;
 const HOST = 'localhost';
 
-// Tipos MIME
 const mimeTypes = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -27,13 +26,37 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-  // Remover query string de la URL
   const url = new URL(req.url, `http://${req.headers.host}`);
   let filePath = '.' + url.pathname;
   
-  // Página por defecto
-  if (filePath === './') {
-    filePath = './index.html';
+  // Mapeo de rutas antiguas y nuevas
+  const routeMap = {
+    '/': './public/index.html',
+    '/index': './public/index.html',
+    '/game': './public/game.html',
+    '/selector': './views/selector.html',
+    '/editor': './views/editor.html',
+    // Compatibilidad con URLs antiguas
+    '/story-selector.html': './views/selector.html',
+    '/story-editor.html': './views/editor.html'
+  };
+  
+  // Aplicar mapeo de rutas
+  if (routeMap[url.pathname]) {
+    filePath = routeMap[url.pathname];
+  }
+  // Si no existe en la raíz, intentar en public/
+  else if (!fs.existsSync(filePath)) {
+    const publicPath = './public' + url.pathname;
+    if (fs.existsSync(publicPath)) {
+      filePath = publicPath;
+    } else {
+      // Intentar en views/
+      const viewsPath = './views' + url.pathname;
+      if (fs.existsSync(viewsPath)) {
+        filePath = viewsPath;
+      }
+    }
   }
   
   const extname = String(path.extname(filePath)).toLowerCase();
@@ -42,13 +65,13 @@ const server = http.createServer((req, res) => {
   fs.readFile(filePath, (error, content) => {
     if (error) {
       if (error.code === 'ENOENT') {
-        console.log(`❌ 404: ${url.pathname} -> ${filePath}`);
+        console.log(`❌ 404: ${url.pathname}`);
         res.writeHead(404, { 'Content-Type': 'text/html' });
-        res.end('<h1>404 - Archivo no encontrado</h1><p>Ruta solicitada: ' + url.pathname + '</p><p>Ruta buscada: ' + filePath + '</p>', 'utf-8');
+        res.end('<h1>404 - Archivo no encontrado</h1><p>Ruta: ' + url.pathname + '</p>', 'utf-8');
       } else {
-        console.error('Error del servidor:', error);
+        console.error('Error:', error);
         res.writeHead(500);
-        res.end('Error del servidor: ' + error.code, 'utf-8');
+        res.end('Error del servidor', 'utf-8');
       }
     } else {
       console.log(`✅ 200: ${url.pathname}`);
@@ -59,14 +82,17 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log('🚀 Servidor Fragments iniciado');
-  console.log(`📍 URL: http://${HOST}:${PORT}`);
+  console.log('🚀 Servidor Fragments v2.0');
+  console.log(`📍 http://${HOST}:${PORT}`);
   console.log('');
-  console.log('📝 Páginas disponibles:');
-  console.log(`   - http://${HOST}:${PORT}/index.html (Juego)`);
-  console.log(`   - http://${HOST}:${PORT}/story-selector.html (Selector de historias)`);
-  console.log(`   - http://${HOST}:${PORT}/story-editor.html (Editor visual)`);
-  console.log(`   - http://${HOST}:${PORT}/game.html (Modo juego)`);
+  console.log('📝 Páginas:');
+  console.log(`   - http://${HOST}:${PORT}/ (o /index)`);
+  console.log(`   - http://${HOST}:${PORT}/game`);
+  console.log(`   - http://${HOST}:${PORT}/selector`);
+  console.log(`   - http://${HOST}:${PORT}/editor`);
   console.log('');
-  console.log('⌨️  Presiona Ctrl+C para detener el servidor');
+  console.log('📂 Nueva estructura creada en: public/, views/, src/, docs/');
+  console.log('📄 Ver detalles: MIGRATION_STATUS.md');
+  console.log('');
+  console.log('⌨️  Ctrl+C para detener');
 });

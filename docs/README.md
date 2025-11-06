@@ -1,257 +1,130 @@
-# 🧩 Fragments - Motor de Historias Interactivas v2.0# 🧩 Fragments - Motor de Historias Interactivas v2.0
+# 🧩 Fragments - Motor de Historias Interactivas v2.0
 
+> Un sistema completo para crear y jugar historias narrativas donde cada decisión importa.
 
+**🆕 Ahora con Node.js y Mermaid.js local** - Sin dependencias de CDN
 
-> Sistema completo para crear y jugar historias narrativas donde cada decisión importa.> Un sistema completo para crear y jugar historias narrativas donde cada decisión importa.
+---
 
+## 📦 Instalación
 
-
-**Estructura reorganizada profesionalmente** - Node.js + Mermaid.js local**🆕 Ahora con Node.js y Mermaid.js local** - Sin dependencias de CDN
-
-
-
-------
-
-
-
-## 🚀 Inicio Rápido## 📦 Instalación
-
-
-
-```bash### Requisitos
-
-# 1. Instalar dependencias- **Node.js** >= 14.0.0 ([Descargar aquí](https://nodejs.org/))
-
-npm install
+### Requisitos
+- **Node.js** >= 14.0.0 ([Descargar aquí](https://nodejs.org/))
 
 ### Instalación Rápida
 
-# 2. Iniciar servidor
-
-npm start```bash
-
-```# 1. Clonar o descargar el proyecto
-
+```bash
+# 1. Clonar o descargar el proyecto
 git clone https://github.com/tu-usuario/Fragments.git
+cd Fragments
 
-El servidor se abrirá en: **http://localhost:3000**cd Fragments
-
-
-
----# 2. Instalar dependencias
-
+# 2. Instalar dependencias
 npm install
 
-## 📂 Estructura del Proyecto
-
 # 3. Iniciar servidor
+npm start
+```
 
-```npm start
+**O usa los scripts de inicio:**
+- Windows: Doble clic en `start.bat`
+- Linux/Mac: `./start.sh`
 
-Fragments/```
+El servidor se abrirá en: **http://localhost:3000**
 
-├── public/           # Frontend (HTML, CSS, JS, assets)
+📖 **Guía completa**: Lee [INSTALL.md](./INSTALL.md)
 
-│   ├── css/         # Estilos modulares**O usa los scripts de inicio:**
+---
 
-│   ├── js/          # JavaScript del cliente- Windows: Doble clic en `start.bat`
+## 🎮 Dos Versiones Disponibles
 
-│   ├── assets/      # Imágenes, iconos, sonidos- Linux/Mac: `./start.sh`
-
-│   ├── index.html   # Landing page
-
-│   └── game.html    # Juego v2.0El servidor se abrirá en: **http://localhost:3000**
-
-├── views/           # Vistas específicas
-
-│   ├── selector.html # Selector de historias📖 **Guía completa**: Lee [INSTALL.md](./INSTALL.md)
-
-│   └── editor.html   # Editor visual
-
-├── src/             # Código fuente---
-
-│   └── engine/      # Motor del juego
-
-├── stories/         # Historias JSON## 🎮 Dos Versiones Disponibles
-
-├── docs/            # Documentación completa
-
-├── scripts/         # Scripts de utilidad### **Versión 1.0 (Original)** - `index.html`
-
-└── server.js        # Servidor HTTP- ✅ Historia fija "Fragments" pre-programada
-
-```- ✅ 33 situaciones, 33 finales
-
+### **Versión 1.0 (Original)** - `index.html`
+- ✅ Historia fija "Fragments" pre-programada
+- ✅ 33 situaciones, 33 finales
 - ✅ Sistema simple de stats (energía, ánimo, caos)
-
----- ✅ 3 stats fijas
-
+- ✅ 3 stats fijas
 - ✅ Un solo día de juego
+- 🎯 **Para jugar**: http://localhost:3000/index.html
 
-## 📝 Páginas Disponibles- 🎯 **Para jugar**: http://localhost:3000/index.html
-
-
-
-- **http://localhost:3000/index.html** - Landing page### **Versión 2.0 (Engine)** - `game.html` ⭐
-
-- **http://localhost:3000/game.html** - Juego v2.0- ✅ **Sistema modular** para crear historias custom
-
-- **http://localhost:3000/story-selector.html** - Selector de historias- ✅ **Stats dinámicas**: Define las que quieras
-
-- **http://localhost:3000/story-editor.html** - Editor visual- ✅ **Flags y variables** personalizadas
-
+### **Versión 2.0 (Engine)** - `game.html` ⭐
+- ✅ **Sistema modular** para crear historias custom
+- ✅ **Stats dinámicas**: Define las que quieras
+- ✅ **Flags y variables** personalizadas
 - ✅ **Sistema de personajes** con relaciones
-
----- ✅ **Inventario** (items + dinero)
-
+- ✅ **Inventario** (items + dinero)
 - ✅ **Multi-día** con persistencia
-
-## 📚 Documentación- ✅ **Guardado completo**: LocalStorage + Export/Import
-
+- ✅ **Guardado completo**: LocalStorage + Export/Import
 - ✅ **Eventos especiales**: Random, forced, one-time
-
-- **[Guía de Creación de Historias](./docs/STORY_CREATION_GUIDE.md)** - Tutorial completo- ✅ **Achievements** desbloqueables
-
-- **[Guía del Editor Visual](./docs/SELECTOR_EDITOR_GUIDE.md)** - Cómo usar el editor- ✅ **Validador automático** de historias
-
-- **[Estado de Migración](./MIGRATION_STATUS.md)** - Detalles de la nueva estructura- ✅ **Editor visual con flowchart interactivo** �
-
+- ✅ **Achievements** desbloqueables
+- ✅ **Validador automático** de historias
+- ✅ **Editor visual con flowchart interactivo** �
 - �🎯 **Para jugar**: http://localhost:3000/game.html
+- 📚 **Para crear historias**: Lee `STORY_CREATION_GUIDE.md`
 
----- 📚 **Para crear historias**: Lee `STORY_CREATION_GUIDE.md`
+---
 
+## 🚀 Inicio Rápido
 
+### Opción 1: Editor Visual (Recomendado)
 
-## ✨ Características---
+```bash
+npm start
+# Abre: http://localhost:3000/story-editor.html
+```
 
-
-
-### **Versión 2.0 (Engine Modular)**## 🚀 Inicio Rápido
-
-- ✅ **Stats dinámicas** - Define las que necesites
-
-- ✅ **Sistema de personajes** - Relaciones que evolucionan### Opción 1: Editor Visual (Recomendado)
-
-- ✅ **Inventario** - Items + dinero
-
-- ✅ **Multi-día** - Historias de varios días```bash
-
-- ✅ **Guardado completo** - LocalStorage + Export/Importnpm start
-
-- ✅ **Editor visual** - Flowchart interactivo con Mermaid.js# Abre: http://localhost:3000/story-editor.html
-
-- ✅ **Eventos especiales** - Random, forced, one-time```
-
-- ✅ **Achievements** - Sistema de logros
-
-- ✅ **Validación automática** - Detecta errores en historiasCaracterísticas del editor:
-
+Características del editor:
 - 📊 **Flowchart interactivo** con Mermaid.js
-
----- 🎨 Interfaz visual completa
-
+- 🎨 Interfaz visual completa
 - ✅ Validación automática
-
-## 🛠️ Desarrollo- 📤 Export/Import JSON
-
+- 📤 Export/Import JSON
 - 🔍 Búsqueda y filtros avanzados
+- 📈 Análisis de camino crítico
 
-### Scripts NPM- 📈 Análisis de camino crítico
+### Opción 2: Jugar con el Nuevo Engine (v2.0)
 
-
-
-```bash### Opción 2: Jugar con el Nuevo Engine (v2.0)
-
-npm start    # Inicia el servidor
-
-npm run dev  # Alias de npm start```bash
-
-```npm start
-
+```bash
+npm start
 # Abre: http://localhost:3000/game.html
+```
 
-### Crear Nueva Historia```
-
-
-
-1. Abre **http://localhost:3000/story-editor.html**Disfruta la historia "Fragments" mejorada con:
-
-2. Completa la configuración básica- 3 días de juego
-
-3. Crea eventos, personajes, finales- Sistema de personajes (Madre, Pablo, Ex, Jefe)
-
-4. Exporta los archivos JSON- Relaciones que evolucionan
-
-5. Copia a `stories/tu_historia/`- Posibilidad de adoptar un perro
-
+Disfruta la historia "Fragments" mejorada con:
+- 3 días de juego
+- Sistema de personajes (Madre, Pablo, Ex, Jefe)
+- Relaciones que evolucionan
+- Posibilidad de adoptar un perro
 - Múltiples caminos y consecuencias
+- 10+ finales diferentes
 
----- 10+ finales diferentes
+### Opción 3: Crear Tu Propia Historia
 
-
-
-## 📦 Dependencias### Opción 3: Crear Tu Propia Historia
-
-
-
-- **Node.js** >= 14.0.01. Lee `STORY_CREATION_GUIDE.md`
-
-- **Mermaid.js** v10.6.1 (local, no CDN)2. Crea una carpeta en `stories/mi_historia/`
-
+1. Lee `STORY_CREATION_GUIDE.md`
+2. Crea una carpeta en `stories/mi_historia/`
 3. Define 3 archivos JSON:
-
----   - `config.json` - Configuración
-
+   - `config.json` - Configuración
    - `story.json` - Eventos
-
-## 🎮 ¿Por Dónde Empezar?   - `endings.json` - Finales
-
+   - `endings.json` - Finales
 4. Edita `main.js` línea ~103:
-
-1. **Para jugar**: Abre http://localhost:3000/story-selector.html   ```javascript
-
-2. **Para crear historias**: Lee [docs/STORY_CREATION_GUIDE.md](./docs/STORY_CREATION_GUIDE.md)   await engine.loadStory('stories/mi_historia');
-
-3. **Para usar el editor**: Lee [docs/SELECTOR_EDITOR_GUIDE.md](./docs/SELECTOR_EDITOR_GUIDE.md)   ```
-
+   ```javascript
+   await engine.loadStory('stories/mi_historia');
+   ```
 5. Abre `index-v2.html` y juega tu historia
 
 ---
 
----
-
-## 📄 Licencia
-
 ## 📁 Estructura del Proyecto
 
-MIT License - Yerlinson Lora © 2025
-
 ```
-
----Fragments/
-
+Fragments/
 │
-
-## 🔄 Cambios en v2.0├── game.html               # V2.0 - Nuevo engine
-
+├── game.html               # V2.0 - Nuevo engine
 ├── app.js                  # Lógica V1.0
-
-- ✅ Estructura de carpetas profesional├── main.js                 # Controlador V2.0
-
-- ✅ CSS modular con variables compartidas├── style.css               # Estilos (ambas versiones)
-
-- ✅ Mermaid.js local (sin CDN)│
-
-- ✅ Documentación organizada en `docs/`├── engine/
-
-- ✅ Archivos duplicados eliminados│   └── engine.js           # 🧠 Motor de historias V2.0
-
-- ✅ Rutas simplificadas│
-
+├── main.js                 # Controlador V2.0
+├── style.css               # Estilos (ambas versiones)
+│
+├── engine/
+│   └── engine.js           # 🧠 Motor de historias V2.0
+│
 ├── data/                   # Datos V1.0
-
-Ver [MIGRATION_STATUS.md](./MIGRATION_STATUS.md) para detalles completos.│   ├── situations.json
-
+│   ├── situations.json
 │   └── endings.json
 │
 ├── stories/                # 📚 Historias V2.0
