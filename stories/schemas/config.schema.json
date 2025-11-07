@@ -1,0 +1,223 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fragments.app/schemas/config.json",
+  "title": "Fragments Story Config Schema",
+  "description": "Schema for validating story configuration files",
+  "type": "object",
+  "required": ["story", "stats", "flags", "settings"],
+  "properties": {
+    "story": {
+      "type": "object",
+      "required": ["id", "title", "max_days"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Unique story identifier"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Story title"
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional subtitle"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Story description"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Semantic version (e.g., 1.0.0)"
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Story author"
+        },
+        "max_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "description": "Total number of days in the story"
+        },
+        "starting_day": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Starting day (defaults to 1)"
+        },
+        "starting_time": {
+          "type": "string",
+          "enum": ["morning", "afternoon", "evening", "night"],
+          "description": "Starting time of day"
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z_]+$": {
+          "type": "object",
+          "required": ["name", "min", "max", "start"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 50
+            },
+            "icon": {
+              "type": "string",
+              "maxLength": 10
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "start": {
+              "type": "number"
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      }
+    },
+    "flags": {
+      "type": "object",
+      "description": "Initial flag values (boolean, number, or string)"
+    },
+    "characters": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z_]+$": {
+          "type": "object",
+          "required": ["name", "relationship"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "relationship": {
+              "type": "number",
+              "minimum": -100,
+              "maximum": 100
+            },
+            "met": {
+              "type": "boolean"
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 300
+            }
+          }
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "money": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "required": ["save_slots"],
+      "properties": {
+        "allow_save": {
+          "type": "boolean"
+        },
+        "allow_restart": {
+          "type": "boolean"
+        },
+        "show_stats": {
+          "type": "boolean"
+        },
+        "show_flags": {
+          "type": "boolean"
+        },
+        "show_characters": {
+          "type": "boolean"
+        },
+        "show_inventory": {
+          "type": "boolean"
+        },
+        "enable_sound": {
+          "type": "boolean"
+        },
+        "auto_save": {
+          "type": "boolean"
+        },
+        "save_slots": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "enable_achievements": {
+          "type": "boolean"
+        }
+      }
+    },
+    "achievements": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z_]+$": {
+          "type": "object",
+          "required": ["name", "description"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "icon": {
+              "type": "string",
+              "maxLength": 10
+            },
+            "unlocked": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  }
+}

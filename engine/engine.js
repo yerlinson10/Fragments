@@ -35,6 +35,14 @@ class FragmentsEngine {
         fetch(`${storyPath}/endings.json`)
       ]);
 
+      // Validar que todas las respuestas sean exitosas
+      const files = ['config.json', 'story.json', 'endings.json'];
+      [configRes, storyRes, endingsRes].forEach((res, i) => {
+        if (!res.ok) {
+          throw new Error(`No se pudo cargar ${files[i]}: ${res.status} ${res.statusText}`);
+        }
+      });
+
       this.config = await configRes.json();
       this.story = await storyRes.json();
       this.endings = await endingsRes.json();
@@ -44,10 +52,10 @@ class FragmentsEngine {
       // Validar historia
       this.validateStory();
       
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('❌ Error cargando historia:', error);
-      return false;
+      return { success: false, error: error.message };
     }
   }
 
@@ -58,6 +66,15 @@ class FragmentsEngine {
     try {
       this.currentStoryPath = null; // No hay ruta física
       
+      // Validar que los datos tengan la estructura requerida
+      if (!storyData || typeof storyData !== 'object') {
+        throw new Error('Los datos de la historia no son válidos');
+      }
+      
+      if (!storyData.config || !storyData.story || !storyData.endings) {
+        throw new Error('Faltan archivos requeridos: config, story o endings');
+      }
+      
       this.config = storyData.config;
       this.story = storyData.story;
       this.endings = storyData.endings;
@@ -67,10 +84,10 @@ class FragmentsEngine {
       // Validar historia
       this.validateStory();
       
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('❌ Error cargando historia desde datos:', error);
-      return false;
+      return { success: false, error: error.message };
     }
   }
 
