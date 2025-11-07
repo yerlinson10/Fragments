@@ -72,7 +72,7 @@ Fragments/
 ├── views/              # Páginas específicas
 │   ├── selector.html   # Selector de historias
 │   └── editor.html     # Editor visual
-├── src/engine/         # Motor del juego
+├── engine/             # Motor del juego
 ├── stories/            # Historias JSON
 ├── docs/               # Documentación
 ├── server.js           # Servidor Express.js
@@ -85,7 +85,6 @@ Fragments/
 - ✅ **CSS Modular**: variables.css + common.css + específicos
 - ✅ **Mermaid.js local**: Import directo desde node_modules
 - ✅ **Query params preservados**: Compatibilidad total
-- ✅ **Symlinks**: engine/ → src/engine/ para compatibilidad
 
 ### Opción 2: Jugar con el Nuevo Engine (v2.0)
 

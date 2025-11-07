@@ -60,7 +60,7 @@ GET /editor        → views/editor.html
 // Static file serving
 /css/*            → public/css/
 /js/*             → public/js/
-/engine/*         → engine/ (symlink to src/engine/)
+/engine/*         → engine/
 /stories/*        → stories/
 /node_modules/*   → node_modules/
 
@@ -386,7 +386,7 @@ engine.getAvailableEvents()              // See current event pool
 ## 📂 File References
 
 - **Server**: `server.js` (Express.js routing and static files)
-- **Engine core**: `src/engine/engine.js` or `engine/engine.js` (symlink) (lines 1-705)
+- **Engine core**: `engine/engine.js`
 - **UI controller**: `public/js/main.js` (lines 1-732)
 - **Editor logic**: `public/js/story-editor.js` (lines 1-3893)
 - **Selector**: `public/js/story-selector.js`
