@@ -635,27 +635,47 @@ async function loadExistingStory(storyId) {
       fetch(`stories/${storyId}/endings.json`)
     ]);
 
-    if (configRes.ok && storyRes.ok && endingsRes.ok) {
-      currentStory.config = await configRes.json();
-      currentStory.story = await storyRes.json();
-      currentStory.endings = await endingsRes.json();
-      
-      // Normalizar: convertir 'situation' a 'text' si existe (backward compatibility)
-      if (currentStory.story.events) {
-        currentStory.story.events.forEach(event => {
-          if (event.situation && !event.text) {
-            event.text = event.situation;
-            delete event.situation;
-          }
-        });
-      }
-      
-      updateUI();
-      showToast('Historia cargada correctamente', 'success');
+    // Validar que todas las respuestas sean exitosas
+    if (!configRes.ok || !storyRes.ok || !endingsRes.ok) {
+      const errors = [];
+      if (!configRes.ok) errors.push(`config.json (${configRes.status})`);
+      if (!storyRes.ok) errors.push(`story.json (${storyRes.status})`);
+      if (!endingsRes.ok) errors.push(`endings.json (${endingsRes.status})`);
+      throw new Error(`Error cargando archivos: ${errors.join(', ')}`);
     }
+
+    currentStory.config = await configRes.json();
+    currentStory.story = await storyRes.json();
+    currentStory.endings = await endingsRes.json();
+    
+    // Validar estructura básica
+    if (!currentStory.config.story || !currentStory.config.stats) {
+      throw new Error('Archivo config.json con estructura inválida');
+    }
+    
+    if (!currentStory.story.events || !Array.isArray(currentStory.story.events)) {
+      throw new Error('Archivo story.json con estructura inválida');
+    }
+    
+    if (!currentStory.endings.endings || !Array.isArray(currentStory.endings.endings)) {
+      throw new Error('Archivo endings.json con estructura inválida');
+    }
+    
+    // Normalizar: convertir 'situation' a 'text' si existe (backward compatibility)
+    if (currentStory.story.events) {
+      currentStory.story.events.forEach(event => {
+        if (event.situation && !event.text) {
+          event.text = event.situation;
+          delete event.situation;
+        }
+      });
+    }
+    
+    updateUI();
+    showToast('Historia cargada correctamente', 'success');
   } catch (error) {
     console.error('Error cargando historia:', error);
-    showToast('Error cargando historia', 'error');
+    showToast(`Error cargando historia: ${error.message}`, 'error');
   }
 }
 
@@ -4966,6 +4986,11 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   try {
     const storyId = currentStory.config.story.id;
     
+    // Validar que el ID sea válido para nombre de archivo
+    if (!/^[a-zA-Z0-9_-]+$/.test(storyId)) {
+      throw new Error('El ID de la historia solo puede contener letras, números, guiones y guiones bajos');
+    }
+    
     // Download files with delay to prevent browser blocking
     downloadJSON(currentStory.config, `${storyId}_config.json`);
     
@@ -4976,22 +5001,33 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     downloadJSON(currentStory.endings, `${storyId}_endings.json`);
     
     markClean();
-    showToast('3 archivos descargados. Copia a stories/' + storyId + '/', 'success');
+    showToast(`3 archivos descargados. Copia a stories/${storyId}/`, 'success');
   } catch (error) {
     console.error('Error guardando:', error);
-    showToast('Error al guardar', 'error');
+    showToast(`Error al guardar: ${error.message}`, 'error');
   }
 });
 
 document.getElementById('exportBtn').addEventListener('click', () => {
-  const bundle = {
-    config: currentStory.config,
-    story: currentStory.story,
-    endings: currentStory.endings
-  };
-  
-  downloadJSON(bundle, `${currentStory.config.story.id || 'historia'}_completa.json`);
-  showToast('Historia exportada como bundle', 'success');
+  try {
+    // Validar que haya datos para exportar
+    if (!currentStory.config || !currentStory.story || !currentStory.endings) {
+      throw new Error('La historia no está completa. Verifica que tenga config, story y endings.');
+    }
+    
+    const bundle = {
+      config: currentStory.config,
+      story: currentStory.story,
+      endings: currentStory.endings
+    };
+    
+    const filename = `${currentStory.config.story.id || 'historia'}_completa.json`;
+    downloadJSON(bundle, filename);
+    showToast(`Historia exportada como bundle: ${filename}`, 'success');
+  } catch (error) {
+    console.error('Error exportando:', error);
+    showToast(`Error al exportar: ${error.message}`, 'error');
+  }
 });
 
 document.getElementById('importBtn').addEventListener('click', () => {
@@ -5003,21 +5039,48 @@ document.getElementById('importFile').addEventListener('change', async (e) => {
   if (!file) return;
   
   try {
+    // Validar tipo de archivo
+    if (!file.name.endsWith('.json')) {
+      throw new Error('El archivo debe ser .json');
+    }
+    
     const text = await file.text();
-    const data = JSON.parse(text);
+    
+    // Validar que sea JSON válido
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      throw new Error('El archivo no contiene JSON válido: ' + parseError.message);
+    }
+    
+    // Detectar tipo de archivo e importar
+    let imported = false;
     
     if (data.config && data.story && data.endings) {
       // Bundle completo
       currentStory = data;
+      imported = true;
+      showToast('Historia completa importada (bundle)', 'success');
     } else if (data.story && data.stats) {
       // Solo config
       currentStory.config = data;
-    } else if (data.events) {
+      imported = true;
+      showToast('Archivo config.json importado', 'success');
+    } else if (data.events && Array.isArray(data.events)) {
       // Solo story
       currentStory.story = data;
-    } else if (data.endings) {
+      imported = true;
+      showToast('Archivo story.json importado', 'success');
+    } else if (data.endings && Array.isArray(data.endings)) {
       // Solo endings
       currentStory.endings = data;
+      imported = true;
+      showToast('Archivo endings.json importado', 'success');
+    }
+    
+    if (!imported) {
+      throw new Error('Formato de archivo no reconocido. Debe ser un bundle completo o un archivo config/story/endings válido.');
     }
     
     // Normalizar: convertir 'situation' a 'text' si existe (backward compatibility)
@@ -5032,12 +5095,12 @@ document.getElementById('importFile').addEventListener('change', async (e) => {
     
     updateUI();
     markDirty();
-    showToast('Historia importada correctamente', 'success');
   } catch (error) {
     console.error('Error importando:', error);
     showToast('Error al importar: ' + error.message, 'error');
   }
   
+  // Limpiar input para permitir reimportar el mismo archivo
   e.target.value = '';
 });
 

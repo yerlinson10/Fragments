@@ -132,10 +132,10 @@ async function init() {
     
     try {
       const storyData = JSON.parse(testStory);
-      const loaded = engine.loadStoryFromData(storyData);
+      const result = engine.loadStoryFromData(storyData);
       
-      if (!loaded) {
-        throw new Error('No se pudo cargar la historia de prueba');
+      if (!result.success) {
+        throw new Error(result.error || 'No se pudo cargar la historia de prueba');
       }
       
       // Limpiar el flag de test
@@ -166,12 +166,12 @@ async function init() {
     localStorage.removeItem('selectedStory');
     
     // Cargar historia
-    const loaded = await engine.loadStory(`stories/${selectedStory}`);
+    const result = await engine.loadStory(`stories/${selectedStory}`);
     
-    if (!loaded) {
+    if (!result.success) {
       elements.situation.innerHTML = `
         <strong>❌ Error cargando historia</strong><br><br>
-        No se pudo cargar "${selectedStory}".<br>
+        ${result.error || `No se pudo cargar "${selectedStory}"`}<br><br>
         Verifica que existan los archivos en la carpeta stories/${selectedStory}/<br><br>
         <button class="btn-primary" onclick="window.location.href='story-selector.html'">
           ⬅️ Volver al Selector
