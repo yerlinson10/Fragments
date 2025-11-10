@@ -366,7 +366,17 @@ function updateInventoryDisplay() {
     engine.gameState.inventory.items.forEach(item => {
       const itemSpan = document.createElement('span');
       itemSpan.className = 'inventory-item';
-      itemSpan.textContent = item.replace(/_/g, ' ');
+      
+      // Obtener configuración del item si existe
+      const itemConfig = engine.config.inventory?.items?.[item];
+      if (itemConfig) {
+        itemSpan.textContent = `${itemConfig.icon || '📦'} ${itemConfig.name || item}`;
+        itemSpan.title = itemConfig.description || '';
+      } else {
+        // Fallback si no hay configuración
+        itemSpan.textContent = `📦 ${item.replace(/_/g, ' ')}`;
+      }
+      
       elements.inventoryItems.appendChild(itemSpan);
     });
   }
@@ -507,6 +517,24 @@ function showStatChanges(effects) {
   if (effects.inventory?.money) {
     const sign = effects.inventory.money.change > 0 ? '+' : '';
     changes.push(`💰 ${sign}$${effects.inventory.money.change}`);
+  }
+
+  // Mostrar items agregados
+  if (effects.inventory?.items_added && effects.inventory.items_added.length > 0) {
+    effects.inventory.items_added.forEach(item => {
+      const itemName = engine.config.inventory?.items?.[item]?.name || item;
+      const itemIcon = engine.config.inventory?.items?.[item]?.icon || '📦';
+      changes.push(`${itemIcon} +${itemName}`);
+    });
+  }
+
+  // Mostrar items removidos
+  if (effects.inventory?.items_removed && effects.inventory.items_removed.length > 0) {
+    effects.inventory.items_removed.forEach(item => {
+      const itemName = engine.config.inventory?.items?.[item]?.name || item;
+      const itemIcon = engine.config.inventory?.items?.[item]?.icon || '📦';
+      changes.push(`${itemIcon} -${itemName}`);
+    });
   }
 
   if (changes.length > 0) {

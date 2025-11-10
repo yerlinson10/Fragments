@@ -112,7 +112,7 @@ class FragmentsEngine {
       
       // Inventory
       inventory: {
-        items: [],
+        items: [...(this.config.inventory?.initial_items || [])], // Copiar items iniciales
         money: this.config.inventory?.money || 0
       },
       
@@ -389,8 +389,10 @@ class FragmentsEngine {
         };
       }
 
-      if (effects.inventory.items) {
-        for (const item of effects.inventory.items) {
+      // Agregar items - Soportar ambos formatos: 'items' y 'add'
+      const itemsToAdd = effects.inventory.items || effects.inventory.add || [];
+      if (itemsToAdd.length > 0) {
+        for (const item of itemsToAdd) {
           if (!this.gameState.inventory.items.includes(item)) {
             this.gameState.inventory.items.push(item);
             appliedEffects.inventory.items_added = appliedEffects.inventory.items_added || [];
@@ -399,8 +401,10 @@ class FragmentsEngine {
         }
       }
 
-      if (effects.inventory.remove_items) {
-        for (const item of effects.inventory.remove_items) {
+      // Quitar items - Soportar ambos formatos: 'remove_items' y 'remove'
+      const itemsToRemove = effects.inventory.remove_items || effects.inventory.remove || [];
+      if (itemsToRemove.length > 0) {
+        for (const item of itemsToRemove) {
           const index = this.gameState.inventory.items.indexOf(item);
           if (index > -1) {
             this.gameState.inventory.items.splice(index, 1);
