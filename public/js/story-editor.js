@@ -5,25 +5,34 @@
 // ============================================
 // SISTEMA AUTOMÁTICO DE ICONOS LUCIDE
 // ============================================
-// Inicializar iconos existentes y configurar auto-detección para nuevos elementos
-(function initLucideAutoRefresh() {
+// Función centralizada para refrescar iconos
+window.refreshLucideIcons = function() {
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+};
+
+// Inicializar iconos con mecanismo de reintentos
+function initLucideAutoRefresh() {
   if (!window.lucide) {
-    console.warn('⚠️ Lucide no está disponible');
+    console.error('❌ Lucide no disponible en la inicialización');
     return;
   }
   
   // Inicializar iconos existentes al cargar
   lucide.createIcons();
-  console.log('✅ Lucide Icons inicializados');
+  console.log('✅ Lucide Icons inicializados correctamente');
   
   // Debounce para evitar múltiples llamadas simultáneas
   let refreshTimeout = null;
   const refreshIcons = () => {
     if (refreshTimeout) clearTimeout(refreshTimeout);
     refreshTimeout = setTimeout(() => {
-      lucide.createIcons();
+      if (window.lucide) {
+        lucide.createIcons();
+      }
       refreshTimeout = null;
-    }, 10); // 10ms de debounce
+    }, 50);
   };
   
   // MutationObserver para detectar nuevos elementos con iconos
@@ -57,7 +66,37 @@
   });
   
   console.log('👁️ MutationObserver activo para auto-refresh de iconos Lucide');
-})();
+}
+
+// Esperar a que Lucide esté disponible con reintentos
+function waitForLucide(callback, maxAttempts = 50) {
+  let attempts = 0;
+  
+  function checkLucide() {
+    if (window.lucide) {
+      console.log(`✅ Lucide cargado (intentos: ${attempts})`);
+      callback();
+    } else if (attempts < maxAttempts) {
+      attempts++;
+      setTimeout(checkLucide, 100);
+    } else {
+      console.error('❌ TIMEOUT: Lucide no se cargó después de 5 segundos');
+      console.error('Verifica la conexión a internet y la URL del CDN');
+    }
+  }
+  
+  checkLucide();
+}
+
+// Iniciar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    waitForLucide(initLucideAutoRefresh);
+  });
+} else {
+  // DOM ya está listo
+  waitForLucide(initLucideAutoRefresh);
+}
 
 // ============================================
 // EVENTO GLOBAL PARA CERRAR MODALES CON ESC Y ATAJOS DE TECLADO
@@ -357,7 +396,9 @@ function showConfirm(message, title = 'Confirmar') {
     noBtn.addEventListener('click', handleNo);
     
     modal.classList.remove('hidden');
-
+    
+    // Force refresh de iconos
+    refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
   });
 }
 
@@ -405,7 +446,9 @@ function showInput(label, title = 'Ingresa el valor', defaultValue = '', hint = 
     
     modal.classList.remove('hidden');
     setTimeout(() => input.focus(), 100);
-
+    
+    // Force refresh de iconos
+    refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
   });
 }
 
@@ -445,7 +488,9 @@ function showSelect(label, options, title = 'Selecciona una opción', defaultVal
     cancelBtn.addEventListener('click', handleCancel);
     
     modal.classList.remove('hidden');
-
+    
+    // Force refresh de iconos
+    refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
   });
 }
 
@@ -549,7 +594,9 @@ function showForm(fields, title = 'Formulario', submitText = 'Guardar') {
     cancelBtn.addEventListener('click', handleCancel);
     
     modal.classList.remove('hidden');
-
+    
+    // Force refresh de iconos
+    refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
   });
 }
 
@@ -577,7 +624,8 @@ let currentStory = {
     inventory: {
       enabled: false,
       money: 0,
-      items: {}
+      items: {},
+      initial_items: [] // Items que el jugador tiene desde el inicio
     },
     settings: {
       save_slots: 3,
@@ -820,7 +868,9 @@ function renderStats() {
   container.innerHTML = Object.entries(stats).map(([key, stat]) => `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">${stat.icon || '<i data-lucide="bar-chart-2"></i>'} ${stat.name || key}</div>
+        <div class="item-title">
+          <i data-lucide="${stat.icon || 'bar-chart-2'}"></i> ${stat.name || key}
+        </div>
         <div class="item-actions">
           <button class="btn-secondary" onclick="editStat('${key}')"><i data-lucide="pencil"></i> Editar</button>
           <button class="btn-danger" onclick="deleteStat('${key}')"><i data-lucide="trash-2"></i></button>
@@ -839,7 +889,9 @@ function renderStats() {
       </div>
     </div>
   `).join('');
-
+  
+  // Doble refresh: inmediato + retrasado para asegurar renderizado
+  refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
 }
 
 window.addStat = function() {
@@ -848,7 +900,7 @@ window.addStat = function() {
   document.getElementById('statKey').value = '';
   document.getElementById('statKey').disabled = false;
   document.getElementById('statName').value = '';
-  document.getElementById('statIcon').value = '📊';
+  document.getElementById('statIcon').value = 'bar-chart-2';
   document.getElementById('statMin').value = '0';
   document.getElementById('statMax').value = '100';
   document.getElementById('statStart').value = '50';
@@ -879,7 +931,7 @@ window.addStat = function() {
     
     currentStory.config.stats[key] = {
       name: name || key,
-      icon: icon || '📊',
+      icon: icon || 'bar-chart-2',
       min,
       max,
       start
@@ -981,7 +1033,10 @@ function renderFlags() {
       </div>
     </div>
   `).join('');
-
+  
+  // Doble refresh: inmediato + retrasado para asegurar renderizado
+  refreshLucideIcons();
+  setTimeout(() => refreshLucideIcons(), 150);
 }
 
 window.addFlag = function() {
@@ -1120,7 +1175,9 @@ function renderCharacters() {
   container.innerHTML = Object.entries(characters).map(([key, char]) => `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">${char.icon || '<i data-lucide="user"></i>'} ${char.name || key}</div>
+        <div class="item-title">
+          <i data-lucide="${char.icon || 'user'}"></i> ${char.name || key}
+        </div>
         <div class="item-actions">
           <button class="btn-secondary" onclick="editCharacter('${key}')"><i data-lucide="pencil"></i> Editar</button>
           <button class="btn-danger" onclick="deleteCharacter('${key}')"><i data-lucide="trash-2"></i></button>
@@ -1136,7 +1193,9 @@ function renderCharacters() {
       </div>
     </div>
   `).join('');
-
+  
+  // Doble refresh: inmediato + retrasado para asegurar renderizado
+  refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
 }
 
 window.addCharacter = function() {
@@ -1145,7 +1204,7 @@ window.addCharacter = function() {
   document.getElementById('characterKey').value = '';
   document.getElementById('characterKey').disabled = false;
   document.getElementById('characterName').value = '';
-  document.getElementById('characterIcon').value = '👤';
+  document.getElementById('characterIcon').value = 'user';
   document.getElementById('characterRelationship').value = '0';
   document.getElementById('characterMet').checked = false;
   
@@ -1174,7 +1233,7 @@ window.addCharacter = function() {
     
     currentStory.config.characters[key] = {
       name: name || key,
-      icon: icon || '👤',
+      icon: icon || 'user',
       relationship,
       met
     };
@@ -1250,10 +1309,17 @@ function renderItems() {
     return;
   }
   
-  container.innerHTML = Object.entries(items).map(([key, item]) => `
+  const initialItems = currentStory.config.inventory.initial_items || [];
+  
+  container.innerHTML = Object.entries(items).map(([key, item]) => {
+    const isInitial = initialItems.includes(key);
+    return `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">${item.icon || '<i data-lucide="package"></i>'} ${item.name || key}</div>
+        <div class="item-title">
+          <i data-lucide="${item.icon || 'package'}"></i> ${item.name || key}
+          ${isInitial ? '<span class="badge-success" title="Se tiene desde el inicio">Inicial</span>' : ''}
+        </div>
         <div class="item-actions">
           <button class="btn-secondary" onclick="editItem('${key}')"><i data-lucide="pencil"></i> Editar</button>
           <button class="btn-danger" onclick="deleteItem('${key}')"><i data-lucide="trash-2"></i></button>
@@ -1265,8 +1331,11 @@ function renderItems() {
         </div>
       </div>
     </div>
-  `).join('');
-
+  `;
+  }).join('');
+  
+  // Doble refresh: inmediato + retrasado para asegurar renderizado
+  refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
 }
 
 window.addItem = function() {
@@ -1275,8 +1344,9 @@ window.addItem = function() {
   document.getElementById('itemKey').value = '';
   document.getElementById('itemKey').disabled = false;
   document.getElementById('itemName').value = '';
-  document.getElementById('itemIcon').value = '📦';
+  document.getElementById('itemIcon').value = 'package';
   document.getElementById('itemDescription').value = '';
+  document.getElementById('itemInitial').checked = false;
   
   const saveBtn = document.getElementById('itemModalSave');
   const newSave = saveBtn.cloneNode(true);
@@ -1287,6 +1357,7 @@ window.addItem = function() {
     const name = document.getElementById('itemName').value.trim();
     const icon = document.getElementById('itemIcon').value.trim();
     const description = document.getElementById('itemDescription').value.trim();
+    const isInitial = document.getElementById('itemInitial').checked;
     
     if (!key) {
       showToast('El ID es obligatorio', 'error');
@@ -1306,9 +1377,19 @@ window.addItem = function() {
     
     currentStory.config.inventory.items[key] = {
       name: name || key,
-      icon: icon || '📦',
+      icon: icon || 'package',
       description: description || ''
     };
+    
+    // Agregar a items iniciales si está marcado
+    if (isInitial) {
+      if (!currentStory.config.inventory.initial_items) {
+        currentStory.config.inventory.initial_items = [];
+      }
+      if (!currentStory.config.inventory.initial_items.includes(key)) {
+        currentStory.config.inventory.initial_items.push(key);
+      }
+    }
     
     markDirty();
     renderItems();
@@ -1319,6 +1400,7 @@ window.addItem = function() {
 
 window.editItem = function(key) {
   const item = currentStory.config.inventory.items[key];
+  const initialItems = currentStory.config.inventory.initial_items || [];
   
   openModal('itemModal');
   document.getElementById('itemModalTitle').textContent = `Editar: ${key}`;
@@ -1327,6 +1409,7 @@ window.editItem = function(key) {
   document.getElementById('itemName').value = item.name;
   document.getElementById('itemIcon').value = item.icon;
   document.getElementById('itemDescription').value = item.description || '';
+  document.getElementById('itemInitial').checked = initialItems.includes(key);
   
   const saveBtn = document.getElementById('itemModalSave');
   const newSave = saveBtn.cloneNode(true);
@@ -1336,14 +1419,30 @@ window.editItem = function(key) {
     const name = document.getElementById('itemName').value.trim();
     const icon = document.getElementById('itemIcon').value.trim();
     const description = document.getElementById('itemDescription').value.trim();
+    const isInitial = document.getElementById('itemInitial').checked;
     
     saveToHistory(); // Guardar antes de editar
     
     currentStory.config.inventory.items[key] = {
       name: name || key,
-      icon: icon || '📦',
+      icon: icon || 'package',
       description: description || ''
     };
+    
+    // Actualizar array de items iniciales
+    if (!currentStory.config.inventory.initial_items) {
+      currentStory.config.inventory.initial_items = [];
+    }
+    
+    const initialIndex = currentStory.config.inventory.initial_items.indexOf(key);
+    
+    if (isInitial && initialIndex === -1) {
+      // Agregar a iniciales
+      currentStory.config.inventory.initial_items.push(key);
+    } else if (!isInitial && initialIndex > -1) {
+      // Quitar de iniciales
+      currentStory.config.inventory.initial_items.splice(initialIndex, 1);
+    }
     
     markDirty();
     renderItems();
@@ -1444,6 +1543,10 @@ function renderEvents() {
     </div>
   `;
   }).join('');
+  
+  // Doble refresh: inmediato + retrasado para asegurar renderizado
+  refreshLucideIcons();
+  setTimeout(() => refreshLucideIcons(), 150);
   
   // Inicializar drag and drop
   initDragAndDrop();
@@ -1719,7 +1822,10 @@ window.editEvent = function(index) {
   renderEventChoices(event.choices);
   
   modal.classList.remove('hidden');
-
+  
+  // Force refresh de iconos después de todo el contenido dinámico
+  // Aumentado timeout para contenido complejo
+  setTimeout(() => refreshLucideIcons(), 150);
   
   // Toggle probability field visibility
   const typeSelect = document.getElementById('eventType');
@@ -2378,20 +2484,37 @@ window.addChoiceItemEffect = function(choiceIndex, itemKey = '', action = 'add')
   `;
   container.appendChild(div);
 
-  
   const update = () => {
     const item = div.querySelector('.item-select').value;
     const act = div.querySelector('.item-action').value;
+    
+    // Limpiar el item del array anterior si cambió de acción
+    const otherAction = act === 'add' ? 'remove' : 'add';
+    if (eventChoicesData[choiceIndex].effects.inventory?.[otherAction]) {
+      const idx = eventChoicesData[choiceIndex].effects.inventory[otherAction].indexOf(item);
+      if (idx > -1) {
+        eventChoicesData[choiceIndex].effects.inventory[otherAction].splice(idx, 1);
+      }
+    }
+    
     if (item) {
-      if (!eventChoicesData[choiceIndex].effects.inventory) eventChoicesData[choiceIndex].effects.inventory = {};
-      if (!eventChoicesData[choiceIndex].effects.inventory[act]) eventChoicesData[choiceIndex].effects.inventory[act] = [];
+      // Inicializar estructura si no existe
+      if (!eventChoicesData[choiceIndex].effects.inventory) {
+        eventChoicesData[choiceIndex].effects.inventory = {};
+      }
+      if (!eventChoicesData[choiceIndex].effects.inventory[act]) {
+        eventChoicesData[choiceIndex].effects.inventory[act] = [];
+      }
+      
+      // Solo agregar si no existe ya
       if (!eventChoicesData[choiceIndex].effects.inventory[act].includes(item)) {
         eventChoicesData[choiceIndex].effects.inventory[act].push(item);
       }
     }
   };
+  
   div.querySelectorAll('select').forEach(el => el.addEventListener('change', update));
-  update();
+  update(); // Ejecutar inmediatamente para items pre-cargados
 };
 
 window.removeChoiceItemEffect = function(id, choiceIndex) {
@@ -2805,8 +2928,8 @@ function renderEndings() {
       <div class="item-header">
         <div class="item-title"><i data-lucide="flag-triangle-right"></i> ${ending.id}</div>
         <div class="item-actions">
-          <button class="btn-secondary" onclick="editEnding(${index})"><i data-lucide="pencil"></i>  Editar</button>
-          <button class="btn-danger" onclick="deleteEnding(${index})"><i data-lucide="trash-2"></i>  Eliminar</button>
+          <button class="btn-secondary" onclick="editEnding(${index})"><i data-lucide="pencil"></i> Editar</button>
+          <button class="btn-danger" onclick="deleteEnding(${index})"><i data-lucide="trash-2"></i> Eliminar</button>
         </div>
       </div>
       <div class="item-content">
@@ -2822,7 +2945,9 @@ function renderEndings() {
       </div>
     </div>
   `).join('');
-
+  
+  // Doble refresh: inmediato + retrasado para asegurar renderizado
+  refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
 }
 
 // Helper functions para condiciones de endings
@@ -3432,7 +3557,9 @@ function renderAchievements() {
   container.innerHTML = Object.entries(achievements).map(([key, ach]) => `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">${ach.icon || '<i data-lucide="trophy"></i>'} ${ach.name || key}</div>
+        <div class="item-title">
+          <i data-lucide="${ach.icon || 'trophy'}"></i> ${ach.name || key}
+        </div>
         <div class="item-actions">
           <button class="btn-secondary" onclick="editAchievement('${key}')"><i data-lucide="pencil"></i> Editar</button>
           <button class="btn-danger" onclick="deleteAchievement('${key}')"><i data-lucide="trash-2"></i> Eliminar</button>
@@ -3445,7 +3572,9 @@ function renderAchievements() {
       </div>
     </div>
   `).join('');
-
+  
+  // Doble refresh: inmediato + retrasado para asegurar renderizado
+  refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
 }
 
 window.addAchievement = function() {
@@ -3454,7 +3583,7 @@ window.addAchievement = function() {
   document.getElementById('achievementKey').value = '';
   document.getElementById('achievementKey').disabled = false;
   document.getElementById('achievementName').value = '';
-  document.getElementById('achievementIcon').value = '🏆';
+  document.getElementById('achievementIcon').value = 'trophy';
   document.getElementById('achievementDescription').value = '';
   
   const saveBtn = document.getElementById('achievementModalSave');
@@ -3481,7 +3610,7 @@ window.addAchievement = function() {
     
     currentStory.config.achievements[key] = {
       name: name || key,
-      icon: icon || '🏆',
+      icon: icon || 'trophy',
       description: description || ''
     };
     
@@ -5335,7 +5464,9 @@ function showToast(message, type = 'success') {
 
 window.openModal = function(modalId) {
   document.getElementById(modalId).classList.remove('hidden');
-
+  
+  // Force refresh de iconos después de que el modal sea visible
+  refreshLucideIcons(); setTimeout(() => refreshLucideIcons(), 150);
 };
 
 window.closeModal = function(modalId) {

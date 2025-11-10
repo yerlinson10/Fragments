@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="/css/common.css" />
   <link rel="stylesheet" href="/css/lucide-icons.css" />
   <link rel="stylesheet" href="/css/editor.css" />
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest" defer></script>
+  <!-- Lucide Icons - SIN defer para que cargue antes del JS -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Mermaid.js desde node_modules -->
   <script type="module">
     // Importar Mermaid directamente desde node_modules (ruta absoluta)
@@ -585,8 +585,9 @@
           <input type="text" id="statName" placeholder="Energía" />
         </div>
         <div class="form-group">
-          <label>Icono (emoji)</label>
-          <input type="text" id="statIcon" placeholder="⚡" />
+          <label>Icono (nombre de Lucide o emoji)</label>
+          <input type="text" id="statIcon" placeholder="zap, battery, heart" />
+          <small>Usa nombres de <a href="https://lucide.dev/icons/" target="_blank">Lucide Icons</a></small>
         </div>
         <div class="form-group">
           <label>Valor mínimo</label>
@@ -652,9 +653,10 @@
           <label>Nombre del personaje *</label>
           <input type="text" id="characterName" placeholder="María González" />
         </div>
-        <div class="form-group">
-          <label>Icono (emoji)</label>
-          <input type="text" id="characterIcon" placeholder="👤" />
+        <div class="form-group full-width">
+          <label>Icono (nombre de Lucide o emoji)</label>
+          <input type="text" id="characterIcon" placeholder="user, user-circle, smile" />
+          <small>Usa nombres de <a href="https://lucide.dev/icons/" target="_blank">Lucide Icons</a></small>
         </div>
         <div class="form-group">
           <label>Relación inicial (-100 a 100)</label>
@@ -689,12 +691,19 @@
           <input type="text" id="itemName" placeholder="Llave oxidada" />
         </div>
         <div class="form-group full-width">
-          <label>Icono (emoji)</label>
-          <input type="text" id="itemIcon" placeholder="🔑" />
+          <label>Icono (nombre de Lucide o emoji)</label>
+          <input type="text" id="itemIcon" placeholder="package o 🔑" />
+          <small>Usa nombres de <a href="https://lucide.dev/icons/" target="_blank">Lucide Icons</a> (ej: key, map, sword) o emojis</small>
         </div>
         <div class="form-group full-width">
           <label>Descripción</label>
           <textarea id="itemDescription" rows="3" placeholder="Una vieja llave que parece abrir algo importante..."></textarea>
+        </div>
+        <div class="form-group full-width">
+          <label class="checkbox-label">
+            <input type="checkbox" id="itemInitial" />
+            Item inicial (el jugador lo tiene desde el comienzo)
+          </label>
         </div>
       </div>
       <div class="modal-actions">
@@ -820,8 +829,9 @@
           <input type="text" id="achievementName" placeholder="Primer Paso" />
         </div>
         <div class="form-group full-width">
-          <label>Icono (emoji)</label>
-          <input type="text" id="achievementIcon" placeholder="🏆" value="🏆" />
+          <label>Icono (nombre de Lucide o emoji)</label>
+          <input type="text" id="achievementIcon" placeholder="trophy, award, star" value="trophy" />
+          <small>Usa nombres de <a href="https://lucide.dev/icons/" target="_blank">Lucide Icons</a></small>
         </div>
         <div class="form-group full-width">
           <label>Descripción</label>

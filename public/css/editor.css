@@ -163,6 +163,18 @@ body {
   color: var(--success);
 }
 
+.badge-success {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--success-light);
+  color: var(--success);
+  margin-left: 0.5rem;
+  letter-spacing: 0.025em;
+}
+
 .toolbar-actions {
   display: flex;
   gap: 0.75rem;
@@ -443,6 +455,59 @@ h4 svg.lucide {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+/* Iconos en tarjetas de eventos */
+.event-card .btn-icon {
+  color: var(--text-secondary);
+}
+
+.event-card .btn-icon svg.lucide {
+  color: var(--text-secondary);
+  stroke: var(--text-secondary);
+}
+
+.event-card .btn-icon:hover {
+  color: var(--accent);
+}
+
+.event-card .btn-icon:hover svg.lucide {
+  color: var(--accent);
+  stroke: var(--accent);
+}
+
+.event-card .btn-icon:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.event-card .btn-icon:disabled svg.lucide {
+  color: var(--text-muted);
+  stroke: var(--text-muted);
+}
+
+/* Iconos en metadata de eventos */
+.event-meta i[data-lucide],
+.event-meta svg.lucide {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+  color: var(--text-secondary);
+  stroke: var(--text-secondary);
+  vertical-align: middle;
+}
+
+/* FORZAR colores en botones de eventos (sin !important para permitir overrides) */
+.event-card .btn-icon svg.lucide,
+.event-card .btn-icon i[data-lucide] {
+  stroke: var(--text-secondary);
+  color: var(--text-secondary);
+}
+
+.event-card .btn-icon:hover svg.lucide,
+.event-card .btn-icon:hover i[data-lucide] {
+  stroke: var(--accent);
+  color: var(--accent);
 }
 
 .event-type-badge {
@@ -1260,17 +1325,13 @@ h4 svg.lucide {
    MODO OSCURO - ICONOS BLANCOS
    ============================================ */
 
-/* Iconos blancos en modo oscuro */
-body.dark-theme i[data-lucide],
-body.dark-theme svg.lucide,
-body.dark-theme .lucide {
+/* Iconos blancos en modo oscuro SOLO en elementos específicos */
+body.dark-theme .sidebar i[data-lucide],
+body.dark-theme .sidebar svg.lucide,
+body.dark-theme .toolbar i[data-lucide],
+body.dark-theme .toolbar svg.lucide {
   stroke: #ffffff !important;
   color: #ffffff;
-}
-
-body.dark-theme button i[data-lucide],
-body.dark-theme button svg.lucide {
-  stroke: #ffffff !important;
 }
 
 body.dark-theme .theme-toggle i[data-lucide],
@@ -1278,14 +1339,19 @@ body.dark-theme .theme-toggle svg.lucide {
   stroke: #ffffff !important;
 }
 
+/* Botones con iconos mantienen su color específico */
 body.dark-theme .btn-icon i[data-lucide],
 body.dark-theme .btn-icon svg.lucide {
-  stroke: #ffffff !important;
+  stroke: var(--text-secondary) !important;
+}
+
+body.dark-theme .btn-icon:hover svg.lucide {
+  stroke: var(--accent) !important;
 }
 
 body.dark-theme .menu-item i[data-lucide],
 body.dark-theme .menu-item svg.lucide {
-  stroke: currentColor !important;
+  stroke: var(--text-secondary) !important;
 }
 
 body.dark-theme .menu-item.active i[data-lucide],
@@ -1293,14 +1359,38 @@ body.dark-theme .menu-item.active svg.lucide {
   stroke: #ffffff !important;
 }
 
-/* Excepciones para iconos con color específico */
-body.dark-theme .btn-danger i[data-lucide],
-body.dark-theme i[data-lucide="alert-triangle"],
+/* Botones de peligro mantienen su color */
+body.dark-theme .btn-danger svg.lucide,
 body.dark-theme i[data-lucide="trash-2"] {
   stroke: var(--danger) !important;
 }
 
+/* Iconos de éxito */
 body.dark-theme i[data-lucide="check"],
+body.dark-theme i[data-lucide="check-circle"] {
+  stroke: var(--success) !important;
+}
+
+/* Iconos de metadata en eventos (calendario, shuffle, etc.) */
+body.dark-theme .event-meta svg.lucide {
+  stroke: var(--text-secondary) !important;
+}
+
+/* IMPORTANTE: Reglas específicas para eventos sobrescriben las globales */
+body.dark-theme .event-card .btn-icon svg.lucide {
+  stroke: var(--text-secondary) !important;
+  color: var(--text-secondary) !important;
+}
+
+body.dark-theme .event-card .btn-icon:hover svg.lucide {
+  stroke: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+body.dark-theme .event-card .btn-icon:disabled svg.lucide {
+  stroke: var(--text-muted) !important;
+  opacity: 0.3;
+}
 body.dark-theme i[data-lucide="check-circle"] {
   stroke: var(--success) !important;
 }
