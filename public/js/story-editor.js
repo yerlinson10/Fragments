@@ -3,6 +3,63 @@
  */
 
 // ============================================
+// SISTEMA AUTOMÁTICO DE ICONOS LUCIDE
+// ============================================
+// Inicializar iconos existentes y configurar auto-detección para nuevos elementos
+(function initLucideAutoRefresh() {
+  if (!window.lucide) {
+    console.warn('⚠️ Lucide no está disponible');
+    return;
+  }
+  
+  // Inicializar iconos existentes al cargar
+  lucide.createIcons();
+  console.log('✅ Lucide Icons inicializados');
+  
+  // Debounce para evitar múltiples llamadas simultáneas
+  let refreshTimeout = null;
+  const refreshIcons = () => {
+    if (refreshTimeout) clearTimeout(refreshTimeout);
+    refreshTimeout = setTimeout(() => {
+      lucide.createIcons();
+      refreshTimeout = null;
+    }, 10); // 10ms de debounce
+  };
+  
+  // MutationObserver para detectar nuevos elementos con iconos
+  const observer = new MutationObserver((mutations) => {
+    let needsRefresh = false;
+    
+    for (const mutation of mutations) {
+      // Verificar nodos agregados
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType === 1) { // Es un elemento
+          // Verificar si el nodo o sus hijos tienen iconos Lucide
+          if (node.hasAttribute?.('data-lucide') || 
+              node.querySelector?.('[data-lucide]')) {
+            needsRefresh = true;
+            break;
+          }
+        }
+      }
+      if (needsRefresh) break;
+    }
+    
+    if (needsRefresh) {
+      refreshIcons();
+    }
+  });
+  
+  // Observar cambios en el body
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+  
+  console.log('👁️ MutationObserver activo para auto-refresh de iconos Lucide');
+})();
+
+// ============================================
 // EVENTO GLOBAL PARA CERRAR MODALES CON ESC Y ATAJOS DE TECLADO
 // ============================================
 document.addEventListener('keydown', (e) => {
@@ -300,6 +357,7 @@ function showConfirm(message, title = 'Confirmar') {
     noBtn.addEventListener('click', handleNo);
     
     modal.classList.remove('hidden');
+
   });
 }
 
@@ -347,6 +405,7 @@ function showInput(label, title = 'Ingresa el valor', defaultValue = '', hint = 
     
     modal.classList.remove('hidden');
     setTimeout(() => input.focus(), 100);
+
   });
 }
 
@@ -386,6 +445,7 @@ function showSelect(label, options, title = 'Selecciona una opción', defaultVal
     cancelBtn.addEventListener('click', handleCancel);
     
     modal.classList.remove('hidden');
+
   });
 }
 
@@ -489,6 +549,7 @@ function showForm(fields, title = 'Formulario', submitText = 'Guardar') {
     cancelBtn.addEventListener('click', handleCancel);
     
     modal.classList.remove('hidden');
+
   });
 }
 
@@ -544,20 +605,36 @@ let currentStory = {
 let isDirty = false;
 let currentEventEdit = null;
 
-// Tema
+// Tema y Lucide Icons
 function initTheme() {
   const savedTheme = localStorage.getItem('fragmentsTheme') || 'light';
   if (savedTheme === 'dark') {
     document.body.classList.add('dark-theme');
-    document.getElementById('themeToggle').textContent = '☀️';
+    document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
+  }
+  
+  // Inicializar Lucide Icons con retry
+  initLucideIcons();
+}
+
+function initLucideIcons() {
+  if (window.lucide && window.lucide.createIcons) {
+    lucide.createIcons();
+  } else {
+    setTimeout(initLucideIcons, 100);
   }
 }
 
 document.getElementById('themeToggle').addEventListener('click', () => {
   document.body.classList.toggle('dark-theme');
   const isDark = document.body.classList.contains('dark-theme');
-  document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+  document.getElementById('themeToggle').innerHTML = isDark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
   localStorage.setItem('fragmentsTheme', isDark ? 'dark' : 'light');
+  
+  // Re-inicializar iconos después de cambiar el HTML
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 });
 
 // Toggle keyboard shortcuts panel
@@ -743,10 +820,10 @@ function renderStats() {
   container.innerHTML = Object.entries(stats).map(([key, stat]) => `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">${stat.icon || '📊'} ${stat.name || key}</div>
+        <div class="item-title">${stat.icon || '<i data-lucide="bar-chart-2"></i>'} ${stat.name || key}</div>
         <div class="item-actions">
-          <button class="btn-secondary" onclick="editStat('${key}')">✏️ Editar</button>
-          <button class="btn-danger" onclick="deleteStat('${key}')">🗑️</button>
+          <button class="btn-secondary" onclick="editStat('${key}')"><i data-lucide="pencil"></i> Editar</button>
+          <button class="btn-danger" onclick="deleteStat('${key}')"><i data-lucide="trash-2"></i></button>
         </div>
       </div>
       <div class="item-content">
@@ -762,6 +839,7 @@ function renderStats() {
       </div>
     </div>
   `).join('');
+
 }
 
 window.addStat = function() {
@@ -887,10 +965,10 @@ function renderFlags() {
   container.innerHTML = Object.entries(flags).map(([key, value]) => `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">🚩 ${key}</div>
+        <div class="item-title"><i data-lucide="flag"></i> ${key}</div>
         <div class="item-actions">
-          <button class="btn-secondary" onclick="editFlag('${key}')">✏️ Editar</button>
-          <button class="btn-danger" onclick="deleteFlag('${key}')">🗑️</button>
+          <button class="btn-secondary" onclick="editFlag('${key}')"><i data-lucide="pencil"></i> Editar</button>
+          <button class="btn-danger" onclick="deleteFlag('${key}')"><i data-lucide="trash-2"></i></button>
         </div>
       </div>
       <div class="item-content">
@@ -903,6 +981,7 @@ function renderFlags() {
       </div>
     </div>
   `).join('');
+
 }
 
 window.addFlag = function() {
@@ -1041,10 +1120,10 @@ function renderCharacters() {
   container.innerHTML = Object.entries(characters).map(([key, char]) => `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">${char.icon || '👤'} ${char.name || key}</div>
+        <div class="item-title">${char.icon || '<i data-lucide="user"></i>'} ${char.name || key}</div>
         <div class="item-actions">
-          <button class="btn-secondary" onclick="editCharacter('${key}')">✏️ Editar</button>
-          <button class="btn-danger" onclick="deleteCharacter('${key}')">🗑️</button>
+          <button class="btn-secondary" onclick="editCharacter('${key}')"><i data-lucide="pencil"></i> Editar</button>
+          <button class="btn-danger" onclick="deleteCharacter('${key}')"><i data-lucide="trash-2"></i></button>
         </div>
       </div>
       <div class="item-content">
@@ -1057,6 +1136,7 @@ function renderCharacters() {
       </div>
     </div>
   `).join('');
+
 }
 
 window.addCharacter = function() {
@@ -1173,10 +1253,10 @@ function renderItems() {
   container.innerHTML = Object.entries(items).map(([key, item]) => `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">${item.icon || '📦'} ${item.name || key}</div>
+        <div class="item-title">${item.icon || '<i data-lucide="package"></i>'} ${item.name || key}</div>
         <div class="item-actions">
-          <button class="btn-secondary" onclick="editItem('${key}')">✏️ Editar</button>
-          <button class="btn-danger" onclick="deleteItem('${key}')">🗑️</button>
+          <button class="btn-secondary" onclick="editItem('${key}')"><i data-lucide="pencil"></i> Editar</button>
+          <button class="btn-danger" onclick="deleteItem('${key}')"><i data-lucide="trash-2"></i></button>
         </div>
       </div>
       <div class="item-content">
@@ -1186,6 +1266,7 @@ function renderItems() {
       </div>
     </div>
   `).join('');
+
 }
 
 window.addItem = function() {
@@ -1339,18 +1420,18 @@ function renderEvents() {
         <div style="display: flex; gap: 5px; align-items: center;">
           <span class="event-type-badge ${event.type || 'optional'}">${event.type || 'optional'}</span>
           <button class="btn-icon" onclick="duplicateEvent(${originalIndex}); event.stopPropagation();" 
-                  title="Duplicar evento">📋</button>
+                  title="Duplicar evento"><i data-lucide="copy"></i></button>
           <button class="btn-icon" onclick="moveEventUp(${originalIndex}); event.stopPropagation();" 
-                  ${isFirst ? 'disabled' : ''} title="Subir">⬆️</button>
+                  ${isFirst ? 'disabled' : ''} title="Subir"><i data-lucide="arrow-up"></i></button>
           <button class="btn-icon" onclick="moveEventDown(${originalIndex}); event.stopPropagation();" 
-                  ${isLast ? 'disabled' : ''} title="Bajar">⬇️</button>
+                  ${isLast ? 'disabled' : ''} title="Bajar"><i data-lucide="arrow-down"></i></button>
         </div>
       </div>
       <div class="event-situation" onclick="editEvent(${originalIndex})">${event.text ? event.text.substring(0, 150) : ''}${event.text && event.text.length > 150 ? '...' : ''}</div>
       <div class="event-meta" onclick="editEvent(${originalIndex})">
-        <span>📅 Día ${event.day || 'cualquiera'}</span>
-        <span>🔀 ${event.choices?.length || 0} opciones</span>
-        ${event.can_repeat ? '<span>🔁 Repetible</span>' : ''}
+        <span><i data-lucide="calendar"></i> Día ${event.day || 'cualquiera'}</span>
+        <span><i data-lucide="shuffle"></i> ${event.choices?.length || 0} opciones</span>
+        ${event.can_repeat ? '<span><i data-lucide="repeat"></i> Repetible</span>' : ''}
       </div>
       ${event.choices && event.choices.length > 0 ? `
         <div class="event-choices" onclick="editEvent(${originalIndex})">
@@ -1366,6 +1447,7 @@ function renderEvents() {
   
   // Inicializar drag and drop
   initDragAndDrop();
+
 }
 
 // ============================================
@@ -1551,31 +1633,31 @@ window.editEvent = function(index) {
       
       <div class="form-group full-width">
         <div class="collapsible-header" id="event-conditions-header" onclick="toggleCollapsible('event-conditions-header')">
-          <h4>⏰ Condiciones para que aparezca este evento</h4>
+          <h4><i data-lucide="clock"></i> Condiciones para que aparezca este evento</h4>
           <span class="collapsible-icon">►</span>
         </div>
         <div class="collapsible-content">
           <div class="conditions-builder">
             <div class="condition-section">
-              <h4>📊 Estadísticas</h4>
+              <h4><i data-lucide="bar-chart-3"></i> Estadísticas</h4>
               <div id="eventStatsConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addEventStatCondition()">+ Agregar condición</button>
             </div>
             
             <div class="condition-section">
-              <h4>🚩 Variables</h4>
+              <h4><i data-lucide="flag"></i> Variables</h4>
               <div id="eventFlagsConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addEventFlagCondition()">+ Agregar condición</button>
             </div>
             
             <div class="condition-section">
-              <h4>👥 Personajes</h4>
+              <h4><i data-lucide="users"></i> Personajes</h4>
               <div id="eventCharactersConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addEventCharacterCondition()">+ Agregar condición</button>
             </div>
             
             <div class="condition-section">
-              <h4>📅 Rango de Días</h4>
+              <h4><i data-lucide="calendar"></i> Rango de Días</h4>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                 <div>
                   <label>Día mínimo</label>
@@ -1589,19 +1671,19 @@ window.editEvent = function(index) {
             </div>
             
             <div class="condition-section">
-              <h4>✅ Eventos Completados Requeridos</h4>
+              <h4><i data-lucide="check-square"></i> Eventos Completados Requeridos</h4>
               <div id="eventCompletedEventsConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addCompletedEventCondition()">+ Agregar evento</button>
             </div>
             
             <div class="condition-section">
-              <h4>🎯 Decisiones Previas</h4>
+              <h4><i data-lucide="target"></i> Decisiones Previas</h4>
               <div id="eventPreviousChoicesConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addPreviousChoiceCondition()">+ Agregar decisión</button>
             </div>
             
             <div class="condition-section">
-              <h4>💰 Inventario</h4>
+              <h4><i data-lucide="coins"></i> Inventario</h4>
               <div>
                 <label>Dinero mínimo requerido</label>
                 <input type="number" id="eventMoneyMin" value="${event.conditions?.inventory?.money_min || ''}" placeholder="Ej: 100" />
@@ -1617,15 +1699,15 @@ window.editEvent = function(index) {
       </div>
       
       <div class="form-group full-width">
-        <h4>💬 Opciones</h4>
+        <h4><i data-lucide="message-circle"></i> Opciones</h4>
         <div id="eventChoicesList"></div>
         <button class="btn-add" onclick="addChoiceToEvent()" type="button">+ Agregar Opción</button>
       </div>
     </div>
     
     <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-      <button class="btn-primary" onclick="saveEvent()">💾 Guardar Evento</button>
-      <button class="btn-danger" onclick="deleteEvent()">🗑️ Eliminar Evento</button>
+      <button class="btn-primary" onclick="saveEvent()"><i data-lucide="save"></i> Guardar Evento</button>
+      <button class="btn-danger" onclick="deleteEvent()"><i data-lucide="trash-2"></i> Eliminar Evento</button>
       <button class="btn-secondary" onclick="closeModal('eventModal')">Cancelar</button>
     </div>
   `;
@@ -1637,6 +1719,7 @@ window.editEvent = function(index) {
   renderEventChoices(event.choices);
   
   modal.classList.remove('hidden');
+
   
   // Toggle probability field visibility
   const typeSelect = document.getElementById('eventType');
@@ -1795,9 +1878,10 @@ window.addEventStatCondition = function(statKey = '', type = 'min', value = 0) {
       <option value="max" ${type === 'max' ? 'selected' : ''}>Máximo</option>
     </select>
     <input type="number" class="stat-value" value="${value}" />
-    <button class="btn-danger" onclick="removeEventStatCondition('${id}')" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeEventStatCondition('${id}')" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const stat = div.querySelector('.stat-select').value;
@@ -1837,9 +1921,10 @@ window.addEventFlagCondition = function(flagKey = '', value = true) {
       ${availableFlags.map(f => `<option value="${f}" ${f === flagKey ? 'selected' : ''}>${f}</option>`).join('')}
     </select>
     <input type="text" class="flag-value" value="${value}" placeholder="Valor" />
-    <button class="btn-danger" onclick="removeEventFlagCondition('${id}')" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeEventFlagCondition('${id}')" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const flag = div.querySelector('.flag-select').value;
@@ -1881,9 +1966,10 @@ window.addEventCharacterCondition = function(charKey = '', type = 'relationship_
       <option value="met" ${type === 'met' ? 'selected' : ''}>Conocido</option>
     </select>
     <input type="text" class="char-value" value="${value}" />
-    <button class="btn-danger" onclick="removeEventCharacterCondition('${id}')" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeEventCharacterCondition('${id}')" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const char = div.querySelector('.char-select').value;
@@ -1925,9 +2011,10 @@ window.addCompletedEventCondition = function(eventId = '') {
       <option value="">Selecciona evento...</option>
       ${availableEvents.map(e => `<option value="${e}" ${e === eventId ? 'selected' : ''}>${e}</option>`).join('')}
     </select>
-    <button class="btn-danger" onclick="removeCompletedEventCondition('${id}')" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeCompletedEventCondition('${id}')" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const event = div.querySelector('.event-select').value;
@@ -1967,9 +2054,10 @@ window.addPreviousChoiceCondition = function(eventId = '', choiceIndex = 0) {
       ${availableEvents.map(e => `<option value="${e.id}" ${e.id === eventId ? 'selected' : ''}>${e.id}</option>`).join('')}
     </select>
     <input type="number" class="choice-index" value="${choiceIndex}" min="0" placeholder="Índice opción (0, 1, 2...)" />
-    <button class="btn-danger" onclick="removePreviousChoiceCondition('${id}')" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removePreviousChoiceCondition('${id}')" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const event = div.querySelector('.event-select').value;
@@ -2008,16 +2096,17 @@ window.addRequiredItem = function(itemName = '') {
         <option value="">Selecciona item...</option>
         ${availableItems.map(i => `<option value="${i}" ${i === itemName ? 'selected' : ''}>${i}</option>`).join('')}
       </select>
-      <button class="btn-danger" onclick="removeRequiredItem('${id}')" type="button">🗑️</button>
+      <button class="btn-danger" onclick="removeRequiredItem('${id}')" type="button"><i data-lucide="trash-2"></i></button>
     `;
   } else {
     div.innerHTML = `
       <input type="text" class="item-input" value="${itemName}" placeholder="Nombre del item" />
-      <button class="btn-danger" onclick="removeRequiredItem('${id}')" type="button">🗑️</button>
+      <button class="btn-danger" onclick="removeRequiredItem('${id}')" type="button"><i data-lucide="trash-2"></i></button>
     `;
   }
   
   container.appendChild(div);
+
   
   const update = () => {
     const item = div.querySelector('.item-select')?.value || div.querySelector('.item-input')?.value;
@@ -2054,7 +2143,7 @@ function renderEventChoices(choices) {
     <div class="item-card" style="margin-bottom: 1rem;">
       <div class="item-header">
         <div class="item-title">Opción ${i + 1}</div>
-        <button class="btn-danger" onclick="removeChoice(${i})" type="button">🗑️</button>
+        <button class="btn-danger" onclick="removeChoice(${i})" type="button"><i data-lucide="trash-2"></i></button>
       </div>
       <div class="form-group full-width">
         <label>Texto de la opción</label>
@@ -2062,37 +2151,37 @@ function renderEventChoices(choices) {
       </div>
       <div class="form-group full-width">
         <div class="collapsible-header" id="choice-${i}-effects-header" onclick="toggleCollapsible('choice-${i}-effects-header')">
-          <label>⚡ Efectos de esta opción</label>
+          <label><i data-lucide="zap"></i> Efectos de esta opción</label>
           <span class="collapsible-icon">►</span>
         </div>
         <div class="collapsible-content">
           <div class="conditions-builder" style="margin-top: 0.5rem;">
             <div class="condition-section">
-              <h4>📊 Cambios en Stats</h4>
+              <h4><i data-lucide="bar-chart-2"></i> Cambios en Stats</h4>
               <div id="choice-${i}-stats"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addChoiceStatEffect(${i})">+ Agregar efecto</button>
             </div>
             
             <div class="condition-section">
-              <h4>🚩 Cambios en Flags</h4>
+              <h4><i data-lucide="flag"></i> Cambios en Flags</h4>
               <div id="choice-${i}-flags"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addChoiceFlagEffect(${i})">+ Agregar efecto</button>
             </div>
             
             <div class="condition-section">
-              <h4>📦 Dar/Quitar Items</h4>
+              <h4><i data-lucide="package"></i> Dar/Quitar Items</h4>
               <div id="choice-${i}-items"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addChoiceItemEffect(${i})">+ Agregar efecto</button>
             </div>
             
             <div class="condition-section">
-              <h4>👥 Cambios en Relaciones</h4>
+              <h4><i data-lucide="users"></i> Cambios en Relaciones</h4>
               <div id="choice-${i}-characters"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addChoiceCharacterEffect(${i})">+ Agregar efecto</button>
             </div>
             
             <div class="condition-section">
-              <h4>🎬 Triggers Especiales</h4>
+              <h4><i data-lucide="play"></i> Triggers Especiales</h4>
               <label class="checkbox-label">
                 <input type="checkbox" class="trigger-ending" data-index="${i}" ${choice.effects?.trigger_ending ? 'checked' : ''} />
                 Terminar juego (trigger_ending)
@@ -2104,7 +2193,7 @@ function renderEventChoices(choices) {
             </div>
             
             <div class="condition-section">
-              <h4>🔓 Control de Eventos</h4>
+              <h4><i data-lucide="unlock"></i> Control de Eventos</h4>
               <div id="choice-${i}-unlock-events"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addUnlockEvent(${i})">+ Desbloquear evento</button>
               <div id="choice-${i}-lock-events" style="margin-top: 0.5rem;"></div>
@@ -2112,7 +2201,7 @@ function renderEventChoices(choices) {
             </div>
             
             <div class="condition-section">
-              <h4>🏆 Logros</h4>
+              <h4><i data-lucide="trophy"></i> Logros</h4>
               <div id="choice-${i}-achievement"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addAchievementUnlock(${i})">+ Desbloquear logro</button>
             </div>
@@ -2182,6 +2271,7 @@ function renderEventChoices(choices) {
       if (!checkbox.checked) delete eventChoicesData[idx].effects.trigger_next_day;
     });
   });
+
 }
 
 window.addChoiceStatEffect = function(choiceIndex, statKey = '', value = 0) {
@@ -2198,9 +2288,10 @@ window.addChoiceStatEffect = function(choiceIndex, statKey = '', value = 0) {
       ${availableStats.map(s => `<option value="${s}" ${s === statKey ? 'selected' : ''}>${currentStory.config.stats[s].name}</option>`).join('')}
     </select>
     <input type="number" class="stat-value" value="${value}" placeholder="Cambio (+/-)" />
-    <button class="btn-danger" onclick="removeChoiceStatEffect('${id}', ${choiceIndex})" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeChoiceStatEffect('${id}', ${choiceIndex})" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const stat = div.querySelector('.stat-select').value;
@@ -2237,9 +2328,10 @@ window.addChoiceFlagEffect = function(choiceIndex, flagKey = '', value = true) {
       ${availableFlags.map(f => `<option value="${f}" ${f === flagKey ? 'selected' : ''}>${f}</option>`).join('')}
     </select>
     <input type="text" class="flag-value" value="${value}" placeholder="Nuevo valor" />
-    <button class="btn-danger" onclick="removeChoiceFlagEffect('${id}', ${choiceIndex})" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeChoiceFlagEffect('${id}', ${choiceIndex})" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const flag = div.querySelector('.flag-select').value;
@@ -2282,9 +2374,10 @@ window.addChoiceItemEffect = function(choiceIndex, itemKey = '', action = 'add')
       <option value="add" ${action === 'add' ? 'selected' : ''}>Dar</option>
       <option value="remove" ${action === 'remove' ? 'selected' : ''}>Quitar</option>
     </select>
-    <button class="btn-danger" onclick="removeChoiceItemEffect('${id}', ${choiceIndex})" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeChoiceItemEffect('${id}', ${choiceIndex})" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const item = div.querySelector('.item-select').value;
@@ -2346,9 +2439,10 @@ window.addChoiceCharacterEffect = function(choiceIndex, charKey = '', value = 0)
       <input type="checkbox" class="char-met" ${metValue ? 'checked' : ''} />
       <span>Conocer</span>
     </label>
-    <button class="btn-danger" onclick="removeChoiceCharacterEffect('${id}', ${choiceIndex})" type="button" title="Eliminar">🗑️</button>
+    <button class="btn-danger" onclick="removeChoiceCharacterEffect('${id}', ${choiceIndex})" type="button" title="Eliminar"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const char = div.querySelector('.char-select').value;
@@ -2398,9 +2492,10 @@ window.addUnlockEvent = function(choiceIndex, eventId = '') {
       <option value="">Selecciona evento...</option>
       ${availableEvents.map(e => `<option value="${e}" ${e === eventId ? 'selected' : ''}>${e}</option>`).join('')}
     </select>
-    <button class="btn-danger" onclick="removeUnlockEvent('${id}', ${choiceIndex})" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeUnlockEvent('${id}', ${choiceIndex})" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const event = div.querySelector('.event-select').value;
@@ -2444,9 +2539,10 @@ window.addLockEvent = function(choiceIndex, eventId = '') {
       <option value="">Selecciona evento...</option>
       ${availableEvents.map(e => `<option value="${e}" ${e === eventId ? 'selected' : ''}>${e}</option>`).join('')}
     </select>
-    <button class="btn-danger" onclick="removeLockEvent('${id}', ${choiceIndex})" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeLockEvent('${id}', ${choiceIndex})" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const event = div.querySelector('.event-select').value;
@@ -2495,9 +2591,10 @@ window.addAchievementUnlock = function(choiceIndex, achievementKey = '') {
       <option value="">Selecciona logro...</option>
       ${availableAchievements.map(a => `<option value="${a}" ${a === achievementKey ? 'selected' : ''}>${currentStory.config.achievements[a].name}</option>`).join('')}
     </select>
-    <button class="btn-danger" onclick="removeAchievementUnlock('${id}', ${choiceIndex})" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeAchievementUnlock('${id}', ${choiceIndex})" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const achievement = div.querySelector('.achievement-select').value;
@@ -2706,10 +2803,10 @@ function renderEndings() {
   container.innerHTML = endings.map((ending, index) => `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">🏁 ${ending.id}</div>
+        <div class="item-title"><i data-lucide="flag-triangle-right"></i> ${ending.id}</div>
         <div class="item-actions">
-          <button class="btn-secondary" onclick="editEnding(${index})">✏️ Editar</button>
-          <button class="btn-danger" onclick="deleteEnding(${index})">🗑️</button>
+          <button class="btn-secondary" onclick="editEnding(${index})"><i data-lucide="pencil"></i>  Editar</button>
+          <button class="btn-danger" onclick="deleteEnding(${index})"><i data-lucide="trash-2"></i>  Eliminar</button>
         </div>
       </div>
       <div class="item-content">
@@ -2725,6 +2822,7 @@ function renderEndings() {
       </div>
     </div>
   `).join('');
+
 }
 
 // Helper functions para condiciones de endings
@@ -2901,10 +2999,11 @@ window.addEndingStatCondition = function(statKey = '', type = 'min', value = 0) 
       <option value="max" ${type === 'max' ? 'selected' : ''}>Máximo</option>
     </select>
     <input type="number" class="stat-value" data-id="${id}" value="${value}" placeholder="Valor" />
-    <button class="btn-danger" onclick="removeEndingStatCondition('${id}')">🗑️</button>
+    <button class="btn-danger" onclick="removeEndingStatCondition('${id}')"><i data-lucide="trash-2"></i></button>
   `;
   
   container.appendChild(div);
+
   
   // Update data
   const updateData = () => {
@@ -2961,10 +3060,11 @@ window.addEndingFlagCondition = function(flagKey = '', value = true) {
       ${availableFlags.map(f => `<option value="${f}" ${f === flagKey ? 'selected' : ''}>${f}</option>`).join('')}
     </select>
     <input type="text" class="flag-value" data-id="${id}" value="${value}" placeholder="Valor esperado" />
-    <button class="btn-danger" onclick="removeEndingFlagCondition('${id}')">🗑️</button>
+    <button class="btn-danger" onclick="removeEndingFlagCondition('${id}')"><i data-lucide="trash-2"></i></button>
   `;
   
   container.appendChild(div);
+
   
   // Update data
   const updateData = () => {
@@ -3023,10 +3123,11 @@ window.addEndingCharacterCondition = function(charKey = '', type = 'relationship
       <option value="met" ${type === 'met' ? 'selected' : ''}>Conocido</option>
     </select>
     <input type="text" class="char-value" data-id="${id}" value="${value}" placeholder="Valor" />
-    <button class="btn-danger" onclick="removeEndingCharacterCondition('${id}')">🗑️</button>
+    <button class="btn-danger" onclick="removeEndingCharacterCondition('${id}')"><i data-lucide="trash-2"></i></button>
   `;
   
   container.appendChild(div);
+
   
   // Update data
   const updateData = () => {
@@ -3085,9 +3186,10 @@ window.addEndingCompletedEvent = function(eventId = '') {
       <option value="">Selecciona evento...</option>
       ${availableEvents.map(e => `<option value="${e}" ${e === eventId ? 'selected' : ''}>${e}</option>`).join('')}
     </select>
-    <button class="btn-danger" onclick="removeEndingCompletedEvent('${id}')" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeEndingCompletedEvent('${id}')" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const event = div.querySelector('.event-select').value;
@@ -3127,9 +3229,10 @@ window.addEndingPreviousChoice = function(eventId = '', choiceIndex = 0) {
       ${availableEvents.map(e => `<option value="${e.id}" ${e.id === eventId ? 'selected' : ''}>${e.id}</option>`).join('')}
     </select>
     <input type="number" class="choice-index" value="${choiceIndex}" min="0" placeholder="Índice (0, 1, 2...)" />
-    <button class="btn-danger" onclick="removeEndingPreviousChoice('${id}')" type="button">🗑️</button>
+    <button class="btn-danger" onclick="removeEndingPreviousChoice('${id}')" type="button"><i data-lucide="trash-2"></i></button>
   `;
   container.appendChild(div);
+
   
   const update = () => {
     const event = div.querySelector('.event-select').value;
@@ -3168,16 +3271,17 @@ window.addEndingRequiredItem = function(itemName = '') {
         <option value="">Selecciona item...</option>
         ${availableItems.map(i => `<option value="${i}" ${i === itemName ? 'selected' : ''}>${i}</option>`).join('')}
       </select>
-      <button class="btn-danger" onclick="removeEndingRequiredItem('${id}')" type="button">🗑️</button>
+      <button class="btn-danger" onclick="removeEndingRequiredItem('${id}')" type="button"><i data-lucide="trash-2"></i></button>
     `;
   } else {
     div.innerHTML = `
       <input type="text" class="item-input" value="${itemName}" placeholder="Nombre del item" />
-      <button class="btn-danger" onclick="removeEndingRequiredItem('${id}')" type="button">🗑️</button>
+      <button class="btn-danger" onclick="removeEndingRequiredItem('${id}')" type="button"><i data-lucide="trash-2"></i></button>
     `;
   }
   
   container.appendChild(div);
+
   
   const update = () => {
     const item = div.querySelector('.item-select')?.value || div.querySelector('.item-input')?.value;
@@ -3328,10 +3432,10 @@ function renderAchievements() {
   container.innerHTML = Object.entries(achievements).map(([key, ach]) => `
     <div class="item-card">
       <div class="item-header">
-        <div class="item-title">${ach.icon || '🏆'} ${ach.name || key}</div>
+        <div class="item-title">${ach.icon || '<i data-lucide="trophy"></i>'} ${ach.name || key}</div>
         <div class="item-actions">
-          <button class="btn-secondary" onclick="editAchievement('${key}')">✏️ Editar</button>
-          <button class="btn-danger" onclick="deleteAchievement('${key}')">🗑️</button>
+          <button class="btn-secondary" onclick="editAchievement('${key}')"><i data-lucide="pencil"></i> Editar</button>
+          <button class="btn-danger" onclick="deleteAchievement('${key}')"><i data-lucide="trash-2"></i> Eliminar</button>
         </div>
       </div>
       <div class="item-content">
@@ -3341,6 +3445,7 @@ function renderAchievements() {
       </div>
     </div>
   `).join('');
+
 }
 
 window.addAchievement = function() {
@@ -3626,7 +3731,7 @@ function showEventDetails(event) {
   
   modal.innerHTML = `
     <div class="modal-content large">
-      <h3>📖 ${event.id}</h3>
+      <h3><i data-lucide="book-open"></i> ${event.id}</h3>
       
       <div style="display: grid; gap: 1rem;">
         <div>
@@ -3655,13 +3760,14 @@ function showEventDetails(event) {
       </div>
       
       <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-        <button class="btn-primary" onclick="editEventFromFlowchart('${event.id}')">✏️ Editar Evento</button>
-        <button class="btn-secondary" onclick="this.closest('.modal').remove()">Cerrar</button>
+        <button class="btn-primary" onclick="editEventFromFlowchart('${event.id}')"><i data-lucide="pencil"></i> Editar Evento</button>
+        <button class="btn-secondary" onclick="this.closest('.modal').remove()"><i data-lucide="x"></i> Cerrar</button>
       </div>
     </div>
   `;
   
   document.body.appendChild(modal);
+
   
   // Click fuera para cerrar
   modal.addEventListener('click', (e) => {
@@ -3675,8 +3781,13 @@ function showEventDetails(event) {
  * Editar evento desde el flowchart
  */
 window.editEventFromFlowchart = function(eventId) {
-  // Cerrar modal de detalles
-  document.querySelector('.modal')?.remove();
+  // Cerrar TODOS los modales dinámicos del flowchart
+  document.querySelectorAll('.modal').forEach(modal => {
+    // Solo remover modales dinámicos (los que no tienen ID)
+    if (!modal.id) {
+      modal.remove();
+    }
+  });
   
   // Ir a la sección de eventos
   document.querySelector('[data-section="events"]').click();
@@ -4717,8 +4828,8 @@ function showNodeDetails(node) {
       <p><strong>Día:</strong> ${event.day}</p>
       <p><strong>Texto:</strong> ${event.text ? event.text.substring(0, 100) + '...' : 'Sin texto'}</p>
       <p><strong>Opciones:</strong> ${event.choices?.length || 0}</p>
-      ${flowchartData.unreachableNodes.has(event.id) ? '<p style="color: var(--danger);"><strong>⚠️ Este evento es INALCANZABLE</strong></p>' : ''}
-      <button class="btn-primary btn-small" onclick="editEvent(${node.index})">✏️ Editar Evento</button>
+      ${flowchartData.unreachableNodes.has(event.id) ? '<p style="color: var(--danger);"><strong><i data-lucide="triangle-alert"></i> Este evento es INALCANZABLE</strong></p>' : ''}
+      <button class="btn-primary btn-small" onclick="editEvent(${node.index})"><i data-lucide="pencil"></i> Editar Evento</button>
     </div>
   `;
   
@@ -5224,6 +5335,7 @@ function showToast(message, type = 'success') {
 
 window.openModal = function(modalId) {
   document.getElementById(modalId).classList.remove('hidden');
+
 };
 
 window.closeModal = function(modalId) {

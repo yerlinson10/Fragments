@@ -7,11 +7,13 @@
   <link rel="stylesheet" href="/css/variables.css" />
   <link rel="stylesheet" href="/css/common.css" />
   <link rel="stylesheet" href="/css/game.css" />
+  <link rel="stylesheet" href="/css/lucide-icons.css" />
+  <script src="https://unpkg.com/lucide@latest" defer></script>
 </head>
 <body>
   <!-- Botón de tema -->
   <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
-    🌙
+    <i data-lucide="moon"></i>
   </button>
 
   <div class="game-container">
@@ -24,8 +26,12 @@
         <div class="day-header">
           <span id="dayCounter">Día 1</span>
           <div style="display: flex; gap: 0.5rem;">
-            <button id="selectorBtn" class="menu-btn" title="Cambiar historia">📚</button>
-            <button id="menuBtn" class="menu-btn" title="Menú de guardado">⚙️</button>
+            <button id="selectorBtn" class="menu-btn" title="Cambiar historia">
+              <i data-lucide="book-open" class="menu-icon"></i>
+            </button>
+            <button id="menuBtn" class="menu-btn" title="Menú de guardado">
+              <i data-lucide="settings" class="menu-icon"></i>
+            </button>
           </div>
         </div>
         <div class="progress-bar">
@@ -72,9 +78,13 @@
     <section class="result-section hidden" id="resultSection">
       <div id="result" class="result hidden"></div>
       
-      <div id="actionButtons" class="action-buttons hidden">
-        <button id="restart" class="btn-primary">🔄 Jugar de nuevo</button>
-        <button id="continueBtn" class="btn-primary hidden">➡️ Continuar</button>
+      <div id="actionButtons" class="action-buttons hidden">r
+        <button id="restart" class="btn-primary">
+          <i data-lucide="refresh-cw"></i> Jugar de nuevo
+        </button>
+        <button id="continueBtn" class="btn-primary hidden">
+          <i data-lucide="arrow-right"></i> Continuar
+        </button>
       </div>
     </section>
 
@@ -83,10 +93,18 @@
     <div id="saveMenu" class="save-menu hidden">
       <h3>Gestión de Guardado</h3>
       <div class="save-actions">
-        <button id="saveBtn" class="btn-secondary">💾 Guardar</button>
-        <button id="loadBtn" class="btn-secondary">📂 Cargar</button>
-        <button id="exportBtn" class="btn-secondary">📤 Exportar</button>
-        <button id="importBtn" class="btn-secondary">📥 Importar</button>
+        <button id="saveBtn" class="btn-secondary">
+          <i data-lucide="save"></i> Guardar
+        </button>
+        <button id="loadBtn" class="btn-secondary">
+          <i data-lucide="folder-open"></i> Cargar
+        </button>
+        <button id="exportBtn" class="btn-secondary">
+          <i data-lucide="upload"></i> Exportar
+        </button>
+        <button id="importBtn" class="btn-secondary">
+          <i data-lucide="download"></i> Importar
+        </button>
         <input type="file" id="importFile" accept=".json" style="display:none" />
       </div>
       <div id="saveSlotsList" class="save-slots"></div>
@@ -107,7 +125,9 @@
 
     <!-- Achievements notification -->
     <div id="achievementNotif" class="achievement-notif hidden">
-      <span class="achievement-icon">🏆</span>
+      <span class="achievement-icon">
+        <i data-lucide="trophy"></i>
+      </span>
       <div class="achievement-text">
         <strong id="achievementTitle"></strong>
         <small id="achievementDesc"></small>

@@ -7,25 +7,30 @@
   <link rel="stylesheet" href="/css/variables.css" />
   <link rel="stylesheet" href="/css/common.css" />
   <link rel="stylesheet" href="/css/selector.css" />
+  <link rel="stylesheet" href="/css/lucide-icons.css" />
+  <script src="https://unpkg.com/lucide@latest" defer></script>
 </head>
 <body>
   <!-- Botón de tema -->
   <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
-    🌙
+    <i data-lucide="moon"></i>
   </button>
 
   <div class="selector-container">
     <!-- Header -->
     <header class="selector-header">
-      <h1>📚 Fragments Engine</h1>
+      <h1>
+        <i data-lucide="book-open" style="width:32px;height:32px;vertical-align:-6px"></i> 
+        Fragments Engine
+      </h1>
       <p class="subtitle">Elige una historia para comenzar tu aventura</p>
       
       <div class="header-actions">
         <button id="createStoryBtn" class="btn-primary">
-          ✨ Crear Nueva Historia
+          <i data-lucide="sparkles"></i> Crear Nueva Historia
         </button>
         <button id="editorBtn" class="btn-secondary">
-          ✏️ Editor Visual
+          <i data-lucide="pencil"></i> Editor Visual
         </button>
       </div>
     </header>
@@ -57,11 +62,13 @@
 
     <!-- Empty state -->
     <div id="emptyState" class="empty-state hidden">
-      <div class="empty-icon">📖</div>
+      <div class="empty-icon">
+        <i data-lucide="book" style="width:64px;height:64px"></i>
+      </div>
       <h3>No hay historias disponibles</h3>
       <p>Crea tu primera historia usando el editor visual</p>
       <button class="btn-primary" onclick="openEditor()">
-        ✨ Crear Historia
+        <i data-lucide="sparkles"></i> Crear Historia
       </button>
     </div>
   </div>
@@ -69,7 +76,10 @@
   <!-- Modal de confirmación para eliminar -->
   <div id="deleteModal" class="modal hidden">
     <div class="modal-content">
-      <h3>⚠️ Confirmar Eliminación</h3>
+      <h3>
+        <i data-lucide="alert-triangle" style="width:20px;height:20px;vertical-align:-3px"></i> 
+        Confirmar Eliminación
+      </h3>
       <p>¿Estás seguro de que quieres eliminar esta historia?</p>
       <p><strong id="deleteStoryName"></strong></p>
       <div class="modal-actions">

@@ -60,7 +60,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
   line-height: 1;
+  color: var(--accent);
+}
+
+/* Iconos blancos en modo oscuro */
+body.dark-theme .theme-toggle {
+  color: #ffffff;
+}
+
+body.dark-theme button i[data-lucide],
+body.dark-theme button svg.lucide {
+  stroke: #ffffff;
+}
+
+body.dark-theme .menu-icon {
+  stroke: #ffffff !important;
 }
 
 .theme-toggle:hover {
@@ -390,6 +406,10 @@ button {
   box-shadow: 0 2px 8px var(--shadow);
   position: relative;
   overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 button::before {
@@ -512,10 +532,25 @@ button:active {
   cursor: pointer;
   padding: 0.5rem;
   transition: transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
 }
 
 .menu-btn:hover {
   transform: scale(1.1);
+}
+
+.menu-icon {
+  color: var(--accent);
+}
+
+.menu-icon:hover {
+  color: #ffffff;
+}
+body.dark-theme .menu-icon {
+  color: #f6f7fb;
 }
 
 /* Menú de guardado */

@@ -6,7 +6,10 @@
   <title>Fragments - Editor Visual</title>
   <link rel="stylesheet" href="/css/variables.css" />
   <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/lucide-icons.css" />
   <link rel="stylesheet" href="/css/editor.css" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest" defer></script>
   <!-- Mermaid.js desde node_modules -->
   <script type="module">
     // Importar Mermaid directamente desde node_modules (ruta absoluta)
@@ -33,61 +36,61 @@
 <body>
   <!-- Botón de tema -->
   <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
-    🌙
+    <i data-lucide="moon"></i>
   </button>
 
   <div class="editor-container">
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h2>📝 Editor</h2>
+        <h2><i data-lucide="edit-3"></i> Editor</h2>
         <button id="backBtn" class="btn-icon" title="Volver al selector">
-          ⬅️
+          <i data-lucide="arrow-left"></i>
         </button>
       </div>
 
       <div class="sidebar-menu">
         <button class="menu-item active" data-section="config">
-          ⚙️ Configuración
+          <i data-lucide="settings"></i> Configuración
         </button>
         <button class="menu-item" data-section="stats">
-          📊 Stats
+          <i data-lucide="bar-chart-3"></i> Stats
         </button>
         <button class="menu-item" data-section="flags">
-          🚩 Flags
+          <i data-lucide="flag"></i> Flags
         </button>
         <button class="menu-item" data-section="characters">
-          👥 Personajes
+          <i data-lucide="users"></i> Personajes
         </button>
         <button class="menu-item" data-section="inventory">
-          🎒 Inventario
+          <i data-lucide="backpack"></i> Inventario
         </button>
         <button class="menu-item" data-section="events">
-          📖 Eventos
+          <i data-lucide="book-open"></i> Eventos
         </button>
         <button class="menu-item" data-section="endings">
-          🏁 Finales
+          <i data-lucide="flag-triangle-right"></i> Finales
         </button>
         <button class="menu-item" data-section="achievements">
-          🏆 Logros
+          <i data-lucide="trophy"></i> Logros
         </button>
         <button class="menu-item" data-section="flowchart">
-          📊 Flujo Visual
+          <i data-lucide="git-branch"></i> Flujo Visual
         </button>
       </div>
 
       <div class="sidebar-footer">
         <button id="saveBtn" class="btn-primary" title="Guardar (Ctrl+S)">
-          💾 Guardar
+          <i data-lucide="save"></i> Guardar
         </button>
         <button id="exportBtn" class="btn-secondary">
-          📤 Exportar
+          <i data-lucide="upload"></i> Exportar
         </button>
         <button id="importBtn" class="btn-secondary">
-          📥 Importar
+          <i data-lucide="download"></i> Importar
         </button>
         <button id="keyboardShortcutsBtn" class="btn-secondary" title="Ver atajos de teclado">
-          ⌨️ Atajos
+          <i data-lucide="keyboard"></i> Atajos
         </button>
         <input type="file" id="importFile" accept=".json" style="display:none" />
       </div>
@@ -104,16 +107,16 @@
         
         <div class="toolbar-actions">
           <button id="undoBtn" class="btn-icon" onclick="undo()" title="Deshacer (Ctrl+Z)" disabled>
-            ↶
+            <i data-lucide="undo-2"></i>
           </button>
           <button id="redoBtn" class="btn-icon" onclick="redo()" title="Rehacer (Ctrl+Y)" disabled>
-            ↷
+            <i data-lucide="redo-2"></i>
           </button>
           <button id="validateBtn" class="btn-secondary">
-            ✓ Validar
+            <i data-lucide="check-circle"></i> Validar
           </button>
           <button id="testBtn" class="btn-primary">
-            ▶️ Probar
+            <i data-lucide="play"></i> Probar
           </button>
         </div>
       </div>
@@ -122,7 +125,7 @@
       <div class="editor-sections">
         <!-- CONFIG SECTION -->
         <section id="config-section" class="editor-section active">
-          <h2>⚙️ Configuración General</h2>
+          <h2><i data-lucide="settings"></i> Configuración General</h2>
           
           <div class="form-grid">
             <div class="form-group">
@@ -213,7 +216,7 @@
         <!-- STATS SECTION -->
         <section id="stats-section" class="editor-section">
           <div class="section-header">
-            <h2>📊 Estadísticas</h2>
+            <h2><i data-lucide="bar-chart-3"></i> Estadísticas</h2>
             <button class="btn-add" onclick="addStat()">+ Agregar Stat</button>
           </div>
 
@@ -229,7 +232,7 @@
         <!-- FLAGS SECTION -->
         <section id="flags-section" class="editor-section">
           <div class="section-header">
-            <h2>🚩 Flags (Variables)</h2>
+            <h2><i data-lucide="flag"></i> Flags (Variables)</h2>
             <button class="btn-add" onclick="addFlag()">+ Agregar Flag</button>
           </div>
 
@@ -245,7 +248,7 @@
         <!-- CHARACTERS SECTION -->
         <section id="characters-section" class="editor-section">
           <div class="section-header">
-            <h2>👥 Personajes</h2>
+            <h2><i data-lucide="users"></i> Personajes</h2>
             <button class="btn-add" onclick="addCharacter()">+ Agregar Personaje</button>
           </div>
 
@@ -261,7 +264,7 @@
         <!-- INVENTORY SECTION -->
         <section id="inventory-section" class="editor-section">
           <div class="section-header">
-            <h2>🎒 Sistema de Inventario</h2>
+            <h2><i data-lucide="backpack"></i> Sistema de Inventario</h2>
           </div>
 
           <div class="form-grid">
@@ -291,12 +294,12 @@
         <!-- EVENTS SECTION -->
         <section id="events-section" class="editor-section">
           <div class="section-header">
-            <h2>📖 Eventos</h2>
+            <h2><i data-lucide="book-open"></i> Eventos</h2>
             <button class="btn-add" onclick="addEvent()" title="Agregar Evento (Ctrl+N)">+ Agregar Evento</button>
           </div>
 
           <div class="events-toolbar">
-            <input type="text" id="eventsSearch" placeholder="🔍 Buscar evento..." />
+            <input type="text" id="eventsSearch" placeholder="Buscar evento..." />
             <select id="eventsFilter">
               <option value="all">Todos los eventos</option>
               <option value="mandatory">Obligatorios</option>
@@ -321,12 +324,12 @@
         <!-- ENDINGS SECTION -->
         <section id="endings-section" class="editor-section">
           <div class="section-header">
-            <h2>🏁 Finales</h2>
+            <h2><i data-lucide="flag-triangle-right"></i> Finales</h2>
             <button class="btn-add" onclick="addEnding()">+ Agregar Final</button>
           </div>
 
           <div class="info-box">
-            <strong>💡 Prioridades:</strong> Menor número = más específico. El engine evalúa los finales de menor a mayor prioridad.
+            <strong><i data-lucide="lightbulb"></i> Prioridades:</strong> Menor número = más específico. El engine evalúa los finales de menor a mayor prioridad.
           </div>
 
           <div id="endingsList" class="items-list">
@@ -355,7 +358,7 @@
         <!-- ACHIEVEMENTS SECTION -->
         <section id="achievements-section" class="editor-section">
           <div class="section-header">
-            <h2>🏆 Logros</h2>
+            <h2><i data-lucide="trophy"></i> Logros</h2>
             <button class="btn-add" onclick="addAchievement()">+ Agregar Logro</button>
           </div>
 
@@ -371,10 +374,10 @@
         <!-- FLOWCHART SECTION -->
         <section id="flowchart-section" class="editor-section">
           <div class="section-header">
-            <h2>📊 Flujo Visual de Historia</h2>
+            <h2><i data-lucide="git-branch"></i> Flujo Visual de Historia</h2>
             <div style="display: flex; gap: 0.5rem;">
-              <button class="btn-secondary btn-small" onclick="refreshFlowchart()">🔄 Actualizar</button>
-              <button class="btn-secondary btn-small" onclick="exportFlowchartCode()">� Ver Código</button>
+              <button class="btn-secondary btn-small" onclick="refreshFlowchart()"><i data-lucide="refresh-cw"></i> Actualizar</button>
+              <button class="btn-secondary btn-small" onclick="exportFlowchartCode()"><i data-lucide="code"></i> Ver Código</button>
             </div>
           </div>
 
@@ -405,11 +408,11 @@
             
             <div class="checkbox-label">
               <input type="checkbox" id="showOnlyMandatory" onchange="refreshFlowchart()" />
-              🎯 Solo eventos principales (Mandatory/Forced)
+              <i data-lucide="target"></i> Solo eventos principales (Mandatory/Forced)
             </div>
             
             <div class="form-group" style="margin: 0;">
-              <label>🔍 Buscar evento:</label>
+              <label><i data-lucide="search"></i> Buscar evento:</label>
               <input type="text" id="flowchartSearch" placeholder="Buscar por texto o ID..." style="padding: 0.4rem;" onkeyup="handleFlowchartSearch()" />
             </div>
           </div>
@@ -463,10 +466,10 @@
 
           <!-- Container para Mermaid -->
           <div class="flowchart-zoom-controls" style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
-            <button class="btn-secondary btn-small" onclick="zoomIn()">🔍+ Acercar</button>
-            <button class="btn-secondary btn-small" onclick="zoomOut()">🔍- Alejar</button>
-            <button class="btn-secondary btn-small" onclick="resetZoom()">⟲ Restablecer</button>
-            <button class="btn-secondary btn-small" onclick="fitToScreen()">⛶ Ajustar</button>
+            <button class="btn-secondary btn-small" onclick="zoomIn()"><i data-lucide="zoom-in"></i></button>
+            <button class="btn-secondary btn-small" onclick="zoomOut()"><i data-lucide="zoom-out"></i></button>
+            <button class="btn-secondary btn-small" onclick="resetZoom()"><i data-lucide="refresh-ccw"></i></button>
+            <button class="btn-secondary btn-small" onclick="fitToScreen()"><i data-lucide="scan"></i></button>
             <span id="zoomLevel" style="margin-left: 1rem; color: var(--text-secondary);">100%</span>
           </div>
           
@@ -476,14 +479,14 @@
 
           <!-- Panel de análisis -->
           <div class="flowchart-analysis">
-            <h3>📈 Análisis del Flujo</h3>
+            <h3><i data-lucide="chart-line"></i> Análisis del Flujo</h3>
             <div id="flowchartStats" class="analysis-stats">
               <!-- Se llenará dinámicamente -->
             </div>
           </div>
 
           <div class="empty-message" id="flowchartEmpty">
-            <p>No hay eventos para visualizar. Crea eventos en la sección 📖 Eventos.</p>
+            <p>No hay eventos para visualizar. Crea eventos en la sección <i data-lucide="book-open"></i> Eventos.</p>
           </div>
         </section>
       </div>
@@ -494,7 +497,7 @@
   <!-- Modal de validación -->
   <div id="validationModal" class="modal hidden">
     <div class="modal-content large">
-      <h3>✓ Resultados de Validación</h3>
+      <h3><i data-lucide="check-circle"></i> Resultados de Validación</h3>
       <div id="validationResults"></div>
       <button class="btn-primary" onclick="closeModal('validationModal')">Cerrar</button>
     </div>
@@ -731,28 +734,28 @@
           <div class="conditions-builder">
             <!-- Stats -->
             <div class="condition-section">
-              <h4>📊 Estadísticas</h4>
+              <h4><i data-lucide="bar-chart-3"></i> Estadísticas</h4>
               <div id="endingStatsConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addEndingStatCondition()">+ Agregar condición de stat</button>
             </div>
             
             <!-- Flags -->
             <div class="condition-section">
-              <h4>🚩 Variables</h4>
+              <h4><i data-lucide="flag"></i> Variables</h4>
               <div id="endingFlagsConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addEndingFlagCondition()">+ Agregar condición de flag</button>
             </div>
             
             <!-- Characters -->
             <div class="condition-section">
-              <h4>👥 Personajes</h4>
+              <h4><i data-lucide="users"></i> Personajes</h4>
               <div id="endingCharactersConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addEndingCharacterCondition()">+ Agregar condición de personaje</button>
             </div>
             
             <!-- Day Range -->
             <div class="condition-section">
-              <h4>📅 Rango de Días</h4>
+              <h4><i data-lucide="calendar"></i> Rango de Días</h4>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                 <div>
                   <label>Día mínimo</label>
@@ -767,21 +770,21 @@
             
             <!-- Completed Events -->
             <div class="condition-section">
-              <h4>✅ Eventos Completados</h4>
+              <h4><i data-lucide="check-square"></i> Eventos Completados</h4>
               <div id="endingCompletedEventsConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addEndingCompletedEvent()">+ Agregar evento</button>
             </div>
             
             <!-- Previous Choices -->
             <div class="condition-section">
-              <h4>🎯 Decisiones Previas</h4>
+              <h4><i data-lucide="target"></i> Decisiones Previas</h4>
               <div id="endingPreviousChoicesConditions"></div>
               <button type="button" class="btn-secondary btn-small" onclick="addEndingPreviousChoice()">+ Agregar decisión</button>
             </div>
             
             <!-- Inventory -->
             <div class="condition-section">
-              <h4>💰 Inventario</h4>
+              <h4><i data-lucide="coins"></i> Inventario</h4>
               <div>
                 <label>Dinero mínimo</label>
                 <input type="number" id="endingMoneyMin" placeholder="Ej: 100" />
@@ -837,7 +840,7 @@
 
   <!-- Panel de atajos de teclado (tooltip flotante) -->
   <div id="keyboardShortcuts" class="keyboard-shortcuts hidden">
-    <h4>⌨️ Atajos de Teclado</h4>
+    <h4><i data-lucide="keyboard"></i> Atajos de Teclado</h4>
     <div class="shortcut-list">
       <div class="shortcut-item">
         <kbd>Ctrl</kbd> + <kbd>S</kbd>

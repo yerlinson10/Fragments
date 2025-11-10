@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="/css/variables.css" />
   <link rel="stylesheet" href="/css/common.css" />
   <link rel="stylesheet" href="/css/selector.css" />
+  <link rel="stylesheet" href="/css/lucide-icons.css" />
+  <script src="https://unpkg.com/lucide@latest" defer></script>
   <style>
     .welcome-container {
       max-width: 800px;
@@ -113,11 +115,13 @@
 <body>
   <!-- Botón de tema -->
   <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
-    🌙
+    <i data-lucide="moon"></i>
   </button>
 
   <div class="welcome-container">
-    <div class="welcome-logo">📚</div>
+    <div class="welcome-logo">
+      <i data-lucide="book-open" style="width:80px;height:80px;stroke-width:1.5"></i>
+    </div>
     
     <h1 class="welcome-title">Fragments Engine v2.0</h1>
     
@@ -128,7 +132,9 @@
 
     <div class="welcome-actions">
       <div class="welcome-card" onclick="window.location.href='/selector'">
-        <div class="welcome-card-icon">🎮</div>
+        <div class="welcome-card-icon">
+          <i data-lucide="gamepad-2" style="width:48px;height:48px"></i>
+        </div>
         <div class="welcome-card-title">Jugar</div>
         <div class="welcome-card-desc">
           Explora historias interactivas y vive las consecuencias de tus decisiones
@@ -136,7 +142,9 @@
       </div>
 
       <div class="welcome-card" onclick="window.location.href='/editor'">
-        <div class="welcome-card-icon">✏️</div>
+        <div class="welcome-card-icon">
+          <i data-lucide="pencil" style="width:48px;height:48px"></i>
+        </div>
         <div class="welcome-card-title">Crear</div>
         <div class="welcome-card-desc">
           Usa el editor visual para crear tus propias historias sin programar
@@ -146,7 +154,9 @@
 
     <div class="features">
       <div class="feature-item">
-        <div class="feature-icon">📊</div>
+        <div class="feature-icon">
+          <i data-lucide="bar-chart-3" style="width:32px;height:32px"></i>
+        </div>
         <div class="feature-text">
           <h4>Stats Dinámicas</h4>
           <p>Crea estadísticas personalizadas que afectan la historia</p>
@@ -154,7 +164,9 @@
       </div>
 
       <div class="feature-item">
-        <div class="feature-icon">👥</div>
+        <div class="feature-icon">
+          <i data-lucide="users" style="width:32px;height:32px"></i>
+        </div>
         <div class="feature-text">
           <h4>Relaciones</h4>
           <p>Sistema de afinidad con personajes (-100 a +100)</p>
@@ -162,7 +174,9 @@
       </div>
 
       <div class="feature-item">
-        <div class="feature-icon">🎒</div>
+        <div class="feature-icon">
+          <i data-lucide="backpack" style="width:32px;height:32px"></i>
+        </div>
         <div class="feature-text">
           <h4>Inventario</h4>
           <p>Gestión de items y dinero con efectos en la narrativa</p>
@@ -170,7 +184,9 @@
       </div>
 
       <div class="feature-item">
-        <div class="feature-icon">🏁</div>
+        <div class="feature-icon">
+          <i data-lucide="flag" style="width:32px;height:32px"></i>
+        </div>
         <div class="feature-text">
           <h4>Múltiples Finales</h4>
           <p>Sistema de finales basado en condiciones y prioridades</p>
@@ -178,7 +194,9 @@
       </div>
 
       <div class="feature-item">
-        <div class="feature-icon">💾</div>
+        <div class="feature-icon">
+          <i data-lucide="save" style="width:32px;height:32px"></i>
+        </div>
         <div class="feature-text">
           <h4>Guardado Completo</h4>
           <p>Auto-save, múltiples slots, export/import de partidas</p>
@@ -186,7 +204,9 @@
       </div>
 
       <div class="feature-item">
-        <div class="feature-icon">🏆</div>
+        <div class="feature-icon">
+          <i data-lucide="trophy" style="width:32px;height:32px"></i>
+        </div>
         <div class="feature-text">
           <h4>Achievements</h4>
           <p>Sistema de logros para incentivar la rejugabilidad</p>
@@ -198,7 +218,9 @@
       <p style="color: var(--text-secondary); font-size: 0.9rem;">
         <strong>Versión:</strong> 2.0.0 | 
         <strong>Autor:</strong> Yerlinson Lora | 
-        <a href="SELECTOR_EDITOR_GUIDE.md" style="color: var(--accent);">📖 Documentación</a>
+        <a href="SELECTOR_EDITOR_GUIDE.md" style="color: var(--accent);">
+          <i data-lucide="book" style="width:14px;height:14px;vertical-align:-2px"></i> Documentación
+        </a>
       </p>
     </div>
   </div>
@@ -208,14 +230,20 @@
     const savedTheme = localStorage.getItem('fragmentsTheme') || 'light';
     if (savedTheme === 'dark') {
       document.body.classList.add('dark-theme');
-      document.getElementById('themeToggle').textContent = '☀️';
+      document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
     }
 
     document.getElementById('themeToggle').addEventListener('click', () => {
       document.body.classList.toggle('dark-theme');
       const isDark = document.body.classList.contains('dark-theme');
-      document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+      document.getElementById('themeToggle').innerHTML = isDark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
       localStorage.setItem('fragmentsTheme', isDark ? 'dark' : 'light');
+      lucide.createIcons(); // Reinicializar iconos
+    });
+
+    // Inicializar Lucide cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
     });
   </script>
 </body>

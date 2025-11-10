@@ -40,16 +40,30 @@ function initTheme() {
   const savedTheme = localStorage.getItem('fragmentsTheme') || 'light';
   if (savedTheme === 'dark') {
     document.body.classList.add('dark-theme');
-    elements.themeToggle.textContent = '☀️';
+    elements.themeToggle.innerHTML = '<i data-lucide="sun"></i>';
+  }
+  // Inicializar iconos Lucide cuando esté disponible
+  initLucideIcons();
+}
+
+// Función para inicializar iconos Lucide con retry
+function initLucideIcons() {
+  if (window.lucide && window.lucide.createIcons) {
+    lucide.createIcons();
+  } else {
+    // Retry después de 100ms si Lucide no está cargado
+    setTimeout(initLucideIcons, 100);
   }
 }
 
 elements.themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark-theme');
   const isDark = document.body.classList.contains('dark-theme');
-  elements.themeToggle.textContent = isDark ? '☀️' : '🌙';
+  elements.themeToggle.innerHTML = isDark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
   localStorage.setItem('fragmentsTheme', isDark ? 'dark' : 'light');
   playSound('click');
+  // Reinicializar iconos después del cambio
+  initLucideIcons();
 });
 
 // Sistema de sonido
@@ -202,9 +216,18 @@ function showContinuePrompt() {
   `;
 
   elements.choicesContainer.innerHTML = `
-    <button class="choice-btn" id="continueGame">▶️ Continuar partida</button>
-    <button class="choice-btn" id="newGame">🆕 Nuevo juego</button>
+    <button class="choice-btn" id="continueGame">
+      <i data-lucide="play"></i> Continuar partida
+    </button>
+    <button class="choice-btn" id="newGame">
+      <i data-lucide="plus-circle"></i> Nuevo juego
+    </button>
   `;
+
+  // Inicializar iconos en los botones nuevos
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 
   document.getElementById('continueGame').onclick = () => {
     playSound('click');
@@ -392,6 +415,11 @@ function showNextEvent() {
       ${currentEvent.text}
     `;
 
+    // Reinicializar iconos
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
     // Crear botones de elección
     elements.choicesContainer.innerHTML = '';
     currentEvent.choices.forEach((choice, index) => {
@@ -560,13 +588,18 @@ function showDayTransition() {
   const previousDay = engine.gameState.current_day - 1;
   
   elements.situation.innerHTML = `
-    <strong>🌙 Fin del Día ${previousDay}</strong><br><br>
+    <strong><i data-lucide="moon" style="width:20px;height:20px;vertical-align:-3px"></i> Fin del Día ${previousDay}</strong><br><br>
     El día termina. Tus decisiones quedan registradas.<br>
     Mañana será otro día lleno de nuevas elecciones.<br><br>
     <small>Preparando Día ${engine.gameState.current_day}...</small>
   `;
 
   elements.choicesContainer.innerHTML = '';
+
+  // Reinicializar iconos
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 
   setTimeout(() => {
     generateDay();
@@ -588,13 +621,18 @@ function showEnding() {
   const ending = engine.getEnding();
 
   elements.situation.innerHTML = `
-    <strong>📖 Fin de la Historia</strong><br><br>
+    <strong><i data-lucide="book" style="width:20px;height:20px;vertical-align:-3px"></i> Fin de la Historia</strong><br><br>
     <small style="opacity:.7; margin-top:1rem; display:block">
       ${Object.entries(engine.gameState.stats)
         .map(([key, value]) => `${engine.config.stats[key].icon} ${value}`)
         .join(' | ')}
     </small>
   `;
+
+  // Reinicializar iconos
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 
   elements.choicesContainer.innerHTML = '';
 

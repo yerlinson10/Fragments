@@ -1,0 +1,282 @@
+/**
+ * LUCIDE ICONS - Estilos para iconos SVG
+ * Optimización de alineación y dimensionamiento
+ */
+
+/* Asegurar que los SVG de Lucide se rendericen correctamente */
+svg.lucide {
+  display: inline-block;
+  vertical-align: middle;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Iconos inline con texto */
+i[data-lucide] {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1em;
+  height: 1em;
+  stroke-width: 2;
+}
+
+i[data-lucide] svg {
+  stroke: currentColor;
+  fill: none;
+}
+
+/* Botones con iconos - Centrado perfecto */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+button i[data-lucide] {
+  width: 1.1em;
+  height: 1.1em;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/* Botones solo con icono (sin texto) */
+button:empty i[data-lucide],
+button i[data-lucide]:only-child {
+  margin: 0;
+}
+
+/* Theme toggle específico */
+.theme-toggle {
+  color: var(--accent);
+}
+
+body.dark-theme .theme-toggle {
+  color: #ffffff;
+}
+
+.theme-toggle i[data-lucide] {
+  width: 24px !important;
+  height: 24px !important;
+  margin: 0;
+  stroke: currentColor;
+}
+
+.theme-toggle svg {
+  width: 24px !important;
+  height: 24px !important;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Todos los iconos blancos en modo oscuro */
+body.dark-theme i[data-lucide],
+body.dark-theme svg.lucide {
+  stroke: #ffffff;
+}
+
+body.dark-theme button i[data-lucide],
+body.dark-theme button svg.lucide {
+  stroke: #ffffff;
+}
+
+/* Iconos en headers */
+h1 i[data-lucide],
+h2 i[data-lucide],
+h3 i[data-lucide] {
+  width: 0.9em;
+  height: 0.9em;
+  vertical-align: -0.1em;
+  margin-right: 0.3em;
+}
+
+/* Iconos en menú/sidebar */
+.menu-btn i[data-lucide] {
+  width: 1.2em;
+  height: 1.2em;
+  margin: 0;
+}
+
+.menu-icon {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+/* Achievement icon */
+.achievement-icon i[data-lucide] {
+  width: 2em;
+  height: 2em;
+  vertical-align: middle;
+}
+
+/* Story cards icons */
+.story-meta-item i[data-lucide] {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  margin-right: 0.25em;
+  opacity: 0.8;
+}
+
+/* Feature icons */
+.feature-icon i[data-lucide],
+.welcome-card-icon i[data-lucide] {
+  display: block;
+  margin: 0 auto;
+}
+
+.welcome-logo i[data-lucide] {
+  display: block;
+  margin: 0 auto;
+  stroke-width: 1.5;
+}
+
+/* Empty state icons */
+.empty-icon i[data-lucide] {
+  display: block;
+  margin: 0 auto 1rem;
+  opacity: 0.5;
+}
+
+/* Iconos en labels pequeños */
+small i[data-lucide] {
+  width: 0.9em;
+  height: 0.9em;
+  vertical-align: -0.1em;
+}
+
+/* Inventario headers con iconos */
+.inventory-header i[data-lucide] {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  margin-right: 0.3em;
+}
+
+/* Smooth transitions para interactividad */
+button i[data-lucide],
+a i[data-lucide] {
+  transition: transform 0.2s ease, stroke-width 0.2s ease;
+}
+
+button:hover i[data-lucide],
+a:hover i[data-lucide] {
+  transform: scale(1.1);
+}
+
+/* Iconos de color según contexto */
+.btn-danger i[data-lucide] {
+  color: var(--danger);
+}
+
+.btn-primary i[data-lucide] {
+  color: currentColor;
+}
+
+.btn-secondary i[data-lucide] {
+  color: currentColor;
+}
+
+/* Iconos de estado */
+i[data-lucide="check"],
+i[data-lucide="check-circle"] {
+  color: var(--success);
+}
+
+i[data-lucide="x"],
+i[data-lucide="x-circle"],
+i[data-lucide="alert-triangle"] {
+  color: var(--danger);
+}
+
+i[data-lucide="alert-circle"],
+i[data-lucide="info"] {
+  color: var(--warning);
+}
+
+/* Spin animation para loading */
+@keyframes lucide-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+i[data-lucide="loader"],
+i[data-lucide="loader-2"] {
+  animation: lucide-spin 1s linear infinite;
+}
+
+/* Accessibility - asegurar que iconos no interfieran con lectores de pantalla */
+i[data-lucide] {
+  pointer-events: none; /* Los clicks van al contenedor, no al SVG */
+}
+
+/* ============================================
+   MODO OSCURO - ICONOS BLANCOS
+   ============================================ */
+
+body.dark-theme i[data-lucide],
+body.dark-theme svg.lucide,
+body.dark-theme .lucide {
+  stroke: #ffffff !important;
+  color: #ffffff;
+}
+
+body.dark-theme button i[data-lucide],
+body.dark-theme button svg.lucide {
+  stroke: #ffffff !important;
+}
+
+body.dark-theme .theme-toggle i[data-lucide],
+body.dark-theme .theme-toggle svg.lucide {
+  stroke: #ffffff !important;
+}
+
+body.dark-theme .menu-icon,
+body.dark-theme .menu-icon svg {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Excepciones para iconos con color específico (success, danger, warning) */
+body.dark-theme .btn-danger i[data-lucide],
+body.dark-theme i[data-lucide="x"],
+body.dark-theme i[data-lucide="x-circle"],
+body.dark-theme i[data-lucide="alert-triangle"] {
+  stroke: var(--danger) !important;
+  color: var(--danger);
+}
+
+body.dark-theme i[data-lucide="check"],
+body.dark-theme i[data-lucide="check-circle"] {
+  stroke: var(--success) !important;
+  color: var(--success);
+}
+
+/* ============================================
+   EDITOR - Menu Items Alignment Fix
+   ============================================ */
+
+/* Alineación perfecta de iconos en el menú del editor */
+.menu-item i[data-lucide] {
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+}
+
+.menu-item svg.lucide {
+  width: 18px !important;
+  height: 18px !important;
+  display: block !important;
+}

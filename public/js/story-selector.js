@@ -10,15 +10,23 @@ function initTheme() {
   const savedTheme = localStorage.getItem('fragmentsTheme') || 'light';
   if (savedTheme === 'dark') {
     document.body.classList.add('dark-theme');
-    document.getElementById('themeToggle').textContent = '☀️';
+    document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
+  }
+  // Inicializar iconos Lucide
+  if (window.lucide) {
+    lucide.createIcons();
   }
 }
 
 document.getElementById('themeToggle').addEventListener('click', () => {
   document.body.classList.toggle('dark-theme');
   const isDark = document.body.classList.contains('dark-theme');
-  document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+  document.getElementById('themeToggle').innerHTML = isDark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
   localStorage.setItem('fragmentsTheme', isDark ? 'dark' : 'light');
+  // Reinicializar iconos después del cambio
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 });
 
 // Cargar historias disponibles
@@ -122,10 +130,10 @@ function renderStories() {
       
       <div class="story-meta">
         <span class="story-meta-item">
-          👤 ${story.author || 'Anónimo'}
+          <i data-lucide="user" style="width:14px;height:14px;vertical-align:-2px"></i> ${story.author || 'Anónimo'}
         </span>
         <span class="story-meta-item">
-          📅 ${story.days || 1} día${story.days > 1 ? 's' : ''}
+          <i data-lucide="calendar" style="width:14px;height:14px;vertical-align:-2px"></i> ${story.days || 1} día${story.days > 1 ? 's' : ''}
         </span>
       </div>
       
@@ -146,17 +154,22 @@ function renderStories() {
       
       <div class="story-actions">
         <button class="btn-play" onclick="playStory('${story.id}')">
-          ▶️ Jugar
+          <i data-lucide="play"></i> Jugar
         </button>
         <button class="btn-edit" onclick="editStory('${story.id}')">
-          ✏️ Editar
+          <i data-lucide="pencil"></i> Editar
         </button>
         <button class="btn-delete" onclick="confirmDeleteStory('${story.id}', '${story.title || story.id}')">
-          🗑️
+          <i data-lucide="trash-2"></i>
         </button>
       </div>
     </div>
   `).join('');
+  
+  // Reinicializar iconos después de renderizar
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 }
 
 // Buscar historias
