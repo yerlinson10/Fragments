@@ -3489,7 +3489,7 @@ O:
 
 2. **Verifica la consola:**
 ```javascript
-console.log(engine.gameState);
+
 ```
 
 3. **Exporta guardados** para inspeccionar el estado.
@@ -3748,7 +3748,7 @@ Día 3: Clímax y resolución
 **Solución:**
 ```javascript
 // En consola del navegador:
-console.log(engine.getAvailableEvents());
+
 // Verifica si tu evento está en la lista
 ```
 
@@ -3764,9 +3764,9 @@ console.log(engine.getAvailableEvents());
 **Solución:**
 ```javascript
 // En consola:
-console.log(engine.gameState.stats);
-console.log(engine.gameState.flags);
-console.log(engine.getEnding());
+
+
+
 ```
 
 ### Error 3: "Bucle infinito"
@@ -3830,13 +3830,13 @@ El engine valida automáticamente al cargar:
 
 ```javascript
 // Ver estado completo
-console.log(engine.gameState);
+
 
 // Ver eventos disponibles
-console.log(engine.getAvailableEvents());
+
 
 // Ver qué final obtendrías ahora
-console.log(engine.getEnding());
+
 
 // Simular cambio de stat
 engine.gameState.stats.energia = 10;

@@ -14,7 +14,6 @@ const HOST = "localhost";
 
 // Middleware para logging
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
   next();
 });
 
@@ -71,16 +70,10 @@ app.get("/story-editor.html", (req, res) => {
 
 // Manejo de 404
 app.use((req, res) => {
-  console.log(`❌ 404: ${req.url}`);
   res
     .status(404)
     .send("<h1>404 - Página no encontrada</h1><p>Ruta: " + req.url + "</p>");
 });
 
 // Iniciar servidor
-app.listen(PORT, HOST, () => {
-  console.log("Servidor Fragments v2.0 (Express)");
-  console.log(`📍 http://${HOST}:${PORT}`);
-  console.log("");
-  console.log("Ctrl+C para detener");
-});
+app.listen(PORT, HOST, () => {});

@@ -1,7 +1,7 @@
 /**
  * FRAGMENTS ENGINE v2.0
  * Motor de historias interactivas dinámico y configurable
- * 
+ *
  * Características:
  * - Stats/Flags/Characters/Inventory dinámicos
  * - Sistema de guardado con LocalStorage + Export/Import
@@ -27,19 +27,21 @@ class FragmentsEngine {
   async loadStory(storyPath) {
     try {
       this.currentStoryPath = storyPath;
-      
+
       // Cargar los 3 archivos JSON
       const [configRes, storyRes, endingsRes] = await Promise.all([
         fetch(`${storyPath}/config.json`),
         fetch(`${storyPath}/story.json`),
-        fetch(`${storyPath}/endings.json`)
+        fetch(`${storyPath}/endings.json`),
       ]);
 
       // Validar que todas las respuestas sean exitosas
-      const files = ['config.json', 'story.json', 'endings.json'];
+      const files = ["config.json", "story.json", "endings.json"];
       [configRes, storyRes, endingsRes].forEach((res, i) => {
         if (!res.ok) {
-          throw new Error(`No se pudo cargar ${files[i]}: ${res.status} ${res.statusText}`);
+          throw new Error(
+            `No se pudo cargar ${files[i]}: ${res.status} ${res.statusText}`
+          );
         }
       });
 
@@ -47,14 +49,12 @@ class FragmentsEngine {
       this.story = await storyRes.json();
       this.endings = await endingsRes.json();
 
-      console.log('✅ Historia cargada:', this.config.story.title);
-      
       // Validar historia
       this.validateStory();
-      
+
       return { success: true };
     } catch (error) {
-      console.error('❌ Error cargando historia:', error);
+      console.error("❌ Error cargando historia:", error);
       return { success: false, error: error.message };
     }
   }
@@ -65,28 +65,26 @@ class FragmentsEngine {
   loadStoryFromData(storyData) {
     try {
       this.currentStoryPath = null; // No hay ruta física
-      
+
       // Validar que los datos tengan la estructura requerida
-      if (!storyData || typeof storyData !== 'object') {
-        throw new Error('Los datos de la historia no son válidos');
+      if (!storyData || typeof storyData !== "object") {
+        throw new Error("Los datos de la historia no son válidos");
       }
-      
+
       if (!storyData.config || !storyData.story || !storyData.endings) {
-        throw new Error('Faltan archivos requeridos: config, story o endings');
+        throw new Error("Faltan archivos requeridos: config, story o endings");
       }
-      
+
       this.config = storyData.config;
       this.story = storyData.story;
       this.endings = storyData.endings;
 
-      console.log('✅ Historia cargada desde datos:', this.config.story.title);
-      
       // Validar historia
       this.validateStory();
-      
+
       return { success: true };
     } catch (error) {
-      console.error('❌ Error cargando historia desde datos:', error);
+      console.error("❌ Error cargando historia desde datos:", error);
       return { success: false, error: error.message };
     }
   }
@@ -99,35 +97,35 @@ class FragmentsEngine {
       story_id: this.config.story.id,
       current_day: this.config.story.starting_day || 1,
       current_event_index: 0,
-      time_of_day: this.config.story.starting_time || 'morning',
-      
+      time_of_day: this.config.story.starting_time || "morning",
+
       // Stats dinámicas
       stats: {},
-      
+
       // Flags dinámicas
       flags: { ...this.config.flags },
-      
+
       // Characters dinámicos
       characters: {},
-      
+
       // Inventory
       inventory: {
         items: [...(this.config.inventory?.initial_items || [])], // Copiar items iniciales
-        money: this.config.inventory?.money || 0
+        money: this.config.inventory?.money || 0,
       },
-      
+
       // Tracking
       completed_events: [],
       available_events: [],
       choices_history: [],
-      
+
       // Achievements
       achievements: {},
-      
+
       // Metadata
       created_at: new Date().toISOString(),
       last_played: new Date().toISOString(),
-      playtime: 0
+      playtime: 0,
     };
 
     // Inicializar stats
@@ -136,25 +134,26 @@ class FragmentsEngine {
     }
 
     // Inicializar characters
-    for (const [key, charConfig] of Object.entries(this.config.characters || {})) {
+    for (const [key, charConfig] of Object.entries(
+      this.config.characters || {}
+    )) {
       this.gameState.characters[key] = {
         ...charConfig,
         relationship: charConfig.relationship || 0,
-        met: charConfig.met || false
+        met: charConfig.met || false,
       };
     }
 
     // Inicializar achievements
-    for (const [key, achConfig] of Object.entries(this.config.achievements || {})) {
+    for (const [key, achConfig] of Object.entries(
+      this.config.achievements || {}
+    )) {
       this.gameState.achievements[key] = {
         ...achConfig,
-        unlocked: false
+        unlocked: false,
       };
     }
 
-    console.log('🎮 Juego inicializado');
-    console.log('📊 Estado inicial:', this.gameState);
-    
     return this.gameState;
   }
 
@@ -163,10 +162,13 @@ class FragmentsEngine {
    */
   getAvailableEvents() {
     const available = [];
-    
+
     for (const event of this.story.events) {
       // Verificar si ya se completó y no puede repetirse
-      if (this.gameState.completed_events.includes(event.id) && !event.can_repeat) {
+      if (
+        this.gameState.completed_events.includes(event.id) &&
+        !event.can_repeat
+      ) {
         continue;
       }
 
@@ -181,7 +183,7 @@ class FragmentsEngine {
       }
 
       // Eventos random: verificar probabilidad
-      if (event.type === 'random') {
+      if (event.type === "random") {
         if (Math.random() > (event.probability || 0.5)) {
           continue;
         }
@@ -208,11 +210,11 @@ class FragmentsEngine {
     // Verificar stats
     if (conditions.stats) {
       for (const [key, value] of Object.entries(conditions.stats)) {
-        const statName = key.replace(/_min|_max/, '');
+        const statName = key.replace(/_min|_max/, "");
         const currentValue = this.gameState.stats[statName];
 
-        if (key.endsWith('_min') && currentValue < value) return false;
-        if (key.endsWith('_max') && currentValue > value) return false;
+        if (key.endsWith("_min") && currentValue < value) return false;
+        if (key.endsWith("_max") && currentValue > value) return false;
       }
     }
 
@@ -225,11 +227,16 @@ class FragmentsEngine {
 
     // Verificar characters
     if (conditions.characters) {
-      for (const [charKey, charConditions] of Object.entries(conditions.characters)) {
+      for (const [charKey, charConditions] of Object.entries(
+        conditions.characters
+      )) {
         const char = this.gameState.characters[charKey];
         if (!char) return false;
 
-        if (charConditions.met !== undefined && char.met !== charConditions.met) {
+        if (
+          charConditions.met !== undefined &&
+          char.met !== charConditions.met
+        ) {
           return false;
         }
 
@@ -244,15 +251,24 @@ class FragmentsEngine {
     }
 
     // Verificar día
-    if (conditions.day !== undefined && this.gameState.current_day !== conditions.day) {
+    if (
+      conditions.day !== undefined &&
+      this.gameState.current_day !== conditions.day
+    ) {
       return false;
     }
 
-    if (conditions.day_min !== undefined && this.gameState.current_day < conditions.day_min) {
+    if (
+      conditions.day_min !== undefined &&
+      this.gameState.current_day < conditions.day_min
+    ) {
       return false;
     }
 
-    if (conditions.day_max !== undefined && this.gameState.current_day > conditions.day_max) {
+    if (
+      conditions.day_max !== undefined &&
+      this.gameState.current_day > conditions.day_max
+    ) {
       return false;
     }
 
@@ -265,8 +281,12 @@ class FragmentsEngine {
 
     // Verificar choices previas
     if (conditions.previous_choices) {
-      for (const [eventId, choiceIndex] of Object.entries(conditions.previous_choices)) {
-        const choice = this.gameState.choices_history.find(c => c.event === eventId);
+      for (const [eventId, choiceIndex] of Object.entries(
+        conditions.previous_choices
+      )) {
+        const choice = this.gameState.choices_history.find(
+          (c) => c.event === eventId
+        );
         if (!choice || choice.choice !== choiceIndex) return false;
       }
     }
@@ -281,7 +301,8 @@ class FragmentsEngine {
     // Verificar inventory
     if (conditions.inventory) {
       if (conditions.inventory.money_min !== undefined) {
-        if (this.gameState.inventory.money < conditions.inventory.money_min) return false;
+        if (this.gameState.inventory.money < conditions.inventory.money_min)
+          return false;
       }
 
       if (conditions.inventory.has_items) {
@@ -307,7 +328,7 @@ class FragmentsEngine {
       inventory: {},
       unlocked_events: [],
       locked_events: [],
-      achievements: []
+      achievements: [],
     };
 
     // Aplicar cambios de stats
@@ -328,7 +349,7 @@ class FragmentsEngine {
         appliedEffects.stats[key] = {
           old: oldValue,
           change: value,
-          new: this.gameState.stats[key]
+          new: this.gameState.stats[key],
         };
       }
     }
@@ -337,9 +358,9 @@ class FragmentsEngine {
     if (effects.flags) {
       for (const [key, value] of Object.entries(effects.flags)) {
         const oldValue = this.gameState.flags[key];
-        
+
         // Si es numérico, sumar; si no, reemplazar
-        if (typeof value === 'number' && typeof oldValue === 'number') {
+        if (typeof value === "number" && typeof oldValue === "number") {
           this.gameState.flags[key] = oldValue + value;
         } else {
           this.gameState.flags[key] = value;
@@ -347,7 +368,7 @@ class FragmentsEngine {
 
         appliedEffects.flags[key] = {
           old: oldValue,
-          new: this.gameState.flags[key]
+          new: this.gameState.flags[key],
         };
       }
     }
@@ -372,7 +393,7 @@ class FragmentsEngine {
         appliedEffects.characters[charKey] = {
           old_relationship: oldRelationship,
           new_relationship: char.relationship,
-          met: char.met
+          met: char.met,
         };
       }
     }
@@ -385,7 +406,7 @@ class FragmentsEngine {
         appliedEffects.inventory.money = {
           old: oldMoney,
           change: effects.inventory.money,
-          new: this.gameState.inventory.money
+          new: this.gameState.inventory.money,
         };
       }
 
@@ -395,20 +416,23 @@ class FragmentsEngine {
         for (const item of itemsToAdd) {
           if (!this.gameState.inventory.items.includes(item)) {
             this.gameState.inventory.items.push(item);
-            appliedEffects.inventory.items_added = appliedEffects.inventory.items_added || [];
+            appliedEffects.inventory.items_added =
+              appliedEffects.inventory.items_added || [];
             appliedEffects.inventory.items_added.push(item);
           }
         }
       }
 
       // Quitar items - Soportar ambos formatos: 'remove_items' y 'remove'
-      const itemsToRemove = effects.inventory.remove_items || effects.inventory.remove || [];
+      const itemsToRemove =
+        effects.inventory.remove_items || effects.inventory.remove || [];
       if (itemsToRemove.length > 0) {
         for (const item of itemsToRemove) {
           const index = this.gameState.inventory.items.indexOf(item);
           if (index > -1) {
             this.gameState.inventory.items.splice(index, 1);
-            appliedEffects.inventory.items_removed = appliedEffects.inventory.items_removed || [];
+            appliedEffects.inventory.items_removed =
+              appliedEffects.inventory.items_removed || [];
             appliedEffects.inventory.items_removed.push(item);
           }
         }
@@ -434,7 +458,10 @@ class FragmentsEngine {
     // Achievements
     if (effects.unlocks && effects.unlocks.achievement) {
       const achKey = effects.unlocks.achievement;
-      if (this.gameState.achievements[achKey] && !this.gameState.achievements[achKey].unlocked) {
+      if (
+        this.gameState.achievements[achKey] &&
+        !this.gameState.achievements[achKey].unlocked
+      ) {
         this.gameState.achievements[achKey].unlocked = true;
         appliedEffects.achievements.push(achKey);
       }
@@ -458,12 +485,12 @@ class FragmentsEngine {
    */
   makeChoice(event, choiceIndex) {
     const choice = event.choices[choiceIndex];
-    
+
     // Guardar en historial
     this.gameState.choices_history.push({
       event: event.id,
       choice: choiceIndex,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // Aplicar efectos
@@ -477,10 +504,10 @@ class FragmentsEngine {
     // Actualizar timestamp
     this.gameState.last_played = new Date().toISOString();
 
-    console.log('🎯 Elección realizada:', {
+    console.log("🎯 Elección realizada:", {
       event: event.id,
       choice: choiceIndex,
-      effects
+      effects,
     });
 
     return effects;
@@ -491,8 +518,8 @@ class FragmentsEngine {
    */
   getEnding() {
     // Ordenar endings por prioridad (menor = más específico)
-    const sortedEndings = [...this.endings.endings].sort((a, b) => 
-      (a.priority || 999) - (b.priority || 999)
+    const sortedEndings = [...this.endings.endings].sort(
+      (a, b) => (a.priority || 999) - (b.priority || 999)
     );
 
     // Buscar el primer ending que cumple condiciones
@@ -526,7 +553,9 @@ class FragmentsEngine {
       if (event.conditions?.completed_events) {
         for (const requiredId of event.conditions.completed_events) {
           if (!eventIds.has(requiredId)) {
-            issues.push(`⚠️ Evento "${event.id}" requiere evento inexistente: "${requiredId}"`);
+            issues.push(
+              `⚠️ Evento "${event.id}" requiere evento inexistente: "${requiredId}"`
+            );
           }
         }
       }
@@ -543,12 +572,16 @@ class FragmentsEngine {
     for (const ending of this.endings.endings) {
       if (ending.conditions?.stats) {
         for (const [key, value] of Object.entries(ending.conditions.stats)) {
-          const statName = key.replace(/_min|_max/, '');
-          if (key.endsWith('_min') && value > maxStats[statName]) {
-            issues.push(`⚠️ Final "${ending.id}" requiere ${statName} >= ${value}, pero el máximo es ${maxStats[statName]}`);
+          const statName = key.replace(/_min|_max/, "");
+          if (key.endsWith("_min") && value > maxStats[statName]) {
+            issues.push(
+              `⚠️ Final "${ending.id}" requiere ${statName} >= ${value}, pero el máximo es ${maxStats[statName]}`
+            );
           }
-          if (key.endsWith('_max') && value < minStats[statName]) {
-            issues.push(`⚠️ Final "${ending.id}" requiere ${statName} <= ${value}, pero el mínimo es ${minStats[statName]}`);
+          if (key.endsWith("_max") && value < minStats[statName]) {
+            issues.push(
+              `⚠️ Final "${ending.id}" requiere ${statName} <= ${value}, pero el mínimo es ${minStats[statName]}`
+            );
           }
         }
       }
@@ -559,50 +592,69 @@ class FragmentsEngine {
       if (event.can_repeat === true) {
         const conditions = event.conditions || {};
         const conditionKeys = Object.keys(conditions);
-        
+
         // Verificar si tiene condiciones restrictivas
         let hasRestrictiveConditions = false;
-        
+
         // Flags específicas (no vacías)
         if (conditions.flags && Object.keys(conditions.flags).length > 0) {
           hasRestrictiveConditions = true;
         }
-        
+
         // Characters con condiciones
-        if (conditions.characters && Object.keys(conditions.characters).length > 0) {
+        if (
+          conditions.characters &&
+          Object.keys(conditions.characters).length > 0
+        ) {
           hasRestrictiveConditions = true;
         }
-        
+
         // Inventory
-        if (conditions.inventory && Object.keys(conditions.inventory).length > 0) {
+        if (
+          conditions.inventory &&
+          Object.keys(conditions.inventory).length > 0
+        ) {
           hasRestrictiveConditions = true;
         }
-        
+
         // Stats con valores específicos
         if (conditions.stats) {
           hasRestrictiveConditions = true;
         }
-        
+
         // PELIGRO: Sin condiciones restrictivas
         if (!hasRestrictiveConditions && conditionKeys.length === 0) {
-          issues.push(`🔴 BUCLE INFINITO: Evento "${event.id}" tiene can_repeat=true sin condiciones restrictivas`);
-        } 
+          issues.push(
+            `🔴 BUCLE INFINITO: Evento "${event.id}" tiene can_repeat=true sin condiciones restrictivas`
+          );
+        }
         // ADVERTENCIA: Solo completed_events (no previene repetición del mismo evento)
-        else if (!hasRestrictiveConditions && conditionKeys.length === 1 && conditions.completed_events) {
-          issues.push(`🟠 BUCLE INFINITO: Evento "${event.id}" tiene can_repeat=true pero solo verifica completed_events (no previene su propia repetición)`);
+        else if (
+          !hasRestrictiveConditions &&
+          conditionKeys.length === 1 &&
+          conditions.completed_events
+        ) {
+          issues.push(
+            `🟠 BUCLE INFINITO: Evento "${event.id}" tiene can_repeat=true pero solo verifica completed_events (no previene su propia repetición)`
+          );
         }
         // ADVERTENCIA: Solo condición de día
-        else if (!hasRestrictiveConditions && conditionKeys.length === 1 && conditions.day) {
-          issues.push(`🟠 BUCLE INFINITO: Evento "${event.id}" tiene can_repeat=true pero solo verifica el día (se repetirá infinitamente)`);
+        else if (
+          !hasRestrictiveConditions &&
+          conditionKeys.length === 1 &&
+          conditions.day
+        ) {
+          issues.push(
+            `🟠 BUCLE INFINITO: Evento "${event.id}" tiene can_repeat=true pero solo verifica el día (se repetirá infinitamente)`
+          );
         }
       }
     }
 
     if (issues.length > 0) {
-      console.warn('📋 Problemas detectados en la historia:');
-      issues.forEach(issue => console.warn(issue));
+      console.warn("📋 Problemas detectados en la historia:");
+      issues.forEach((issue) => console.warn(issue));
     } else {
-      console.log('✅ Historia validada correctamente');
     }
 
     return issues;
@@ -618,11 +670,11 @@ class FragmentsEngine {
     const saveData = {
       ...this.gameState,
       config_version: this.config.story.version,
-      saved_at: new Date().toISOString()
+      saved_at: new Date().toISOString(),
     };
 
     localStorage.setItem(slotKey, JSON.stringify(saveData));
-    console.log(`💾 Guardado en slot ${slotNumber}`);
+
     return true;
   }
 
@@ -637,7 +689,7 @@ class FragmentsEngine {
     }
 
     this.gameState = JSON.parse(savedData);
-    console.log(`📂 Cargado desde slot ${slotNumber}`);
+
     return true;
   }
 
@@ -647,20 +699,19 @@ class FragmentsEngine {
       ...this.gameState,
       config_version: this.config.story.version,
       story_path: this.currentStoryPath,
-      exported_at: new Date().toISOString()
+      exported_at: new Date().toISOString(),
     };
 
-    const blob = new Blob([JSON.stringify(saveData, null, 2)], { 
-      type: 'application/json' 
+    const blob = new Blob([JSON.stringify(saveData, null, 2)], {
+      type: "application/json",
     });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `${this.config.story.id}_day${this.gameState.current_day}_save.json`;
     a.click();
     URL.revokeObjectURL(url);
 
-    console.log('📤 Guardado exportado');
     return true;
   }
 
@@ -668,26 +719,26 @@ class FragmentsEngine {
   importSave(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = (e) => {
         try {
           const saveData = JSON.parse(e.target.result);
-          
+
           // Validar que sea para esta historia
           if (saveData.story_id !== this.config.story.id) {
-            reject('Este guardado es de otra historia');
+            reject("Este guardado es de otra historia");
             return;
           }
 
           this.gameState = saveData;
-          console.log('📥 Guardado importado');
+
           resolve(true);
         } catch (error) {
-          reject('Error leyendo el archivo: ' + error.message);
+          reject("Error leyendo el archivo: " + error.message);
         }
       };
 
-      reader.onerror = () => reject('Error leyendo el archivo');
+      reader.onerror = () => reject("Error leyendo el archivo");
       reader.readAsText(file);
     });
   }
@@ -698,14 +749,14 @@ class FragmentsEngine {
     for (let i = 1; i <= (this.config.settings.save_slots || 3); i++) {
       const slotKey = `fragments_save_${this.config.story.id}_slot${i}`;
       const savedData = localStorage.getItem(slotKey);
-      
+
       if (savedData) {
         const data = JSON.parse(savedData);
         saves.push({
           slot: i,
           day: data.current_day,
           saved_at: data.saved_at,
-          playtime: data.playtime
+          playtime: data.playtime,
         });
       }
     }
@@ -716,7 +767,6 @@ class FragmentsEngine {
   autoSave() {
     if (this.config.settings.auto_save) {
       this.saveToLocalStorage(0); // Slot 0 = auto-save
-      console.log('💾 Auto-guardado');
     }
   }
 }
