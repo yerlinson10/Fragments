@@ -76,4 +76,6 @@ app.use((req, res) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, HOST, () => {});
+app.listen(PORT, HOST, () => {
+    console.log(`http://${HOST}:${PORT}`);
+});
